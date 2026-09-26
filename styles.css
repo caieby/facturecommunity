@@ -3132,7 +3132,8 @@ select.hub-form-input {
     left: auto;
     width: min(58vw, 210px);
     min-width: 0;
-    max-height: 70vh;
+    max-height: 65vh;
+    max-height: 65dvh;
     overflow-y: auto;
     margin: 0;
     background: linear-gradient(165deg, #2a0a52 0%, #12081f 100%);
