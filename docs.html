@@ -1,0 +1,265 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docs | Facture</title>
+  <link rel="icon" type="image/png" href="assets/Facture_Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+  <div class="age-gate" id="ageGate" hidden>
+    <div class="age-gate-card">
+      <p class="age-gate-text">By entering this website, you agree that you are 18 years of age or older.</p>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEmh6xhRr9ApRWq6" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+      <div class="age-gate-buttons">
+        <button class="action-button" id="ageGateYes" disabled>Yes</button>
+        <button class="action-button" id="ageGateNo">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="announcement-banner">
+    <span class="announcement-text">Welcome to Facture!</span>
+    <a class="announcement-button" href="https://discord.com/invite/Facture" target="_blank" rel="noopener noreferrer">Join Us!</a>
+  </div>
+
+  <header class="topbar">
+    <a href="index.html" class="brand">
+      <img src="assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
+      <span class="brand-name">Facture</span>
+    </a>
+    <nav class="menu site-menu">
+      <a class="menu-toggle" href="social/">FACTUREHUB</a>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="menuDropdown">
+        <span class="menu-toggle-text">MENU</span>
+        <span class="hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+      <ul class="menu-dropdown" id="menuDropdown">
+        <li><a href="social/">FactureHub</a></li>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li><a href="games.html">Games</a></li>
+        <li><a href="community-gallery.html">Community Gallery</a></li>
+        <li><a href="support-us.html">Support Us</a></li>
+        <li><a href="terms-of-service.html">Terms Of Service</a></li>
+        <li><a href="analytics.html">Analytics</a></li>
+        <li><a href="about-us.html">About Us</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="info-page">
+    <h1 class="page-title">Docs</h1>
+
+    <nav class="quick-links" aria-label="Quick links">
+      <a class="quick-link" href="#boosting-rewards">Boosting Rewards</a>
+      <a class="quick-link" href="#server-contributor">Server Contributor</a>
+      <a class="quick-link" href="#role-leveling">Role Leveling</a>
+      <a class="quick-link" href="#donator-perks">Donator Perks</a>
+      <a class="quick-link" href="#warning-system">Warning System</a>
+      <a class="quick-link" href="#id-verification">ID Verification Process</a>
+      <a class="quick-link" href="#localhost-tutorial">Localhost Game Tutorial</a>
+      <a class="quick-link" href="#vfuse-verification">Vfuse Verification Tutorial</a>
+      <a class="quick-link" href="#outfit-changer">Outfit Changer (GOAT)</a>
+      <a class="quick-link" href="#staff">Staff</a>
+    </nav>
+
+    <hr class="section-divider">
+    <section class="section" id="boosting-rewards">
+      <h2 class="section-title">Boosting Rewards</h2>
+      <p class="section-intro">If you are interested in Facture's boosting rewards, you're in the right place!</p>
+      <ul class="section-list">
+        <li>Embed links/attach file permissions instantly!</li>
+        <li>You get to bypass slow mode in all channels!</li>
+        <li>Local Host Game Access</li>
+      </ul>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section" id="server-contributor">
+      <h2 class="section-title">Server Contributor</h2>
+      <ul class="section-list">
+        <li>Bypass Slowmode</li>
+        <li>Attach Files, without having to level up.</li>
+        <li>Embed Links, without having to level up.</li>
+        <li>Special Role Icon.</li>
+        <li>Special @Contributor role.</li>
+        <li>Gradient role coloring!</li>
+      </ul>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section" id="role-leveling">
+      <h2 class="section-title">Role Leveling</h2>
+      <p class="section-intro">Role leveling system.</p>
+      <ul class="section-list">
+        <li>Level 5 - Embed/attach file permissions</li>
+        <li>Level 5 - Local Host Game Access</li>
+        <li>Bypass Slowmode</li>
+      </ul>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section" id="donator-perks">
+      <h2 class="section-title">Donator Perks</h2>
+      <ul class="section-list">
+        <li>Donator role in the discord.</li>
+        <li>Access to donator local-host uploads.</li>
+        <li>Bypass Slowmode</li>
+        <li>Embed/Attach file permissions</li>
+        <li>Access to BETA uploads!</li>
+        <li>Local Host Game Access</li>
+      </ul>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section" id="warning-system">
+      <h2 class="section-title">Warning System</h2>
+      <ul class="section-list">
+        <li>2 warnings - 2 minute timeout</li>
+        <li>4 warnings - 10 minute timeout</li>
+        <li>5 warnings - Jailed (With ability to appeal.)</li>
+        <li>7 warnings - Kicked (1 use invite sent to dms so you can rejoin.)</li>
+        <li>9 warnings - 24-hour mute</li>
+        <li>10 warnings - Jailed again (with ability to appeal, possible ban.)</li>
+      </ul>
+    </section>
+
+    <hr class="category-divider">
+    <h2 class="category-title" id="id-verification">ID Verification Process</h2>
+    <p class="page-hint">There are three ways to get ID verified.</p>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h3 class="subsection-title">Government ID Verification</h3>
+      <ol class="step-list">
+        <li><strong>Step 1: Prepare a Valid Government-Issued ID.</strong> Before beginning the verification process, ensure that you have a valid government-issued photo identification document available. Acceptable forms of identification may include a driver&rsquo;s license, state-issued ID card, REAL ID, passport, or other government-issued identification.</li>
+        <li><strong>Step 2: Obtain a Blank Sheet of Paper.</strong> Prepare a blank sheet of paper that will be used as part of the verification process. Ensure the paper is clean, legible, and large enough to display any required information clearly in a photograph.</li>
+        <li><strong>Step 3: Prepare Your Identification Document.</strong> Place your government-issued identification document on the sheet of paper. For your privacy and security, redact, cover, or blur all information on the ID except your Date of Birth (DOB). Ensure that the Date of Birth remains clearly visible and readable in the final photograph.</li>
+        <li><strong>Step 4: Record Your Account Information.</strong> On the same sheet of paper, clearly write your Discord username (not your display name) alongside your Date of Birth (DOB). Ensure that both pieces of information are legible and match the information associated with your account and identification document.</li>
+        <li><strong>Step 5: Submit Your Verification Request.</strong> Take a clear photograph showing the required verification materials. Once the photograph has been taken, open a support ticket and submit everything for review.</li>
+      </ol>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h3 class="subsection-title">Roblox Verification</h3>
+      <ol class="step-list">
+        <li><strong>Step 1:</strong> Open Roblox.</li>
+        <li><strong>Step 2:</strong> Press the gear icon in the top right, then click Settings.</li>
+        <li><strong>Step 3:</strong> Record a short video of your age range and whether you are ID verified or not &mdash; you must be ID verified on Roblox to be verified via this method. Refresh the page a few times in the video to confirm the website wasn&rsquo;t tampered with, then open a support ticket and submit everything for review.</li>
+      </ol>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h3 class="subsection-title">Cross Verification</h3>
+      <p class="section-intro">You can only cross verify from servers we are partnered with.</p>
+      <ol class="step-list">
+        <li><strong>Step 1:</strong> Go to the server that we are partnered with, open your profile, and keep everything in view.</li>
+        <li><strong>Step 2:</strong> Take a screenshot of your profile, including your roles, so we can see if you have the verification role in that server.</li>
+        <li><strong>Step 3:</strong> Open a support ticket and submit everything for review.</li>
+      </ol>
+    </section>
+
+    <hr class="category-divider">
+    <h2 class="category-title" id="localhost-tutorial">Localhost Game Tutorial</h2>
+
+    <hr class="section-divider">
+    <section class="section">
+      <p class="section-intro">To join a localhost Roblox Studio game, you must have at least EbyTunnel installed.</p>
+      <ol class="step-list">
+        <li><strong>Step 1:</strong> Install EbyTunnel using the download button below.</li>
+        <li><strong>Step 2:</strong> Once EbyTunnel is installed, open it up, click &ldquo;JOIN SESSION&rdquo; and paste the IP and port there, then press &ldquo;Connect &amp; Launch.&rdquo; And you&rsquo;re in &mdash; Roblox Studio will automatically launch, and the game will open.</li>
+      </ol>
+      <div class="screenshot-frame">
+        <img class="screenshot-image" src="assets/ebytunnel.png" alt="EbyTunnel join session screenshot">
+      </div>
+      <div class="button-group">
+        <a class="action-button" href="https://mega.nz/file/2ppjDLJT#-hRTSWH_JnsHTyVJlAGN2E0yrgd_m_qmbfI4wORG9uk" target="_blank" rel="noopener noreferrer">Download EbyTunnel for Windows</a>
+      </div>
+    </section>
+
+    <hr class="category-divider">
+    <h2 class="category-title" id="vfuse-verification">Vfuse Verification Tutorial</h2>
+    <p class="page-hint">For specific uploads, we now use vFuse to verify user accounts and prevent impersonation, exploiting, etc.</p>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h3 class="subsection-title">What Vfuse Can Access</h3>
+      <ul class="section-list">
+        <li><strong>Vfuse Discord Bot:</strong> Usernames, banners, profiles, etc. All account information accessed is only public information that can be seen by anyone.</li>
+        <li><strong>Roblox Authenticator:</strong> Roblox user IDs, Roblox usernames, etc. All account information accessed is only public information that can be seen by anyone.</li>
+      </ul>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h3 class="subsection-title">Verification Steps</h3>
+      <ol class="step-list">
+        <li>
+          <strong>Step 1: Choose How You Want to Continue.</strong> Once you join the game, a menu will show up. For all new joiners, click &ldquo;First time setup.&rdquo;
+          <div class="screenshot-frame">
+            <img class="screenshot-image" src="assets/choose-how-you-want-to-continue.png" alt="Vfuse welcome menu with the First time setup option">
+          </div>
+        </li>
+        <li>
+          <strong>Step 2: Link Your Discord Account.</strong> Link your Discord account to our Discord bot &mdash; you must be in our server in order to do this. Click &ldquo;Generate Discord link&rdquo; and paste it into your browser of choice.
+          <div class="screenshot-frame">
+            <img class="screenshot-image" src="assets/link-discord-to-roblox.png" alt="Vfuse Discord linking screen">
+          </div>
+        </li>
+        <li>
+          <strong>Step 3: Authorize the Bot.</strong> Click &ldquo;Authorize.&rdquo; The bot can only access your username, avatar, and banner, and read your member info such as nickname, avatar, roles, etc. We do not collect personal information.
+          <div class="screenshot-frame">
+            <img class="screenshot-image" src="assets/vfuse-bot-screen.png" alt="Discord authorization screen for the Vfuse bot">
+          </div>
+        </li>
+        <li><strong>Step 4: Save Your Auth Code.</strong> Copy your auth code and save it somewhere secure &mdash; this is your personal key to access the game. If you ever lose your personal auth key, open a support ticket in the Discord server and we can retrieve it for you.</li>
+        <li><strong>Step 5: Finish in Studio.</strong> Go back to your Studio application, click continue, and paste in your auth code. You&rsquo;re in!</li>
+      </ol>
+    </section>
+
+    <hr class="category-divider">
+    <h2 class="category-title" id="outfit-changer">How to Use Outfit Changer (GOAT)</h2>
+    <p class="page-hint">Follow these instructions closely to figure out how to use our inbuilt outfit changer.</p>
+
+    <hr class="section-divider">
+    <section class="section">
+      <ol class="step-list">
+        <li>
+          <strong>Step 1:</strong> Copy this URL into your browser (do not press enter yet):
+          <span class="inline-code-row">
+            <code class="inline-code" id="outfitUrlStep1">https://avatar.roblox.com/v1/users/[YOUR USER ID]/outfits</code>
+            <button class="copy-button" data-copy-target="outfitUrlStep1" aria-label="Copy outfit URL">Copy</button>
+          </span>
+        </li>
+        <li><strong>Step 2:</strong> Replace <code class="inline-code">[YOUR USER ID]</code> with your Roblox user ID. You can get this by going to Roblox, going to your profile, and looking at the search box. You should see something like <code class="inline-code">https://www.roblox.com/users/1234567890/profile</code> &mdash; the number after &ldquo;users/&rdquo; needs to be copied; that is your user ID.</li>
+        <li><strong>Step 3 (Final Step):</strong> Go back to Step 1 and replace <code class="inline-code">[YOUR USER ID]</code> with your actual Roblox user ID (without the brackets). It should bring up a list of all of your outfit names and outfit IDs.</li>
+      </ol>
+    </section>
+
+    <hr class="category-divider">
+    <h2 class="category-title" id="staff">Staff</h2>
+
+    <hr class="section-divider">
+    <section class="section">
+      <p class="section-intro">Interested in joining the Facture Team? Click the button below to apply &mdash; in the application, you&rsquo;ll be able to choose from any of our available positions.</p>
+      <div class="button-group">
+        <a class="action-button" href="https://docs.google.com/forms/d/e/1FAIpQLSctNlgL7Fhi9pGs3IlaYSnH4uMQgslxfzhvEjLCqPpG_ZULtg/viewform?usp=dialog" target="_blank" rel="noopener noreferrer">Apply</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; Facture 2023-Present all rights reserved. This website was made by your favorite gooners&lt;3</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

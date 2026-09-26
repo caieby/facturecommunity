@@ -1,0 +1,152 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Games | Facture</title>
+  <link rel="icon" type="image/png" href="assets/Facture_Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+  <div class="age-gate" id="ageGate" hidden>
+    <div class="age-gate-card">
+      <p class="age-gate-text">By entering this website, you agree that you are 18 years of age or older.</p>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEmh6xhRr9ApRWq6" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+      <div class="age-gate-buttons">
+        <button class="action-button" id="ageGateYes" disabled>Yes</button>
+        <button class="action-button" id="ageGateNo">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="announcement-banner">
+    <span class="announcement-text">Welcome to Facture!</span>
+    <a class="announcement-button" href="https://discord.com/invite/Facture" target="_blank" rel="noopener noreferrer">Join Us!</a>
+  </div>
+
+  <header class="topbar">
+    <a href="index.html" class="brand">
+      <img src="assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
+      <span class="brand-name">Facture</span>
+    </a>
+    <nav class="menu site-menu">
+      <a class="menu-toggle" href="social/">FACTUREHUB</a>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="menuDropdown">
+        <span class="menu-toggle-text">MENU</span>
+        <span class="hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+      <ul class="menu-dropdown" id="menuDropdown">
+        <li><a href="social/">FactureHub</a></li>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="docs.html">Docs</a></li>
+        <li><a href="games.html">Games</a></li>
+        <li><a href="community-gallery.html">Community Gallery</a></li>
+        <li><a href="support-us.html">Support Us</a></li>
+        <li><a href="terms-of-service.html">Terms Of Service</a></li>
+        <li><a href="analytics.html">Analytics</a></li>
+        <li><a href="about-us.html">About Us</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="info-page">
+    <h1 class="page-title">Games</h1>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h2 class="section-title">Downloads</h2>
+      <div class="button-group">
+        <a class="action-button" href="https://mega.nz/file/WxQHTTab#TQCYHnQhn8VtwIvXn9QAd3vw1r-zh5IkmFO9VxmOHa4" target="_blank" rel="noopener noreferrer">Click here to download KoboldKare for free</a>
+        <a class="action-button" href="https://mega.nz/folder/ClJFSZyB#BP0ujr6mHj_7ByQcoQJLKw" target="_blank" rel="noopener noreferrer">Click here to access our .rbxl archive</a>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h2 class="section-title">Minecraft Server</h2>
+      <div class="server-info">
+        <div class="server-info-item server-info-item--wide">
+          <span class="server-info-label">IP</span>
+          <div class="server-info-value-row">
+            <span class="server-info-value" id="serverIp">minecraft.facturecommunity.org</span>
+            <button class="copy-button" data-copy-target="serverIp" aria-label="Copy server IP">Copy</button>
+          </div>
+        </div>
+        <div class="server-info-item">
+          <span class="server-info-label">Platform</span>
+          <span class="server-info-value">Java</span>
+        </div>
+        <div class="server-info-item">
+          <span class="server-info-label">Minecraft/Fabric Version</span>
+          <span class="server-info-value">1.21.11</span>
+        </div>
+        <div class="server-info-item">
+          <span class="server-info-label">Max Server Players</span>
+          <span class="server-info-value">100</span>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <div class="button-with-note">
+          <a class="action-button" href="downloads/Facture-1.0.0.mrpack" download>Download the Modpack</a>
+          <span class="button-note">Required to play</span>
+        </div>
+        <a class="action-button" href="https://modrinth.com/" target="_blank" rel="noopener noreferrer">Download Modrinth</a>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h2 class="section-title">Keys</h2>
+      <div class="server-info">
+        <div class="server-info-item server-info-item--wide">
+          <span class="server-info-label">Swordfight</span>
+          <div class="server-info-value-row">
+            <span class="server-info-value" id="keySwordfight">FactureSF</span>
+            <button class="copy-button" data-copy-target="keySwordfight" aria-label="Copy Swordfight key">Copy</button>
+          </div>
+        </div>
+        <div class="server-info-item server-info-item--wide">
+          <span class="server-info-label">Legacy Uploads GOAT / Vfuse Personal Key</span>
+          <div class="server-info-value-row">
+            <span class="server-info-value" id="keyGoat">FactureGOAT</span>
+            <button class="copy-button" data-copy-target="keyGoat" aria-label="Copy GOAT key">Copy</button>
+          </div>
+          <span class="button-note">Most of our modern GOAT games use Vfuse security verification &mdash; <a class="inline-link" href="docs.html#vfuse-verification">click here to learn how to complete it</a>.</span>
+        </div>
+        <div class="server-info-item server-info-item--wide">
+          <span class="server-info-label">Prison Life</span>
+          <div class="server-info-value-row">
+            <span class="server-info-value" id="keyPrison">FacturePrison</span>
+            <button class="copy-button" data-copy-target="keyPrison" aria-label="Copy Prison Life key">Copy</button>
+          </div>
+        </div>
+        <div class="server-info-item server-info-item--wide">
+          <span class="server-info-label">V4</span>
+          <div class="server-info-value-row">
+            <span class="server-info-value" id="keyV4">FactureV4</span>
+            <button class="copy-button" data-copy-target="keyV4" aria-label="Copy V4 key">Copy</button>
+          </div>
+        </div>
+        <div class="server-info-item server-info-item--wide">
+          <span class="server-info-label">Slap</span>
+          <div class="server-info-value-row">
+            <span class="server-info-value" id="keySlap">FactureSlap</span>
+            <button class="copy-button" data-copy-target="keySlap" aria-label="Copy Slap key">Copy</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; Facture 2023-Present all rights reserved. This website was made by your favorite gooners&lt;3</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

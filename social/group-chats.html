@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Group Chats | FactureHub</title>
+  <link rel="icon" type="image/png" href="/assets/Facture_Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+  <div class="age-gate" id="ageGate" hidden>
+    <div class="age-gate-card">
+      <p class="age-gate-text">By entering this website, you agree that you are 18 years of age or older.</p>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEmh6xhRr9ApRWq6" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+      <div class="age-gate-buttons">
+        <button class="action-button" id="ageGateYes" disabled>Yes</button>
+        <button class="action-button" id="ageGateNo">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="announcement-banner">
+    <span class="announcement-text">Welcome to Facture!</span>
+    <a class="announcement-button" href="https://discord.com/invite/Facture" target="_blank" rel="noopener noreferrer">Join Us!</a>
+  </div>
+
+  <header class="topbar">
+    <a href="/index.html" class="brand">
+      <img src="/assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
+      <span class="brand-name">Facture</span>
+    </a>
+    <nav class="menu">
+      <a class="menu-toggle" href="/social/home.html">&larr; Back to Home</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <h1 class="page-title">Group Chats</h1>
+    <p class="page-hint">Content coming soon.</p>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; Facture 2023-Present all rights reserved. This website was made by your favorite gooners&lt;3</p>
+  </footer>
+
+  <script src="/script.js"></script>
+</body>
+</html>

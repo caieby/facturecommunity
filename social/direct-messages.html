@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Direct Messages | FactureHub</title>
+  <link rel="icon" type="image/png" href="/assets/Facture_Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+  <div class="age-gate" id="ageGate" hidden>
+    <div class="age-gate-card">
+      <p class="age-gate-text">By entering this website, you agree that you are 18 years of age or older.</p>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEmh6xhRr9ApRWq6" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+      <div class="age-gate-buttons">
+        <button class="action-button" id="ageGateYes" disabled>Yes</button>
+        <button class="action-button" id="ageGateNo">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="announcement-banner">
+    <span class="announcement-text">Welcome to Facture!</span>
+    <a class="announcement-button" href="https://discord.com/invite/Facture" target="_blank" rel="noopener noreferrer">Join Us!</a>
+  </div>
+
+  <header class="topbar">
+    <a href="/index.html" class="brand">
+      <img src="/assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
+      <span class="brand-name">Facture</span>
+    </a>
+    <nav class="menu">
+      <a class="menu-toggle" href="/social/home.html">&larr; Back to Home</a>
+    </nav>
+  </header>
+
+  <main class="info-page" id="dmListView">
+    <h1 class="page-title">Direct Messages</h1>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h2 class="section-title">New Message</h2>
+      <form id="newDmForm" class="hub-form">
+        <label class="hub-form-label" for="newDmUsername">Username</label>
+        <input class="hub-form-input" type="text" id="newDmUsername" placeholder="username" required>
+        <p class="hub-form-error" id="newDmError"></p>
+        <button type="submit" class="action-button">Message</button>
+      </form>
+    </section>
+
+    <hr class="section-divider" id="requestsDivider" hidden>
+    <section class="section" id="requestsSection" hidden>
+      <h2 class="section-title">Message Requests</h2>
+      <div class="dm-list" id="requestsList"></div>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h2 class="section-title">Conversations</h2>
+      <p class="page-hint" id="noConversationsHint">No conversations yet.</p>
+      <div class="dm-list" id="conversationsList"></div>
+    </section>
+  </main>
+
+  <main class="info-page dm-thread-page" id="dmThreadView" hidden>
+    <div class="dm-thread-header">
+      <button type="button" class="menu-toggle dm-back-button" id="backToListButton" aria-label="Back to Messages">&larr;</button>
+      <img class="dm-thread-avatar" id="threadPartnerAvatar" alt="" hidden>
+      <div class="dm-thread-avatar dm-thread-avatar--placeholder" id="threadPartnerAvatarPlaceholder"></div>
+      <span class="dm-thread-name" id="threadPartnerName">Conversation</span>
+    </div>
+    <p class="page-hint" id="threadPendingNotice" hidden>Waiting for them to accept your message request.</p>
+
+    <div class="dm-thread" id="dmMessages"></div>
+
+    <div class="dm-composer">
+      <div class="dm-attachment-preview" id="attachmentPreview" hidden>
+        <span id="attachmentPreviewName"></span>
+        <div class="dm-upload-progress" id="uploadProgress" hidden>
+          <div class="dm-upload-progress-bar" id="uploadProgressBar"></div>
+        </div>
+        <button type="button" id="attachmentPreviewRemove" aria-label="Remove attachment">&times;</button>
+      </div>
+
+      <div class="dm-picker" id="gifPicker" hidden>
+        <div class="dm-picker-header">
+          <span>Favorite GIFs</span>
+          <button type="button" class="dm-picker-close" data-close-picker="gifPicker" aria-label="Close">&times;</button>
+        </div>
+        <div class="dm-picker-grid" id="gifPickerGrid">
+          <p class="dm-picker-empty" id="gifPickerEmpty">No favorite GIFs yet. Send a GIF, then click its star to save it here.</p>
+        </div>
+      </div>
+
+      <div class="dm-picker" id="emojiPicker" hidden>
+        <div class="dm-picker-header">
+          <span>Emojis</span>
+          <button type="button" class="dm-picker-close" data-close-picker="emojiPicker" aria-label="Close">&times;</button>
+        </div>
+        <div class="dm-picker-grid dm-emoji-grid" id="emojiPickerGrid"></div>
+      </div>
+
+      <form id="sendMessageForm" class="dm-send-form">
+        <button type="button" class="dm-icon-button" id="attachButton" aria-label="Attach a file">&#128206;</button>
+        <input type="file" id="attachmentInput" hidden>
+        <button type="button" class="dm-icon-button" id="gifPickerButton" aria-label="Favorite GIFs">
+          <span class="dm-gif-label">GIF</span>
+        </button>
+        <button type="button" class="dm-icon-button" id="emojiPickerButton" aria-label="Emojis">&#128512;</button>
+        <input class="dm-message-input" type="text" id="messageInput" placeholder="Type a message..." maxlength="2000">
+        <button type="submit" class="dm-send-button" id="sendMessageButton" aria-label="Send">&#10148;</button>
+      </form>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; Facture 2023-Present all rights reserved. This website was made by your favorite gooners&lt;3</p>
+  </footer>
+
+  <script src="/script.js"></script>
+  <script src="/social/direct-messages.js"></script>
+</body>
+</html>

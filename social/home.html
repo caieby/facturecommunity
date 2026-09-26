@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home | FactureHub</title>
+  <link rel="icon" type="image/png" href="../assets/Facture_Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+  <div class="age-gate" id="ageGate" hidden>
+    <div class="age-gate-card">
+      <p class="age-gate-text">By entering this website, you agree that you are 18 years of age or older.</p>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEmh6xhRr9ApRWq6" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+      <div class="age-gate-buttons">
+        <button class="action-button" id="ageGateYes" disabled>Yes</button>
+        <button class="action-button" id="ageGateNo">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="announcement-banner">
+    <span class="announcement-text">Welcome to Facture!</span>
+    <a class="announcement-button" href="https://discord.com/invite/Facture" target="_blank" rel="noopener noreferrer">Join Us!</a>
+  </div>
+
+  <header class="topbar">
+    <a href="../index.html" class="brand">
+      <img src="../assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
+      <span class="brand-name">Facture</span>
+    </a>
+    <nav class="menu">
+      <div class="menu-item">
+        <button class="menu-toggle menu-toggle--icon" id="notifMenuToggle" aria-expanded="false" aria-controls="notifMenuDropdown" aria-label="Notifications">
+          &#128276;
+          <span class="notif-badge" id="notifBadge" hidden>0</span>
+        </button>
+        <ul class="menu-dropdown notif-dropdown" id="notifMenuDropdown">
+          <li class="notif-empty" id="notifEmpty">No notifications yet.</li>
+        </ul>
+      </div>
+      <div class="menu-item">
+        <button class="menu-toggle menu-toggle--icon" id="chatMenuToggle" aria-expanded="false" aria-controls="chatMenuDropdown" aria-label="Chats">&#128172;</button>
+        <ul class="menu-dropdown" id="chatMenuDropdown">
+          <li><a href="/social/direct-messages.html">Direct Messages</a></li>
+          <li><a href="/social/group-chats.html">Group Chats</a></li>
+        </ul>
+      </div>
+      <div class="menu-item">
+        <button class="menu-toggle menu-toggle--icon" id="menuToggle" aria-expanded="false" aria-controls="menuDropdown" aria-label="Settings">&#9881;</button>
+        <ul class="menu-dropdown" id="menuDropdown">
+          <li><a href="#" id="profileMenuLink">Profile</a></li>
+          <li><a href="/social/settings.html">Settings</a></li>
+          <li><a href="#" id="homeLogoutButton">Log Out</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <div class="page-loading" id="pageLoading">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <main class="page" id="homeContent" hidden>
+    <img class="home-banner" id="homeBanner" alt="Your profile banner" hidden>
+    <img class="home-avatar" id="homeAvatar" alt="Your profile picture" hidden>
+    <h1 class="page-title" id="homeGreeting">Welcome</h1>
+
+    <div class="home-nav-buttons">
+      <a class="action-button action-button--small" href="/social/matchmaking.html">Matchmaking</a>
+      <a class="action-button action-button--small" href="/social/feed.html">Main Feed</a>
+      <a class="action-button action-button--small" href="/social/chat.html">Public Chat</a>
+    </div>
+  </main>
+
+  <div class="hub-modal" id="onboardModal" hidden>
+    <div class="hub-modal-card hub-modal-card--wide onboard-card">
+      <h2 class="subsection-title">Welcome to FactureHub</h2>
+      <p class="section-intro">Set up your profile to get started. Everything below is visible publicly.</p>
+
+      <div class="onboard-progress">
+        <span class="onboard-progress-dot active" data-step-dot="1"></span>
+        <span class="onboard-progress-dot" data-step-dot="2"></span>
+        <span class="onboard-progress-dot" data-step-dot="3"></span>
+      </div>
+
+      <form id="onboardForm" class="hub-form onboard-form">
+        <div class="onboard-step" data-step="1">
+          <div class="onboard-photos">
+            <button type="button" class="onboard-banner-drop" id="onboardBannerDrop">
+              <img class="onboard-banner-preview" id="onboardBannerPreview" alt="" hidden>
+              <span class="onboard-banner-placeholder" id="onboardBannerPlaceholder">&#128247; Add Banner</span>
+              <input type="file" id="onboardBannerInput" accept="image/*" hidden>
+            </button>
+
+            <button type="button" class="onboard-avatar-drop" id="onboardAvatarDrop">
+              <img class="onboard-avatar-preview" id="onboardAvatarPreview" alt="" hidden>
+              <span class="onboard-avatar-placeholder" id="onboardAvatarPlaceholder">+</span>
+              <input type="file" id="onboardAvatarInput" accept="image/*" hidden>
+            </button>
+          </div>
+          <div class="onboard-photo-status">
+            <span class="onboard-badge onboard-badge--required">Profile Picture Required</span>
+            <p class="hub-form-status" id="onboardAvatarStatus"></p>
+            <p class="hub-form-status" id="onboardBannerStatus"></p>
+          </div>
+        </div>
+
+        <div class="onboard-step" data-step="2" hidden>
+          <label class="hub-form-label" for="onboardUsername">Username <span class="onboard-badge onboard-badge--required">Required</span></label>
+          <input class="hub-form-input" type="text" id="onboardUsername" maxlength="20" required>
+
+          <label class="hub-form-label" for="onboardDisplayName">Display Name <span class="onboard-badge onboard-badge--required">Required</span></label>
+          <input class="hub-form-input" type="text" id="onboardDisplayName" maxlength="32" required>
+
+          <label class="hub-form-label" for="onboardGenderIdentity">Gender Identity <span class="onboard-badge onboard-badge--required">Required</span></label>
+          <input class="hub-form-input" type="text" id="onboardGenderIdentity" maxlength="50" required>
+        </div>
+
+        <div class="onboard-step" data-step="3" hidden>
+          <label class="hub-form-label" for="onboardBio">Bio <span class="onboard-badge onboard-badge--optional">Optional</span></label>
+          <textarea class="hub-form-input hub-form-textarea" id="onboardBio" maxlength="500"></textarea>
+
+          <label class="hub-form-label" for="onboardPronouns">Pronouns <span class="onboard-badge onboard-badge--optional">Optional</span></label>
+          <input class="hub-form-input" type="text" id="onboardPronouns" maxlength="50">
+
+          <label class="hub-form-label" for="onboardSexuality">Sexuality <span class="onboard-badge onboard-badge--optional">Optional</span></label>
+          <input class="hub-form-input" type="text" id="onboardSexuality" maxlength="50">
+        </div>
+
+        <p class="hub-form-error" id="onboardError"></p>
+
+        <div class="onboard-nav">
+          <button type="button" class="onboard-back-button" id="onboardBackButton" hidden>&larr; Back</button>
+          <button type="button" class="onboard-skip-button" id="onboardSkipButton" hidden>Skip</button>
+          <button type="button" class="action-button onboard-submit" id="onboardNextButton">Next</button>
+          <button type="submit" class="action-button onboard-submit" id="onboardSubmitButton" hidden>Finish Setup</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="hub-modal" id="restoreDeletionModal" hidden>
+    <div class="hub-modal-card">
+      <h2 class="subsection-title">Account Scheduled for Deletion</h2>
+      <p class="section-intro">Your account is scheduled to be permanently deleted on <strong id="restoreDeletionDate"></strong>. Restore it now to keep your account.</p>
+      <p class="hub-form-error" id="restoreDeletionError"></p>
+      <button type="button" class="action-button" id="restoreDeletionButton">Restore My Account</button>
+    </div>
+  </div>
+
+  <div class="hub-modal" id="reactivateModal" hidden>
+    <div class="hub-modal-card">
+      <h2 class="subsection-title">Welcome Back</h2>
+      <p class="section-intro">Your account is currently deactivated. Reactivate it to continue.</p>
+      <p class="hub-form-error" id="reactivateError"></p>
+      <button type="button" class="action-button" id="reactivateButton">Reactivate Account</button>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>&copy; Facture 2023-Present all rights reserved. This website was made by your favorite gooners&lt;3</p>
+  </footer>
+
+  <script src="../script.js"></script>
+  <script src="home.js"></script>
+</body>
+</html>

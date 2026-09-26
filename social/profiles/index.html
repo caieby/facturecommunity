@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile | FactureHub</title>
+  <link rel="icon" type="image/png" href="/assets/Facture_Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body>
+  <div class="age-gate" id="ageGate" hidden>
+    <div class="age-gate-card">
+      <p class="age-gate-text">By entering this website, you agree that you are 18 years of age or older.</p>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEmh6xhRr9ApRWq6" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+      <div class="age-gate-buttons">
+        <button class="action-button" id="ageGateYes" disabled>Yes</button>
+        <button class="action-button" id="ageGateNo">No</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="announcement-banner">
+    <span class="announcement-text">Welcome to Facture!</span>
+    <a class="announcement-button" href="https://discord.com/invite/Facture" target="_blank" rel="noopener noreferrer">Join Us!</a>
+  </div>
+
+  <header class="topbar">
+    <a href="/index.html" class="brand">
+      <img src="/assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
+      <span class="brand-name">Facture</span>
+    </a>
+    <nav class="menu">
+      <a class="menu-toggle" href="/social/home.html">&larr; Back to Home</a>
+    </nav>
+  </header>
+
+  <div class="page-loading" id="pageLoading">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <main class="page" id="profileContent" hidden>
+    <div class="profile-banner-frame" id="profileBannerFrame" hidden>
+      <img class="home-banner" id="profileBanner" alt="Profile banner">
+    </div>
+    <div class="profile-avatar-frame" id="profileAvatarFrame" hidden>
+      <img class="home-avatar" id="profileAvatar" alt="Profile picture">
+    </div>
+    <div class="profile-name-row">
+      <h1 class="page-title" id="profileDisplayName">Profile</h1>
+      <span class="profile-name-badges" id="profileNameBadges"></span>
+      <button type="button" class="profile-edit-button" id="profileEditButton" aria-label="Edit your profile" hidden>&#9998;</button>
+    </div>
+    <p class="hero-subtitle" id="profileUsername"></p>
+
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <span class="profile-stat-value" id="profileFriendsCount">0</span>
+        <span class="profile-stat-label">Friends</span>
+      </div>
+      <div class="profile-stat">
+        <span class="profile-stat-value" id="profileFollowersCount">0</span>
+        <span class="profile-stat-label">Followers</span>
+      </div>
+      <div class="profile-stat">
+        <span class="profile-stat-value" id="profileFollowingCount">0</span>
+        <span class="profile-stat-label">Following</span>
+      </div>
+    </div>
+
+    <div class="button-group" id="followButtonGroup" hidden>
+      <button type="button" class="action-button action-button--small follow-button" id="followButton">Follow</button>
+    </div>
+
+    <div class="profile-bio-block">
+      <p class="hub-user-greeting" id="profilePronouns"></p>
+      <p class="section-intro" id="profileBio"></p>
+
+      <div class="server-info server-info--compact" id="profileDetails">
+        <div class="server-info-item">
+          <span class="server-info-label">Sexuality</span>
+          <span class="server-info-value" id="profileSexuality">&mdash;</span>
+        </div>
+        <div class="server-info-item">
+          <span class="server-info-label">Gender Identity</span>
+          <span class="server-info-value" id="profileGenderIdentity">&mdash;</span>
+        </div>
+        <div class="server-info-item">
+          <span class="server-info-label">Joined</span>
+          <span class="server-info-value" id="profileJoinedDate">&mdash;</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider profile-tabs-divider">
+
+    <div class="profile-tabs" id="profileTabs">
+      <button type="button" class="profile-tab active" data-tab="posts">Posts</button>
+      <button type="button" class="profile-tab" data-tab="replies">Replies</button>
+      <button type="button" class="profile-tab" data-tab="media">Media</button>
+    </div>
+
+    <div class="feed-list profile-post-list" id="profilePostList"></div>
+    <p class="feed-empty" id="profilePostEmpty" hidden>Nothing here yet.</p>
+  </main>
+
+  <main class="page" id="profileNotFound" hidden>
+    <h1 class="page-title">Profile Not Found</h1>
+    <p class="page-hint">This FactureHub profile doesn&rsquo;t exist.</p>
+    <a class="action-button page-button" href="/social/home.html">Back to Home</a>
+  </main>
+
+  <div class="hub-modal" id="editProfileModal" hidden>
+    <div class="hub-modal-card hub-modal-card--wide">
+      <button type="button" class="hub-modal-close" data-modal-close="editProfileModal" aria-label="Close">&times;</button>
+      <h2 class="subsection-title">Edit Your Profile</h2>
+      <p class="section-intro">Everything below is visible publicly on your profile.</p>
+
+      <form id="editProfileForm" class="hub-form onboard-form">
+        <div class="onboard-photos">
+          <button type="button" class="onboard-banner-drop" id="editBannerDrop">
+            <img class="onboard-banner-preview" id="editBannerPreview" alt="" hidden>
+            <span class="onboard-banner-placeholder" id="editBannerPlaceholder">&#128247; Change Banner</span>
+            <input type="file" id="editBannerInput" accept="image/*" hidden>
+          </button>
+
+          <button type="button" class="onboard-avatar-drop" id="editAvatarDrop">
+            <img class="onboard-avatar-preview" id="editAvatarPreview" alt="" hidden>
+            <span class="onboard-avatar-placeholder" id="editAvatarPlaceholder">+</span>
+            <input type="file" id="editAvatarInput" accept="image/*" hidden>
+          </button>
+        </div>
+        <div class="onboard-photo-status">
+          <p class="hub-form-status" id="editAvatarStatus"></p>
+          <p class="hub-form-status" id="editBannerStatus"></p>
+        </div>
+
+        <hr class="onboard-divider">
+
+        <label class="hub-form-label" for="editDisplayName">Display Name</label>
+        <input class="hub-form-input" type="text" id="editDisplayName" required>
+
+        <hr class="onboard-divider">
+
+        <label class="hub-form-label" for="editBio">Bio <span class="onboard-badge onboard-badge--optional">Optional</span></label>
+        <textarea class="hub-form-input hub-form-textarea" id="editBio" maxlength="500"></textarea>
+
+        <label class="hub-form-label" for="editPronouns">Pronouns <span class="onboard-badge onboard-badge--optional">Optional</span></label>
+        <input class="hub-form-input" type="text" id="editPronouns" maxlength="50">
+
+        <label class="hub-form-label" for="editSexuality">Sexuality <span class="onboard-badge onboard-badge--optional">Optional</span></label>
+        <input class="hub-form-input" type="text" id="editSexuality" maxlength="50">
+
+        <label class="hub-form-label" for="editGenderIdentity">Gender Identity <span class="onboard-badge onboard-badge--required">Required</span></label>
+        <input class="hub-form-input" type="text" id="editGenderIdentity" maxlength="50" required>
+
+        <hr class="onboard-divider">
+
+        <label class="hub-form-label">Profile Color <span class="onboard-badge onboard-badge--optional">Optional</span></label>
+        <div class="color-swatch-row" id="colorSwatchRow">
+          <button type="button" class="color-swatch color-swatch--default" data-color="" data-type="" title="Default"></button>
+          <button type="button" class="color-swatch" data-color="#a855f7" data-type="solid" style="background:#a855f7;" title="Purple"></button>
+          <button type="button" class="color-swatch" data-color="#f43f5e" data-type="solid" style="background:#f43f5e;" title="Red"></button>
+          <button type="button" class="color-swatch" data-color="#f97316" data-type="solid" style="background:#f97316;" title="Orange"></button>
+          <button type="button" class="color-swatch" data-color="#facc15" data-type="solid" style="background:#facc15;" title="Yellow"></button>
+          <button type="button" class="color-swatch" data-color="#22c55e" data-type="solid" style="background:#22c55e;" title="Green"></button>
+          <button type="button" class="color-swatch" data-color="#3b82f6" data-type="solid" style="background:#3b82f6;" title="Blue"></button>
+          <button type="button" class="color-swatch" data-color="#ec4899" data-type="solid" style="background:#ec4899;" title="Pink"></button>
+          <button type="button" class="color-swatch" data-color="linear-gradient(90deg, #a855f7, #ec4899)" data-type="gradient" style="background:linear-gradient(90deg, #a855f7, #ec4899);" title="Purple to Pink"></button>
+          <button type="button" class="color-swatch" data-color="linear-gradient(90deg, #3b82f6, #a855f7)" data-type="gradient" style="background:linear-gradient(90deg, #3b82f6, #a855f7);" title="Blue to Purple"></button>
+          <button type="button" class="color-swatch" data-color="linear-gradient(90deg, #f97316, #ec4899)" data-type="gradient" style="background:linear-gradient(90deg, #f97316, #ec4899);" title="Sunset"></button>
+        </div>
+        <div class="color-custom-row">
+          <label for="editCustomColorInput" class="color-custom-label">Custom:</label>
+          <input type="color" id="editCustomColorInput" class="color-custom-input" value="#f5f0ff">
+        </div>
+
+        <p class="hub-form-error" id="editProfileError"></p>
+        <button type="submit" class="action-button onboard-submit">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <button type="button" class="feed-fab" id="profileFab" aria-label="Create a post" hidden>&#9998;</button>
+
+  <div class="hub-modal" id="profilePostModal" hidden>
+    <div class="hub-modal-card hub-modal-card--wide">
+      <button type="button" class="hub-modal-close" data-modal-close="profilePostModal" aria-label="Close">&times;</button>
+      <h2 class="subsection-title">Create Post</h2>
+
+      <div class="feed-composer" id="profileComposer">
+        <div class="feed-composer-main">
+          <img class="feed-composer-avatar" id="profileComposerAvatar" alt="" hidden>
+          <div class="feed-composer-avatar feed-composer-avatar--placeholder" id="profileComposerAvatarPlaceholder" hidden></div>
+
+          <div class="feed-composer-fields">
+            <textarea class="hub-form-input feed-composer-input" id="profileComposerInput" maxlength="500" placeholder="What's happening?"></textarea>
+            <span class="feed-char-count" id="profileCharCount">0 / 500</span>
+
+            <div class="feed-composer-media" id="profileComposerMedia" hidden>
+              <img class="feed-composer-media-preview" id="profileComposerMediaPreview" alt="" hidden>
+              <video class="feed-composer-media-preview" id="profileComposerVideoPreview" controls hidden></video>
+              <button type="button" class="feed-composer-media-remove" id="profileComposerMediaRemove" aria-label="Remove attachment">&times;</button>
+              <button type="button" class="dm-gif-favorite-button" id="profileSaveGifFavorite" aria-label="Save as favorite GIF" hidden>&#9733;</button>
+            </div>
+            <p class="hub-form-status" id="profileComposerMediaStatus"></p>
+            <div class="dm-upload-progress" id="profileUploadProgress" hidden>
+              <div class="dm-upload-progress-bar" id="profileUploadProgressBar"></div>
+            </div>
+
+            <div class="dm-picker" id="profileGifPicker" hidden>
+              <div class="dm-picker-header">
+                <span>Favorite GIFs</span>
+                <button type="button" class="dm-picker-close" data-close-picker="profileGifPicker" aria-label="Close">&times;</button>
+              </div>
+              <div class="dm-picker-grid" id="profileGifPickerGrid">
+                <p class="dm-picker-empty" id="profileGifPickerEmpty">No favorite GIFs yet.</p>
+              </div>
+            </div>
+
+            <div class="feed-composer-row">
+              <div class="feed-composer-selects">
+                <button type="button" class="dm-icon-button" id="profileAttachButton" aria-label="Attach an image or video">&#128206;</button>
+                <input type="file" id="profileAttachInput" accept="image/*,video/*" hidden>
+                <button type="button" class="dm-icon-button" id="profileGifButton" aria-label="Favorite GIFs">
+                  <span class="dm-gif-label">GIF</span>
+                </button>
+                <label class="feed-select-pill" title="Who can see this post">
+                  <span class="feed-select-icon">&#128065;</span>
+                  <select class="feed-select" id="profileVisibilitySelect">
+                    <option value="everyone">Everyone</option>
+                    <option value="followers">Followers</option>
+                    <option value="friends">Friends</option>
+                  </select>
+                </label>
+                <label class="feed-select-pill" title="Who can interact with this post">
+                  <span class="feed-select-icon">&#128172;</span>
+                  <select class="feed-select" id="profileReplySelect">
+                    <option value="everyone">Everyone</option>
+                    <option value="followers">Followers</option>
+                    <option value="friends">Friends</option>
+                  </select>
+                </label>
+              </div>
+              <button type="button" class="action-button action-button--small" id="profilePostButton">Post</button>
+            </div>
+            <p class="hub-form-error" id="profileComposerError"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <p>&copy; Facture 2023-Present all rights reserved. This website was made by your favorite gooners&lt;3</p>
+  </footer>
+
+  <script src="/script.js"></script>
+  <script src="/social/posts.js"></script>
+  <script src="/social/profiles/view.js"></script>
+</body>
+</html>
