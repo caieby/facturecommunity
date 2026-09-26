@@ -281,6 +281,10 @@ body {
   justify-content: space-between;
   padding: 1.5rem;
   z-index: 100;
+  background: linear-gradient(180deg, rgba(20, 9, 33, 0.7), rgba(20, 9, 33, 0));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.12);
 }
 
 .brand {
@@ -324,15 +328,17 @@ body {
   color: var(--white);
   text-decoration: none;
   padding: 0.7rem 1.5rem;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid var(--purple-bright);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(109, 40, 217, 0.18));
+  border: 1px solid rgba(168, 85, 247, 0.55);
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
 }
 
 .menu-toggle:hover {
-  background: rgba(168, 85, 247, 0.3);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.38), rgba(109, 40, 217, 0.3));
+  border-color: var(--purple-bright);
+  box-shadow: 0 0 22px rgba(168, 85, 247, 0.35);
 }
 
 .menu-toggle--icon {
@@ -2682,6 +2688,10 @@ select.hub-form-input {
   padding: calc(8rem + var(--banner-height)) 2rem 5rem;
 }
 
+.info-page.site-page {
+  padding-top: calc(6rem + var(--banner-height));
+}
+
 .info-page .page-title {
   text-align: center;
   font-size: clamp(2.5rem, 8vw, 4rem);
@@ -2904,14 +2914,16 @@ select.hub-form-input {
   text-decoration: none;
   text-align: center;
   padding: 1rem 1.5rem;
-  background: rgba(168, 85, 247, 0.15);
-  border: 1px solid var(--purple-bright);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.22), rgba(109, 40, 217, 0.2));
+  border: 1px solid rgba(168, 85, 247, 0.6);
   border-radius: 999px;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
 }
 
 .action-button:hover {
-  background: rgba(168, 85, 247, 0.35);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(109, 40, 217, 0.32));
+  border-color: var(--purple-bright);
+  box-shadow: 0 8px 28px rgba(168, 85, 247, 0.3);
   transform: translateY(-2px);
 }
 
@@ -3099,22 +3111,38 @@ select.hub-form-input {
     transform: translateY(-6.5px) rotate(-45deg);
   }
 
+  body:has(.site-menu .menu-dropdown.open)::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 150;
+    background: rgba(10, 4, 20, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    animation: siteMenuBackdropIn 0.35s ease forwards;
+  }
+
+  @keyframes siteMenuBackdropIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
   .site-menu .menu-dropdown {
     position: fixed;
     inset: 0 0 0 auto;
     height: 100vh;
-    width: min(78vw, 300px);
+    width: min(80vw, 320px);
     min-width: 0;
     margin: 0;
-    background: linear-gradient(165deg, var(--purple-deep) 0%, #140a20 100%);
+    background: linear-gradient(165deg, #2a0a52 0%, #12081f 100%);
     border: none;
-    border-left: 1px solid var(--purple-mid);
-    border-radius: 0;
-    box-shadow: -12px 0 45px rgba(0, 0, 0, 0.55);
+    border-left: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 20px 0 0 20px;
+    box-shadow: -20px 0 60px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 0.25rem;
+    gap: 0.15rem;
     padding: 2rem 0;
     transform: translateX(100%);
     opacity: 1;
@@ -3131,9 +3159,15 @@ select.hub-form-input {
   .site-menu .menu-dropdown li a {
     font-size: 1.1rem;
     padding: 1rem 2rem;
+    border-radius: 12px;
+    margin: 0 0.75rem;
     opacity: 0;
     transform: translateX(24px);
-    transition: opacity 0.35s ease, transform 0.35s ease;
+    transition: opacity 0.35s ease, transform 0.35s ease, background 0.2s ease;
+  }
+
+  .site-menu .menu-dropdown li a:hover {
+    background: rgba(168, 85, 247, 0.18);
   }
 
   .site-menu .menu-dropdown.open li a {
@@ -3144,9 +3178,18 @@ select.hub-form-input {
   .site-menu .menu-dropdown li:first-child a {
     color: var(--purple-bright);
     font-weight: 700;
-    border-bottom: 1px solid var(--purple-mid);
-    margin-bottom: 0.5rem;
-    padding-bottom: 1.25rem;
+    background: rgba(168, 85, 247, 0.12);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    margin: 0 0.75rem 0.75rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .site-menu .menu-dropdown li:first-child a:hover {
+    background: rgba(168, 85, 247, 0.28);
+  }
+
+  .site-menu .menu-dropdown li:not(:first-child) + li {
+    margin-top: 0.1rem;
   }
 
   .site-menu .menu-dropdown li:nth-child(1) a { transition-delay: 0.06s; }
@@ -3161,6 +3204,12 @@ select.hub-form-input {
 
   .hero,
   .page {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+
+  .info-page.site-page {
+    padding-top: calc(4.5rem + var(--banner-height));
     padding-left: 1.25rem;
     padding-right: 1.25rem;
   }
