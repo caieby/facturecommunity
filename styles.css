@@ -3116,9 +3116,7 @@ select.hub-form-input {
     position: fixed;
     inset: 0;
     z-index: 150;
-    background: rgba(10, 4, 20, 0.55);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(10, 4, 20, 0.6);
     animation: siteMenuBackdropIn 0.35s ease forwards;
   }
 
@@ -3131,19 +3129,19 @@ select.hub-form-input {
     position: fixed;
     inset: 0 0 0 auto;
     height: 100vh;
-    width: min(80vw, 320px);
+    width: min(68vw, 240px);
     min-width: 0;
     margin: 0;
     background: linear-gradient(165deg, #2a0a52 0%, #12081f 100%);
     border: none;
     border-left: 1px solid rgba(168, 85, 247, 0.3);
-    border-radius: 20px 0 0 20px;
+    border-radius: 16px 0 0 16px;
     box-shadow: -20px 0 60px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 0.15rem;
-    padding: 2rem 0;
+    gap: 0.1rem;
+    padding: 1.25rem 0;
     transform: translateX(100%);
     opacity: 1;
     visibility: hidden;
@@ -3157,10 +3155,10 @@ select.hub-form-input {
   }
 
   .site-menu .menu-dropdown li a {
-    font-size: 1.1rem;
-    padding: 1rem 2rem;
-    border-radius: 12px;
-    margin: 0 0.75rem;
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    margin: 0 0.6rem;
     opacity: 0;
     transform: translateX(24px);
     transition: opacity 0.35s ease, transform 0.35s ease, background 0.2s ease;
@@ -3180,8 +3178,8 @@ select.hub-form-input {
     font-weight: 700;
     background: rgba(168, 85, 247, 0.12);
     border: 1px solid rgba(168, 85, 247, 0.3);
-    margin: 0 0.75rem 0.75rem;
-    padding: 1rem 1.25rem;
+    margin: 0 0.6rem 0.5rem;
+    padding: 0.6rem 1rem;
   }
 
   .site-menu .menu-dropdown li:first-child a:hover {
