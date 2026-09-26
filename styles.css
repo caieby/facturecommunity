@@ -3111,20 +3111,6 @@ select.hub-form-input {
     transform: translateY(-6.5px) rotate(-45deg);
   }
 
-  body:has(.site-menu .menu-dropdown.open)::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 150;
-    background: rgba(10, 4, 20, 0.6);
-    animation: siteMenuBackdropIn 0.35s ease forwards;
-  }
-
-  @keyframes siteMenuBackdropIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
   .site-menu .menu-dropdown {
     position: absolute;
     top: calc(100% + 0.6rem);
@@ -3132,8 +3118,8 @@ select.hub-form-input {
     left: auto;
     width: min(58vw, 210px);
     min-width: 0;
-    max-height: 65vh;
-    max-height: 65dvh;
+    max-height: 85vh;
+    max-height: 85dvh;
     overflow-y: auto;
     margin: 0;
     background: linear-gradient(165deg, #2a0a52 0%, #12081f 100%);
