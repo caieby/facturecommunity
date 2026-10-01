@@ -144,6 +144,15 @@
         <label class="hub-form-label" for="editDisplayName">Display Name</label>
         <input class="hub-form-input" type="text" id="editDisplayName" required>
 
+        <label class="hub-form-label" for="editUsername">Username</label>
+        <input class="hub-form-input" type="text" id="editUsername" required>
+        <p class="hub-form-status" id="editUsernameHint"></p>
+
+        <div id="editUsernamePasswordRow" hidden>
+          <label class="hub-form-label" for="editUsernamePassword">Current Password <span class="onboard-badge onboard-badge--required">Required to change username</span></label>
+          <input class="hub-form-input" type="password" id="editUsernamePassword" autocomplete="current-password">
+        </div>
+
         <hr class="onboard-divider">
 
         <label class="hub-form-label" for="editBio">Bio <span class="onboard-badge onboard-badge--optional">Optional</span></label>
