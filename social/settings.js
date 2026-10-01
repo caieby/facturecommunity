@@ -20,6 +20,10 @@ const settingsConfirmPassword = document.getElementById('settingsConfirmPassword
 const passwordFormError = document.getElementById('passwordFormError');
 const passwordFormStatus = document.getElementById('passwordFormStatus');
 
+const deletePostsButton = document.getElementById('deletePostsButton');
+const deletePostsError = document.getElementById('deletePostsError');
+const deletePostsStatus = document.getElementById('deletePostsStatus');
+
 const deactivateButton = document.getElementById('deactivateButton');
 const deactivateError = document.getElementById('deactivateError');
 const deactivateStatus = document.getElementById('deactivateStatus');
@@ -150,6 +154,30 @@ passwordForm.addEventListener('submit', async (event) => {
   }
 
   submitButton.disabled = false;
+});
+
+deletePostsButton.addEventListener('click', async () => {
+  deletePostsError.textContent = '';
+  deletePostsStatus.textContent = '';
+
+  const confirmed = window.confirm('Permanently delete all of your posts? This cannot be undone.');
+  if (!confirmed) return;
+
+  deletePostsButton.disabled = true;
+
+  const { error } = await client
+    .from('posts')
+    .delete()
+    .eq('author_id', currentSession.user.id);
+
+  if (error) {
+    deletePostsError.textContent = error.message;
+    deletePostsButton.disabled = false;
+    return;
+  }
+
+  deletePostsStatus.textContent = 'All of your posts have been deleted.';
+  deletePostsButton.disabled = false;
 });
 
 deactivateButton.addEventListener('click', async () => {
