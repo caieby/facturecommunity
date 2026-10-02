@@ -5,7 +5,15 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentSession = null;
 
-const settingsUsername = document.getElementById('settingsUsername');
+const usernameForm = document.getElementById('usernameForm');
+const settingsUsernameInput = document.getElementById('settingsUsernameInput');
+const settingsUsernamePassword = document.getElementById('settingsUsernamePassword');
+const usernameFormError = document.getElementById('usernameFormError');
+const usernameFormStatus = document.getElementById('usernameFormStatus');
+const usernameHint = document.getElementById('usernameHint');
+let originalUsername = '';
+let usernameChangedAt = null;
+
 const settingsEmailStatus = document.getElementById('settingsEmailStatus');
 const emailForm = document.getElementById('emailForm');
 const settingsEmailInput = document.getElementById('settingsEmailInput');
@@ -55,15 +63,100 @@ async function init() {
 
   const { data: profile } = await client
     .from('profiles')
-    .select('username, dm_privacy')
+    .select('username, dm_privacy, username_changed_at')
     .eq('id', session.user.id)
     .single();
 
-  settingsUsername.textContent = profile ? `@${profile.username}` : 'Unknown';
+  originalUsername = (profile && profile.username) || '';
+  usernameChangedAt = profile ? profile.username_changed_at : null;
+  settingsUsernameInput.value = originalUsername;
+  updateUsernameHint();
   dmPrivacySelect.value = (profile && profile.dm_privacy) || 'everyone';
 
   refreshEmailStatus(userData.user);
 }
+
+function isValidUsername(username) {
+  return /^[a-zA-Z0-9_]{3,20}$/.test(username);
+}
+
+function getUsernameCooldownDaysLeft() {
+  if (!usernameChangedAt) return 0;
+  const msSinceChange = Date.now() - new Date(usernameChangedAt).getTime();
+  const daysSinceChange = msSinceChange / (1000 * 60 * 60 * 24);
+  return Math.max(0, Math.ceil(7 - daysSinceChange));
+}
+
+function updateUsernameHint() {
+  const daysLeft = getUsernameCooldownDaysLeft();
+  usernameHint.textContent = daysLeft > 0
+    ? `You can change your username again in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`
+    : 'Changing your username requires your current password and can only be done once every 7 days.';
+}
+
+usernameForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  usernameFormError.textContent = '';
+  usernameFormStatus.textContent = '';
+
+  const newUsername = settingsUsernameInput.value.trim();
+
+  if (newUsername === originalUsername) {
+    usernameFormError.textContent = 'That is already your username.';
+    return;
+  }
+  if (!isValidUsername(newUsername)) {
+    usernameFormError.textContent = 'Usernames must be 3-20 characters and can only contain letters, numbers, and underscores.';
+    return;
+  }
+
+  const daysLeft = getUsernameCooldownDaysLeft();
+  if (daysLeft > 0) {
+    usernameFormError.textContent = `You can change your username again in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`;
+    return;
+  }
+
+  if (!settingsUsernamePassword.value) {
+    usernameFormError.textContent = 'Please enter your current password.';
+    return;
+  }
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { error: verifyError } = await client.auth.signInWithPassword({
+    email: currentSession.user.email,
+    password: settingsUsernamePassword.value,
+  });
+
+  if (verifyError) {
+    usernameFormError.textContent = 'Incorrect password.';
+    submitButton.disabled = false;
+    return;
+  }
+
+  const newUsernameChangedAt = new Date().toISOString();
+
+  const { error } = await client
+    .from('profiles')
+    .update({ username: newUsername, username_changed_at: newUsernameChangedAt })
+    .eq('id', currentSession.user.id);
+
+  if (error) {
+    usernameFormError.textContent = error.message.includes('duplicate')
+      ? 'That username is already taken.'
+      : `Error: ${error.message}`;
+    submitButton.disabled = false;
+    return;
+  }
+
+  originalUsername = newUsername;
+  usernameChangedAt = newUsernameChangedAt;
+  settingsUsernamePassword.value = '';
+  updateUsernameHint();
+  usernameFormStatus.textContent = 'Username updated!';
+  submitButton.disabled = false;
+});
 
 function refreshEmailStatus(user) {
   settingsEmailInput.value = user.email || '';

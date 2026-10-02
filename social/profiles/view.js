@@ -67,12 +67,6 @@ const editProfileModal = document.getElementById('editProfileModal');
 const editProfileForm = document.getElementById('editProfileForm');
 const editProfileError = document.getElementById('editProfileError');
 const editDisplayName = document.getElementById('editDisplayName');
-const editUsername = document.getElementById('editUsername');
-const editUsernameHint = document.getElementById('editUsernameHint');
-const editUsernamePasswordRow = document.getElementById('editUsernamePasswordRow');
-const editUsernamePassword = document.getElementById('editUsernamePassword');
-let originalUsername = '';
-let usernameChangedAt = null;
 const editAvatarDrop = document.getElementById('editAvatarDrop');
 const editAvatarInput = document.getElementById('editAvatarInput');
 const editAvatarPreview = document.getElementById('editAvatarPreview');
@@ -541,18 +535,12 @@ async function init() {
 profileEditButton.addEventListener('click', async () => {
   const { data: profile } = await client
     .from('profiles')
-    .select('username, display_name, avatar_url, banner_url, bio, pronouns, sexuality, gender_identity, profile_color, profile_color_type, username_changed_at')
+    .select('display_name, avatar_url, banner_url, bio, pronouns, sexuality, gender_identity, profile_color, profile_color_type')
     .eq('id', viewedUserId)
     .single();
 
   if (!profile) return;
 
-  originalUsername = profile.username || '';
-  usernameChangedAt = profile.username_changed_at;
-  editUsername.value = originalUsername;
-  editUsernameHint.textContent = '';
-  editUsernamePasswordRow.hidden = true;
-  editUsernamePassword.value = '';
   editDisplayName.value = profile.display_name || '';
   editBio.value = profile.bio || '';
   editPronouns.value = profile.pronouns || '';
@@ -595,32 +583,6 @@ profileEditButton.addEventListener('click', async () => {
   }
 
   editProfileModal.hidden = false;
-});
-
-function isValidUsername(username) {
-  return /^[a-zA-Z0-9_]{3,20}$/.test(username);
-}
-
-function getUsernameCooldownDaysLeft() {
-  if (!usernameChangedAt) return 0;
-  const msSinceChange = Date.now() - new Date(usernameChangedAt).getTime();
-  const daysSinceChange = msSinceChange / (1000 * 60 * 60 * 24);
-  return Math.max(0, Math.ceil(7 - daysSinceChange));
-}
-
-editUsername.addEventListener('input', () => {
-  const changing = editUsername.value.trim() !== originalUsername;
-  editUsernamePasswordRow.hidden = !changing;
-
-  if (!changing) {
-    editUsernameHint.textContent = '';
-    return;
-  }
-
-  const daysLeft = getUsernameCooldownDaysLeft();
-  editUsernameHint.textContent = daysLeft > 0
-    ? `You can change your username again in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`
-    : 'Changing your username requires your current password and can only be done once every 7 days.';
 });
 
 document.querySelectorAll('[data-modal-close]').forEach((button) => {
@@ -719,46 +681,8 @@ editProfileForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  const newUsername = editUsername.value.trim();
-  const usernameChanging = newUsername !== originalUsername;
-
-  if (!newUsername) {
-    editProfileError.textContent = 'Please enter a username.';
-    return;
-  }
-  if (!isValidUsername(newUsername)) {
-    editProfileError.textContent = 'Usernames must be 3-20 characters and can only contain letters, numbers, and underscores.';
-    return;
-  }
-
-  if (usernameChanging) {
-    const daysLeft = getUsernameCooldownDaysLeft();
-    if (daysLeft > 0) {
-      editProfileError.textContent = `You can change your username again in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`;
-      return;
-    }
-    if (!editUsernamePassword.value) {
-      editProfileError.textContent = 'Please enter your current password to change your username.';
-      return;
-    }
-  }
-
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
-
-  if (usernameChanging) {
-    const { data: { session } } = await client.auth.getSession();
-    const { error: verifyError } = await client.auth.signInWithPassword({
-      email: session.user.email,
-      password: editUsernamePassword.value,
-    });
-
-    if (verifyError) {
-      editProfileError.textContent = 'Incorrect password.';
-      submitButton.disabled = false;
-      return;
-    }
-  }
 
   const updates = {
     display_name: displayName,
@@ -767,11 +691,6 @@ editProfileForm.addEventListener('submit', async (event) => {
     sexuality: editSexuality.value.trim() || null,
     gender_identity: genderIdentity,
   };
-
-  if (usernameChanging) {
-    updates.username = newUsername;
-    updates.username_changed_at = new Date().toISOString();
-  }
 
   if (uploadedAvatarUrl) updates.avatar_url = uploadedAvatarUrl;
   if (uploadedBannerUrl) updates.banner_url = uploadedBannerUrl;
@@ -784,15 +703,10 @@ editProfileForm.addEventListener('submit', async (event) => {
     .eq('id', viewedUserId);
 
   if (error) {
-    editProfileError.textContent = error.message.includes('duplicate')
-      ? 'That username is already taken.'
-      : `Error: ${error.message}`;
+    editProfileError.textContent = `Error: ${error.message}`;
     submitButton.disabled = false;
     return;
   }
-
-  originalUsername = usernameChanging ? newUsername : originalUsername;
-  if (usernameChanging) usernameChangedAt = updates.username_changed_at;
 
   submitButton.disabled = false;
   editProfileModal.hidden = true;

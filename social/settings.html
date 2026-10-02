@@ -44,13 +44,20 @@
 
     <hr class="section-divider">
     <section class="section">
-      <h2 class="section-title">Account</h2>
-      <div class="server-info">
-        <div class="server-info-item server-info-item--wide">
-          <span class="server-info-label">Username</span>
-          <span class="server-info-value" id="settingsUsername">&mdash;</span>
-        </div>
-      </div>
+      <h2 class="section-title">Username</h2>
+      <p class="section-intro" id="usernameHint">Changing your username requires your current password and can only be done once every 7 days.</p>
+
+      <form id="usernameForm" class="hub-form">
+        <label class="hub-form-label" for="settingsUsernameInput">Username</label>
+        <input class="hub-form-input" type="text" id="settingsUsernameInput" required>
+
+        <label class="hub-form-label" for="settingsUsernamePassword">Current Password</label>
+        <input class="hub-form-input" type="password" id="settingsUsernamePassword" autocomplete="current-password">
+
+        <p class="hub-form-error" id="usernameFormError"></p>
+        <p class="hub-form-status" id="usernameFormStatus"></p>
+        <button type="submit" class="action-button">Update Username</button>
+      </form>
     </section>
 
     <hr class="section-divider">
