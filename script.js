@@ -206,3 +206,15 @@ document.querySelectorAll('a[href="social/"], a[href="/social/"]').forEach((link
     ensureComingSoonModal().hidden = false;
   });
 });
+
+document.querySelectorAll('[data-password-toggle]').forEach((button) => {
+  const input = document.getElementById(button.dataset.passwordToggle);
+  if (!input) return;
+
+  button.addEventListener('click', () => {
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    button.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+    button.classList.toggle('hub-password-toggle--active', !showing);
+  });
+});

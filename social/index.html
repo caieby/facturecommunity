@@ -68,7 +68,10 @@
         <input class="hub-form-input" type="email" id="hubLoginEmail" autocomplete="email" required>
 
         <label class="hub-form-label" for="hubLoginPassword">Password</label>
-        <input class="hub-form-input" type="password" id="hubLoginPassword" autocomplete="current-password" required>
+        <div class="hub-password-row">
+          <input class="hub-form-input" type="password" id="hubLoginPassword" autocomplete="current-password" required>
+          <button type="button" class="hub-password-toggle" data-password-toggle="hubLoginPassword" aria-label="Show password">&#128065;</button>
+        </div>
 
         <p class="hub-form-error" id="hubLoginError"></p>
         <button type="submit" class="action-button">Login</button>
@@ -85,7 +88,10 @@
         <input class="hub-form-input" type="email" id="hubSignupEmail" autocomplete="email" required>
 
         <label class="hub-form-label" for="hubSignupPassword">Password</label>
-        <input class="hub-form-input" type="password" id="hubSignupPassword" autocomplete="new-password" required>
+        <div class="hub-password-row">
+          <input class="hub-form-input" type="password" id="hubSignupPassword" autocomplete="new-password" required>
+          <button type="button" class="hub-password-toggle" data-password-toggle="hubSignupPassword" aria-label="Show password">&#128065;</button>
+        </div>
 
         <p class="hub-form-error" id="hubSignupError"></p>
         <p class="hub-form-status" id="hubSignupStatus"></p>

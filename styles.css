@@ -710,6 +710,43 @@ body {
   border-color: var(--purple-bright);
 }
 
+.hub-password-row {
+  position: relative;
+  display: flex;
+}
+
+.hub-password-row .hub-form-input {
+  flex: 1;
+  padding-right: 2.75rem;
+}
+
+.hub-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.hub-password-toggle:hover {
+  opacity: 1;
+}
+
+.hub-password-toggle--active {
+  opacity: 1;
+}
+
 .hub-form-error {
   min-height: 1.2em;
   font-size: 0.85rem;
