@@ -120,3 +120,28 @@ async function redirectIfLoggedIn() {
 }
 
 redirectIfLoggedIn();
+
+const hubActiveUsers = document.getElementById('hubActiveUsers');
+const hubTotalUsers = document.getElementById('hubTotalUsers');
+
+async function loadTotalUsers() {
+  const { count, error } = await client
+    .from('profiles')
+    .select('*', { count: 'exact', head: true });
+
+  hubTotalUsers.textContent = error ? '?' : count;
+}
+
+function trackActiveUsers() {
+  const presenceChannel = client.channel('facturehub-online');
+
+  presenceChannel
+    .on('presence', { event: 'sync' }, () => {
+      const count = Object.keys(presenceChannel.presenceState()).length;
+      hubActiveUsers.textContent = count;
+    })
+    .subscribe();
+}
+
+loadTotalUsers();
+trackActiveUsers();

@@ -207,6 +207,27 @@ document.querySelectorAll('a[href="social/"], a[href="/social/"]').forEach((link
   });
 });
 
+if (typeof supabase !== 'undefined') {
+  const presenceClient = supabase.createClient(
+    'https://vrhfajwulxjfmgzyzaxx.supabase.co',
+    'sb_publishable_37fQXfSzDzUrv35A5VSFXA_eqZBc3dB'
+  );
+
+  presenceClient.auth.getSession().then(({ data: { session } }) => {
+    if (!session) return;
+
+    const presenceChannel = presenceClient.channel('facturehub-online', {
+      config: { presence: { key: session.user.id } },
+    });
+
+    presenceChannel.subscribe((status) => {
+      if (status === 'SUBSCRIBED') {
+        presenceChannel.track({ online_at: new Date().toISOString() });
+      }
+    });
+  });
+}
+
 document.querySelectorAll('[data-password-toggle]').forEach((button) => {
   const input = document.getElementById(button.dataset.passwordToggle);
   if (!input) return;
