@@ -7,6 +7,10 @@
   --banner-height: 3.5rem;
 }
 
+body.no-banner {
+  --banner-height: 0rem;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
