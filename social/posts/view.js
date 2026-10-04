@@ -33,6 +33,13 @@ async function init() {
 
   const currentUserId = session.user.id;
 
+  const { data: viewerProfile } = await client
+    .from('profiles')
+    .select('role')
+    .eq('id', currentUserId)
+    .single();
+  const currentUserRole = viewerProfile && viewerProfile.role;
+
   if (!postId) {
     pageLoading.hidden = true;
     postNotFound.hidden = false;
@@ -52,7 +59,7 @@ async function init() {
     return;
   }
 
-  const postsController = createPostsController(client, currentUserId, SUPABASE_URL, SUPABASE_ANON_KEY);
+  const postsController = createPostsController(client, currentUserId, SUPABASE_URL, SUPABASE_ANON_KEY, currentUserRole);
 
   const authorMap = await postsController.fetchProfilesById([post.author_id]);
   const state = await postsController.fetchInteractionState([post.id]);

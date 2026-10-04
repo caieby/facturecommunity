@@ -228,6 +228,196 @@ if (typeof supabase !== 'undefined') {
   });
 }
 
+const REPORT_REASONS = [
+  'Illegal Content',
+  'Disturbing content (such as gore or scat)',
+  'Hateful/extremist Content',
+  'Harassment or Bullying',
+  'Spam or Scam',
+  'Impersonation',
+  'Other',
+];
+
+let reportModalEl = null;
+let reportSubmitHandler = null;
+
+function ensureReportModal() {
+  if (reportModalEl) return reportModalEl;
+
+  const modal = document.createElement('div');
+  modal.className = 'hub-modal';
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="hub-modal-card">
+      <button type="button" class="hub-modal-close" aria-label="Close">&times;</button>
+      <h2 class="subsection-title">Submit a Report</h2>
+      <form class="hub-form" id="reportForm">
+        ${REPORT_REASONS.map((r, i) => `
+          <label class="report-reason-option">
+            <input type="radio" name="reportReason" value="${r}" ${i === 0 ? 'required' : ''}>
+            <span>${r}</span>
+          </label>
+        `).join('')}
+        <textarea class="hub-form-input hub-form-textarea" id="reportCustomReason" placeholder="Describe the issue..." maxlength="500" hidden></textarea>
+        <p class="hub-form-error" id="reportFormError"></p>
+        <p class="hub-form-status" id="reportFormStatus"></p>
+        <button type="submit" class="action-button">Submit Report</button>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const close = () => { modal.hidden = true; };
+  modal.querySelector('.hub-modal-close').addEventListener('click', close);
+  modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
+
+  const customReasonInput = modal.querySelector('#reportCustomReason');
+  modal.querySelectorAll('input[name="reportReason"]').forEach((radio) => {
+    radio.addEventListener('change', () => {
+      customReasonInput.hidden = !(radio.checked && radio.value === 'Other');
+    });
+  });
+
+  modal.querySelector('#reportForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const errorEl = modal.querySelector('#reportFormError');
+    const statusEl = modal.querySelector('#reportFormStatus');
+    errorEl.textContent = '';
+    statusEl.textContent = '';
+
+    const selected = modal.querySelector('input[name="reportReason"]:checked');
+    if (!selected) {
+      errorEl.textContent = 'Please select a reason.';
+      return;
+    }
+
+    const reason = selected.value;
+    const customReason = reason === 'Other' ? customReasonInput.value.trim() : null;
+    if (reason === 'Other' && !customReason) {
+      errorEl.textContent = 'Please describe the issue.';
+      return;
+    }
+
+    if (!reportSubmitHandler) return;
+
+    const submitButton = event.target.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    const { error } = await reportSubmitHandler(reason, customReason);
+    submitButton.disabled = false;
+
+    if (error) {
+      errorEl.textContent = error.message;
+      return;
+    }
+
+    statusEl.textContent = 'Report submitted. Thank you for helping keep Facture safe.';
+    setTimeout(close, 1500);
+  });
+
+  reportModalEl = modal;
+  return modal;
+}
+
+let moderationModalEl = null;
+let moderationWarnHandler = null;
+let moderationTerminateHandler = null;
+
+function ensureModerationModal() {
+  if (moderationModalEl) return moderationModalEl;
+
+  const modal = document.createElement('div');
+  modal.className = 'hub-modal';
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="hub-modal-card">
+      <button type="button" class="hub-modal-close" aria-label="Close">&times;</button>
+      <h2 class="subsection-title">Moderation Actions</h2>
+      <p class="section-intro" id="moderationTarget"></p>
+      <p class="section-intro" id="moderationWarningCount"></p>
+
+      <form class="hub-form" id="moderationForm">
+        <label class="hub-form-label" for="moderationReason">Reason (required)</label>
+        <textarea class="hub-form-input hub-form-textarea" id="moderationReason" maxlength="500" required></textarea>
+
+        <p class="hub-form-error" id="moderationError"></p>
+        <p class="hub-form-status" id="moderationStatus"></p>
+
+        <div class="moderation-action-buttons">
+          <button type="submit" class="action-button" id="moderationWarnButton" data-action="warn">Issue Warning</button>
+          <button type="submit" class="action-button moderation-terminate-button" id="moderationTerminateButton" data-action="terminate">Terminate Account</button>
+        </div>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const close = () => { modal.hidden = true; };
+  modal.querySelector('.hub-modal-close').addEventListener('click', close);
+  modal.addEventListener('click', (event) => { if (event.target === modal) close(); });
+
+  modal.querySelector('#moderationForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const errorEl = modal.querySelector('#moderationError');
+    const statusEl = modal.querySelector('#moderationStatus');
+    errorEl.textContent = '';
+    statusEl.textContent = '';
+
+    const reason = modal.querySelector('#moderationReason').value.trim();
+    if (!reason) {
+      errorEl.textContent = 'Please provide a reason.';
+      return;
+    }
+
+    const action = event.submitter ? event.submitter.dataset.action : 'warn';
+    if (action === 'terminate' && !window.confirm('Permanently terminate this account? This can be appealed, but is a severe action.')) {
+      return;
+    }
+
+    const buttons = modal.querySelectorAll('button');
+    buttons.forEach((b) => { b.disabled = true; });
+
+    const handler = action === 'terminate' ? moderationTerminateHandler : moderationWarnHandler;
+    const { error, result } = handler ? await handler(reason) : { error: new Error('No handler configured.') };
+
+    buttons.forEach((b) => { b.disabled = false; });
+
+    if (error) {
+      errorEl.textContent = error.message;
+      return;
+    }
+
+    statusEl.textContent = action === 'terminate'
+      ? 'Account terminated.'
+      : `Warning issued (warning #${result}).`;
+    setTimeout(close, 1500);
+  });
+
+  moderationModalEl = modal;
+  return modal;
+}
+
+function openModerationModal(targetLabel, warningCount, onWarn, onTerminate) {
+  moderationWarnHandler = onWarn;
+  moderationTerminateHandler = onTerminate;
+  const modal = ensureModerationModal();
+  modal.querySelector('#moderationForm').reset();
+  modal.querySelector('#moderationTarget').textContent = `Target: ${targetLabel}`;
+  modal.querySelector('#moderationWarningCount').textContent = `Current warning count: ${warningCount}`;
+  modal.querySelector('#moderationError').textContent = '';
+  modal.querySelector('#moderationStatus').textContent = '';
+  modal.hidden = false;
+}
+
+function openReportModal(onSubmit) {
+  reportSubmitHandler = onSubmit;
+  const modal = ensureReportModal();
+  modal.querySelector('#reportForm').reset();
+  modal.querySelector('#reportCustomReason').hidden = true;
+  modal.querySelector('#reportFormError').textContent = '';
+  modal.querySelector('#reportFormStatus').textContent = '';
+  modal.hidden = false;
+}
+
 document.querySelectorAll('[data-password-toggle]').forEach((button) => {
   const input = document.getElementById(button.dataset.passwordToggle);
   if (!input) return;

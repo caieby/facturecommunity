@@ -23,6 +23,8 @@ const profileSexuality = document.getElementById('profileSexuality');
 const profileGenderIdentity = document.getElementById('profileGenderIdentity');
 const profileJoinedDate = document.getElementById('profileJoinedDate');
 const profileEditButton = document.getElementById('profileEditButton');
+const profileReportButton = document.getElementById('profileReportButton');
+const profileModerateButton = document.getElementById('profileModerateButton');
 const profileFriendsCount = document.getElementById('profileFriendsCount');
 const profileFollowersCount = document.getElementById('profileFollowersCount');
 const profileFollowingCount = document.getElementById('profileFollowingCount');
@@ -514,19 +516,33 @@ async function init() {
 
   await loadFollowStats();
 
+  let currentUserRole = null;
+
   const { data: { session } } = await client.auth.getSession();
   if (session) {
     currentUserId = session.user.id;
+
+    const { data: viewerProfile } = await client
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
+    currentUserRole = viewerProfile && viewerProfile.role;
 
     if (session.user.id === viewedUserId) {
       profileEditButton.hidden = false;
       profileFab.hidden = false;
     } else {
       await refreshFollowButton();
+      profileReportButton.hidden = false;
+
+      if (currentUserRole === 'moderator' || currentUserRole === 'owner') {
+        profileModerateButton.hidden = false;
+      }
     }
   }
 
-  postsController = createPostsController(client, currentUserId, SUPABASE_URL, SUPABASE_ANON_KEY);
+  postsController = createPostsController(client, currentUserId, SUPABASE_URL, SUPABASE_ANON_KEY, currentUserRole);
   await loadProfilePosts('posts');
 }
 
@@ -709,6 +725,41 @@ editProfileForm.addEventListener('submit', async (event) => {
   submitButton.disabled = false;
   editProfileModal.hidden = true;
   await loadProfile();
+});
+
+profileReportButton.addEventListener('click', () => {
+  openReportModal(async (reason, customReason) => {
+    return await client.from('reports').insert({
+      reporter_id: currentUserId,
+      target_type: 'profile',
+      target_id: viewedUserId,
+      reason,
+      custom_reason: customReason,
+    });
+  });
+});
+
+profileModerateButton.addEventListener('click', async () => {
+  const { data: targetProfile } = await client
+    .from('profiles')
+    .select('username, warning_count')
+    .eq('id', viewedUserId)
+    .single();
+
+  if (!targetProfile) return;
+
+  openModerationModal(
+    `@${targetProfile.username}`,
+    targetProfile.warning_count || 0,
+    async (reason) => {
+      const { data, error } = await client.rpc('warn_user', { _target_user_id: viewedUserId, _reason: reason });
+      return { error, result: data };
+    },
+    async (reason) => {
+      const { error } = await client.rpc('terminate_user', { _target_user_id: viewedUserId, _reason: reason });
+      return { error };
+    }
+  );
 });
 
 init();

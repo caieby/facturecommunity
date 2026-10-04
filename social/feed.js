@@ -272,14 +272,15 @@ async function init() {
   }
 
   currentSession = session;
-  postsController = createPostsController(client, session.user.id, SUPABASE_URL, SUPABASE_ANON_KEY);
   feedComposerAvatarLink.href = `/social/profiles/${session.user.id}/`;
 
   const { data: profile } = await client
     .from('profiles')
-    .select('avatar_url')
+    .select('avatar_url, role')
     .eq('id', session.user.id)
     .single();
+
+  postsController = createPostsController(client, session.user.id, SUPABASE_URL, SUPABASE_ANON_KEY, profile && profile.role);
 
   if (profile && profile.avatar_url) {
     feedComposerAvatar.src = profile.avatar_url;

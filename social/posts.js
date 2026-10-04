@@ -167,7 +167,8 @@ function uploadPostFileWithProgress(client, supabaseUrl, supabaseAnonKey, bucket
   });
 }
 
-function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonKey) {
+function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonKey, currentUserRole) {
+  const isModerator = currentUserRole === 'moderator' || currentUserRole === 'owner';
   const viewedPostIds = new Set();
   let viewObserver = null;
 
@@ -470,6 +471,8 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
             <span class="post-dot">&middot;</span>
             <a class="post-time" href="/social/posts/${post.id}/">${postTimeAgo(post.created_at)}</a>
             ${isOwn ? '<button type="button" class="post-delete" aria-label="Delete post">&times;</button>' : ''}
+            ${!isOwn ? '<button type="button" class="post-report-button" aria-label="Report this post">&#128680;</button>' : ''}
+            ${!isOwn && isModerator ? '<button type="button" class="post-moderate-button" aria-label="Moderation actions">&#128296;</button>' : ''}
           </div>
           <p class="post-content"></p>
           ${mediaHtml}
@@ -524,6 +527,8 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     const repostButton = card.querySelector('[data-action="repost"]');
     const commentButton = card.querySelector('[data-action="comment"]');
     const deleteButton = card.querySelector('.post-delete');
+    const reportButton = card.querySelector('.post-report-button');
+    const moderateButton = card.querySelector('.post-moderate-button');
     const gifFavoriteButton = card.querySelector('.post-gif-favorite-button');
     const inlineError = card.querySelector('.post-inline-error');
 
@@ -651,6 +656,45 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
 
     if (gifFavoriteButton) {
       wireGifFavoriteButton(gifFavoriteButton, post.media_url, post.media_url);
+    }
+
+    if (reportButton) {
+      reportButton.addEventListener('click', () => {
+        openReportModal(async (reason, customReason) => {
+          return await client.from('reports').insert({
+            reporter_id: currentUserId,
+            target_type: 'post',
+            target_id: post.id,
+            reason,
+            custom_reason: customReason,
+          });
+        });
+      });
+    }
+
+    if (moderateButton) {
+      moderateButton.addEventListener('click', async () => {
+        const { data: targetProfile } = await client
+          .from('profiles')
+          .select('username, warning_count')
+          .eq('id', post.author_id)
+          .single();
+
+        if (!targetProfile) return;
+
+        openModerationModal(
+          `@${targetProfile.username} (post)`,
+          targetProfile.warning_count || 0,
+          async (reason) => {
+            const { data, error } = await client.rpc('warn_user', { _target_user_id: post.author_id, _reason: reason });
+            return { error, result: data };
+          },
+          async (reason) => {
+            const { error } = await client.rpc('terminate_user', { _target_user_id: post.author_id, _reason: reason });
+            return { error };
+          }
+        );
+      });
     }
   }
 
