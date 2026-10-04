@@ -96,30 +96,44 @@
       <button type="button" class="hub-modal-close" data-modal-close="hubForgotPasswordModal" aria-label="Close">&times;</button>
       <h2 class="subsection-title">Reset Password</h2>
 
-      <form id="hubForgotEmailForm" class="hub-form">
-        <p class="section-intro">Enter your email and we&rsquo;ll send you a reset code.</p>
-        <label class="hub-form-label" for="hubForgotEmail">Email</label>
-        <input class="hub-form-input" type="email" id="hubForgotEmail" autocomplete="email" required>
+      <div class="forgot-steps" id="forgotSteps">
+        <form class="forgot-step hub-form" id="hubForgotEmailForm" data-step="1">
+          <p class="section-intro">Enter your email and we&rsquo;ll send you a reset code.</p>
+          <label class="hub-form-label" for="hubForgotEmail">Email</label>
+          <input class="hub-form-input" type="email" id="hubForgotEmail" autocomplete="email" required>
 
-        <p class="hub-form-error" id="hubForgotEmailError"></p>
-        <button type="submit" class="action-button">Send Code</button>
-      </form>
+          <p class="hub-form-error" id="hubForgotEmailError"></p>
+          <button type="submit" class="action-button">Send Code</button>
+        </form>
 
-      <form id="hubForgotResetForm" class="hub-form" hidden>
-        <p class="section-intro">Enter the code we emailed you (looks like <strong>FACT-XXXXXX</strong>) along with your new password.</p>
-        <label class="hub-form-label" for="hubForgotCode">Reset Code</label>
-        <input class="hub-form-input" type="text" id="hubForgotCode" autocomplete="one-time-code" placeholder="FACT-XXXXXX" required>
+        <form class="forgot-step hub-form" id="hubForgotCodeForm" data-step="2" hidden>
+          <p class="section-intro">Enter the code we emailed you. It looks like <strong>FACT-XXXXXX</strong>.</p>
+          <label class="hub-form-label" for="hubForgotCode">Reset Code</label>
+          <input class="hub-form-input" type="text" id="hubForgotCode" autocomplete="one-time-code" placeholder="FACT-XXXXXX" required>
 
-        <label class="hub-form-label" for="hubForgotNewPassword">New Password</label>
-        <input class="hub-form-input" type="password" id="hubForgotNewPassword" autocomplete="new-password" required>
+          <p class="hub-form-error" id="hubForgotCodeError"></p>
+          <button type="submit" class="action-button">Verify Code</button>
+        </form>
 
-        <label class="hub-form-label" for="hubForgotConfirmPassword">Confirm New Password</label>
-        <input class="hub-form-input" type="password" id="hubForgotConfirmPassword" autocomplete="new-password" required>
+        <form class="forgot-step hub-form" id="hubForgotResetForm" data-step="3" hidden>
+          <p class="section-intro">Choose a new password.</p>
+          <label class="hub-form-label" for="hubForgotNewPassword">New Password</label>
+          <input class="hub-form-input" type="password" id="hubForgotNewPassword" autocomplete="new-password" required>
 
-        <p class="hub-form-error" id="hubForgotResetError"></p>
-        <p class="hub-form-status" id="hubForgotResetStatus"></p>
-        <button type="submit" class="action-button">Reset Password</button>
-      </form>
+          <label class="hub-form-label" for="hubForgotConfirmPassword">Confirm New Password</label>
+          <input class="hub-form-input" type="password" id="hubForgotConfirmPassword" autocomplete="new-password" required>
+
+          <p class="hub-form-error" id="hubForgotResetError"></p>
+          <p class="hub-form-status" id="hubForgotResetStatus"></p>
+          <button type="submit" class="action-button">Reset Password</button>
+        </form>
+      </div>
+
+      <div class="onboard-progress" id="forgotProgress">
+        <span class="onboard-progress-dot" data-step-dot="1"></span>
+        <span class="onboard-progress-dot" data-step-dot="2"></span>
+        <span class="onboard-progress-dot" data-step-dot="3"></span>
+      </div>
     </div>
   </div>
 

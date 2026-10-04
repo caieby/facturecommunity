@@ -108,26 +108,60 @@ document.getElementById('hubLoginForm').addEventListener('submit', async (event)
 
 const forgotPasswordLink = document.getElementById('hubForgotPasswordLink');
 const forgotPasswordModal = document.getElementById('hubForgotPasswordModal');
+const forgotSteps = document.querySelectorAll('.forgot-step');
+const forgotProgressDots = document.querySelectorAll('#forgotProgress .onboard-progress-dot');
+
 const hubForgotEmailForm = document.getElementById('hubForgotEmailForm');
 const hubForgotEmail = document.getElementById('hubForgotEmail');
 const hubForgotEmailError = document.getElementById('hubForgotEmailError');
-const hubForgotResetForm = document.getElementById('hubForgotResetForm');
+
+const hubForgotCodeForm = document.getElementById('hubForgotCodeForm');
 const hubForgotCode = document.getElementById('hubForgotCode');
+const hubForgotCodeError = document.getElementById('hubForgotCodeError');
+
+const hubForgotResetForm = document.getElementById('hubForgotResetForm');
 const hubForgotNewPassword = document.getElementById('hubForgotNewPassword');
 const hubForgotConfirmPassword = document.getElementById('hubForgotConfirmPassword');
 const hubForgotResetError = document.getElementById('hubForgotResetError');
 const hubForgotResetStatus = document.getElementById('hubForgotResetStatus');
+
 let forgotPasswordEmail = '';
+let forgotCurrentStep = 1;
+
+function goToForgotStep(step) {
+  forgotCurrentStep = step;
+
+  const current = [...forgotSteps].find((el) => !el.hidden);
+  const next = [...forgotSteps].find((el) => Number(el.dataset.step) === step);
+
+  if (current && current !== next) {
+    current.hidden = true;
+  }
+
+  if (next) {
+    next.classList.add('forgot-step--enter');
+    next.hidden = false;
+    requestAnimationFrame(() => {
+      next.classList.remove('forgot-step--enter');
+    });
+  }
+
+  forgotProgressDots.forEach((dot) => {
+    dot.classList.toggle('active', Number(dot.dataset.stepDot) <= step);
+  });
+}
 
 forgotPasswordLink?.addEventListener('click', () => {
   closeModal(loginModal);
-  hubForgotEmailForm.hidden = false;
-  hubForgotResetForm.hidden = true;
   hubForgotEmailForm.reset();
+  hubForgotCodeForm.reset();
   hubForgotResetForm.reset();
   hubForgotEmailError.textContent = '';
+  hubForgotCodeError.textContent = '';
   hubForgotResetError.textContent = '';
   hubForgotResetStatus.textContent = '';
+  forgotSteps.forEach((el) => { el.hidden = Number(el.dataset.step) !== 1; });
+  goToForgotStep(1);
   openModal(forgotPasswordModal);
 });
 
@@ -152,8 +186,32 @@ hubForgotEmailForm.addEventListener('submit', async (event) => {
   }
 
   forgotPasswordEmail = email;
-  hubForgotEmailForm.hidden = true;
-  hubForgotResetForm.hidden = false;
+  goToForgotStep(2);
+});
+
+hubForgotCodeForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  hubForgotCodeError.textContent = '';
+
+  const rawCode = hubForgotCode.value.trim();
+  const code = rawCode.toUpperCase().startsWith('FACT-') ? rawCode.slice(5) : rawCode;
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { error } = await client.auth.verifyOtp({
+    email: forgotPasswordEmail,
+    token: code,
+    type: 'email',
+  });
+
+  submitButton.disabled = false;
+
+  if (error) {
+    hubForgotCodeError.textContent = 'That code is invalid or expired.';
+    return;
+  }
+
+  goToForgotStep(3);
 });
 
 hubForgotResetForm.addEventListener('submit', async (event) => {
@@ -161,8 +219,6 @@ hubForgotResetForm.addEventListener('submit', async (event) => {
   hubForgotResetError.textContent = '';
   hubForgotResetStatus.textContent = '';
 
-  const rawCode = hubForgotCode.value.trim();
-  const code = rawCode.toUpperCase().startsWith('FACT-') ? rawCode.slice(5) : rawCode;
   const newPassword = hubForgotNewPassword.value;
   const confirmPassword = hubForgotConfirmPassword.value;
 
@@ -177,18 +233,6 @@ hubForgotResetForm.addEventListener('submit', async (event) => {
 
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
-
-  const { error: verifyError } = await client.auth.verifyOtp({
-    email: forgotPasswordEmail,
-    token: code,
-    type: 'email',
-  });
-
-  if (verifyError) {
-    hubForgotResetError.textContent = 'That code is invalid or expired.';
-    submitButton.disabled = false;
-    return;
-  }
 
   const { error: updateError } = await client.auth.updateUser({ password: newPassword });
 
