@@ -792,6 +792,10 @@ body {
   transform: translateX(24px);
 }
 
+.forgot-step[hidden] {
+  display: none;
+}
+
 .hub-form-link-row {
   margin-top: 0.75rem;
   text-align: center;
