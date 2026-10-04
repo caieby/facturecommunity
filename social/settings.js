@@ -23,6 +23,7 @@ const resendVerificationGroup = document.getElementById('resendVerificationGroup
 const resendVerificationButton = document.getElementById('resendVerificationButton');
 
 const passwordForm = document.getElementById('passwordForm');
+const settingsCurrentPassword = document.getElementById('settingsCurrentPassword');
 const settingsNewPassword = document.getElementById('settingsNewPassword');
 const settingsConfirmPassword = document.getElementById('settingsConfirmPassword');
 const passwordFormError = document.getElementById('passwordFormError');
@@ -222,9 +223,14 @@ passwordForm.addEventListener('submit', async (event) => {
   passwordFormError.textContent = '';
   passwordFormStatus.textContent = '';
 
+  const currentPassword = settingsCurrentPassword.value;
   const newPassword = settingsNewPassword.value;
   const confirmPassword = settingsConfirmPassword.value;
 
+  if (!currentPassword) {
+    passwordFormError.textContent = 'Please enter your current password.';
+    return;
+  }
   if (newPassword.length < 8) {
     passwordFormError.textContent = 'Password must be at least 8 characters.';
     return;
@@ -236,6 +242,17 @@ passwordForm.addEventListener('submit', async (event) => {
 
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
+
+  const { error: verifyError } = await client.auth.signInWithPassword({
+    email: currentSession.user.email,
+    password: currentPassword,
+  });
+
+  if (verifyError) {
+    passwordFormError.textContent = 'Incorrect current password.';
+    submitButton.disabled = false;
+    return;
+  }
 
   const { error } = await client.auth.updateUser({ password: newPassword });
 

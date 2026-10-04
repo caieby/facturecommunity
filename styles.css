@@ -777,6 +777,26 @@ body {
   color: var(--purple-bright);
 }
 
+.hub-form-link-row {
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
+.hub-text-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  color: var(--purple-bright);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.hub-text-link:hover {
+  color: var(--white);
+}
+
 .onboard-avatar-preview {
   width: 100px;
   height: 100px;

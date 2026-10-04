@@ -106,6 +106,105 @@ document.getElementById('hubLoginForm').addEventListener('submit', async (event)
   }
 });
 
+const forgotPasswordLink = document.getElementById('hubForgotPasswordLink');
+const forgotPasswordModal = document.getElementById('hubForgotPasswordModal');
+const hubForgotEmailForm = document.getElementById('hubForgotEmailForm');
+const hubForgotEmail = document.getElementById('hubForgotEmail');
+const hubForgotEmailError = document.getElementById('hubForgotEmailError');
+const hubForgotResetForm = document.getElementById('hubForgotResetForm');
+const hubForgotCode = document.getElementById('hubForgotCode');
+const hubForgotNewPassword = document.getElementById('hubForgotNewPassword');
+const hubForgotConfirmPassword = document.getElementById('hubForgotConfirmPassword');
+const hubForgotResetError = document.getElementById('hubForgotResetError');
+const hubForgotResetStatus = document.getElementById('hubForgotResetStatus');
+let forgotPasswordEmail = '';
+
+forgotPasswordLink?.addEventListener('click', () => {
+  closeModal(loginModal);
+  hubForgotEmailForm.hidden = false;
+  hubForgotResetForm.hidden = true;
+  hubForgotEmailForm.reset();
+  hubForgotResetForm.reset();
+  hubForgotEmailError.textContent = '';
+  hubForgotResetError.textContent = '';
+  hubForgotResetStatus.textContent = '';
+  openModal(forgotPasswordModal);
+});
+
+hubForgotEmailForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  hubForgotEmailError.textContent = '';
+
+  const email = hubForgotEmail.value.trim();
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { error } = await client.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: false },
+  });
+
+  submitButton.disabled = false;
+
+  if (error) {
+    hubForgotEmailError.textContent = error.message;
+    return;
+  }
+
+  forgotPasswordEmail = email;
+  hubForgotEmailForm.hidden = true;
+  hubForgotResetForm.hidden = false;
+});
+
+hubForgotResetForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  hubForgotResetError.textContent = '';
+  hubForgotResetStatus.textContent = '';
+
+  const rawCode = hubForgotCode.value.trim();
+  const code = rawCode.toUpperCase().startsWith('FACT-') ? rawCode.slice(5) : rawCode;
+  const newPassword = hubForgotNewPassword.value;
+  const confirmPassword = hubForgotConfirmPassword.value;
+
+  if (newPassword.length < 8) {
+    hubForgotResetError.textContent = 'Password must be at least 8 characters.';
+    return;
+  }
+  if (newPassword !== confirmPassword) {
+    hubForgotResetError.textContent = 'Passwords do not match.';
+    return;
+  }
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { error: verifyError } = await client.auth.verifyOtp({
+    email: forgotPasswordEmail,
+    token: code,
+    type: 'email',
+  });
+
+  if (verifyError) {
+    hubForgotResetError.textContent = 'That code is invalid or expired.';
+    submitButton.disabled = false;
+    return;
+  }
+
+  const { error: updateError } = await client.auth.updateUser({ password: newPassword });
+
+  submitButton.disabled = false;
+
+  if (updateError) {
+    hubForgotResetError.textContent = updateError.message;
+    return;
+  }
+
+  hubForgotResetStatus.textContent = 'Password reset! Redirecting...';
+  setTimeout(() => {
+    window.location.href = 'home.html';
+  }, 1200);
+});
+
 async function redirectIfLoggedIn() {
   const { data: { session } } = await client.auth.getSession();
   if (!session) return;

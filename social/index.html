@@ -87,6 +87,39 @@
         <p class="hub-form-error" id="hubLoginError"></p>
         <button type="submit" class="action-button">Login</button>
       </form>
+      <p class="hub-form-link-row"><button type="button" class="hub-text-link" id="hubForgotPasswordLink">Forgot password?</button></p>
+    </div>
+  </div>
+
+  <div class="hub-modal" id="hubForgotPasswordModal" hidden>
+    <div class="hub-modal-card">
+      <button type="button" class="hub-modal-close" data-modal-close="hubForgotPasswordModal" aria-label="Close">&times;</button>
+      <h2 class="subsection-title">Reset Password</h2>
+
+      <form id="hubForgotEmailForm" class="hub-form">
+        <p class="section-intro">Enter your email and we&rsquo;ll send you a reset code.</p>
+        <label class="hub-form-label" for="hubForgotEmail">Email</label>
+        <input class="hub-form-input" type="email" id="hubForgotEmail" autocomplete="email" required>
+
+        <p class="hub-form-error" id="hubForgotEmailError"></p>
+        <button type="submit" class="action-button">Send Code</button>
+      </form>
+
+      <form id="hubForgotResetForm" class="hub-form" hidden>
+        <p class="section-intro">Enter the code we emailed you (looks like <strong>FACT-XXXXXX</strong>) along with your new password.</p>
+        <label class="hub-form-label" for="hubForgotCode">Reset Code</label>
+        <input class="hub-form-input" type="text" id="hubForgotCode" autocomplete="one-time-code" placeholder="FACT-XXXXXX" required>
+
+        <label class="hub-form-label" for="hubForgotNewPassword">New Password</label>
+        <input class="hub-form-input" type="password" id="hubForgotNewPassword" autocomplete="new-password" required>
+
+        <label class="hub-form-label" for="hubForgotConfirmPassword">Confirm New Password</label>
+        <input class="hub-form-input" type="password" id="hubForgotConfirmPassword" autocomplete="new-password" required>
+
+        <p class="hub-form-error" id="hubForgotResetError"></p>
+        <p class="hub-form-status" id="hubForgotResetStatus"></p>
+        <button type="submit" class="action-button">Reset Password</button>
+      </form>
     </div>
   </div>
 
