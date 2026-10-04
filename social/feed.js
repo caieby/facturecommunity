@@ -21,6 +21,7 @@ const feedComposerInput = document.getElementById('feedComposerInput');
 const feedCharCount = document.getElementById('feedCharCount');
 const feedVisibilitySelect = document.getElementById('feedVisibilitySelect');
 const feedReplySelect = document.getElementById('feedReplySelect');
+const feedNsfwToggle = document.getElementById('feedNsfwToggle');
 const feedPostButton = document.getElementById('feedPostButton');
 const feedComposerError = document.getElementById('feedComposerError');
 const feedAttachButton = document.getElementById('feedAttachButton');
@@ -160,6 +161,11 @@ feedFab.addEventListener('click', () => {
   feedComposerInput.focus();
 });
 
+feedNsfwToggle.addEventListener('click', () => {
+  const nowActive = feedNsfwToggle.getAttribute('aria-pressed') !== 'true';
+  feedNsfwToggle.setAttribute('aria-pressed', String(nowActive));
+});
+
 feedPostButton.addEventListener('click', async () => {
   feedComposerError.textContent = '';
   const content = feedComposerInput.value.trim();
@@ -177,6 +183,7 @@ feedPostButton.addEventListener('click', async () => {
     replyPermission: feedReplySelect.value,
     mediaUrl: pendingMediaUrl,
     mediaType: pendingMediaType,
+    isNsfw: feedNsfwToggle.getAttribute('aria-pressed') === 'true',
   });
 
   feedPostButton.disabled = false;
@@ -190,6 +197,7 @@ feedPostButton.addEventListener('click', async () => {
   feedCharCount.textContent = '0 / 500';
   feedVisibilitySelect.value = 'everyone';
   feedReplySelect.value = 'everyone';
+  feedNsfwToggle.setAttribute('aria-pressed', 'false');
   resetComposerMedia();
 
   feedPosts.unshift(newPost);

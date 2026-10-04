@@ -65,11 +65,20 @@ function applyNameColor(el, color, colorType) {
 }
 
 function buildBadgesHtml(profile) {
-  if (!profile || !profile.is_verified) return '';
-  return '<span class="name-badge name-badge--verified" title="Verified">&#10003;</span>';
+  if (!profile) return '';
+  let html = '';
+  if (profile.role === 'owner') {
+    html += '<span class="name-badge name-badge--owner" title="Owner">&#9733;</span>';
+  } else if (profile.role === 'moderator') {
+    html += '<span class="name-badge name-badge--moderator" title="Moderator">&#128737;</span>';
+  }
+  if (profile.is_verified) {
+    html += '<span class="name-badge name-badge--verified" title="Verified">&#10003;</span>';
+  }
+  return html;
 }
 
-const POST_SELECT_COLUMNS = 'id, author_id, content, parent_post_id, visibility, reply_permission, view_count, like_count, repost_count, reply_count, media_url, media_type, created_at';
+const POST_SELECT_COLUMNS = 'id, author_id, content, parent_post_id, visibility, reply_permission, view_count, like_count, repost_count, reply_count, media_url, media_type, is_nsfw, created_at';
 
 const MAX_POST_IMAGE_BYTES = 15 * 1024 * 1024;
 const MAX_POST_VIDEO_BYTES = 150 * 1024 * 1024;
@@ -195,7 +204,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     if (uniqueIds.length === 0) return new Map();
     const { data } = await client
       .from('profiles')
-      .select('id, username, display_name, avatar_url, is_verified, profile_color, profile_color_type')
+      .select('id, username, display_name, avatar_url, is_verified, role, profile_color, profile_color_type')
       .in('id', uniqueIds);
     return new Map((data || []).map((p) => [p.id, p]));
   }
@@ -212,7 +221,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     };
   }
 
-  async function createPost({ content, visibility, replyPermission, parentPostId, mediaUrl, mediaType }) {
+  async function createPost({ content, visibility, replyPermission, parentPostId, mediaUrl, mediaType, isNsfw }) {
     const id = generatePostUUID();
     const payload = {
       id,
@@ -223,6 +232,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       parent_post_id: parentPostId || null,
       media_url: mediaUrl || null,
       media_type: mediaUrl ? (mediaType || 'image') : null,
+      is_nsfw: !!isNsfw,
     };
 
     // Insert without .select() — chaining .select().single() makes Postgres
@@ -271,6 +281,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
         reply_count: 0,
         media_url: payload.media_url,
         media_type: payload.media_type,
+        is_nsfw: payload.is_nsfw,
         created_at: new Date().toISOString(),
       },
       error: null,
@@ -438,9 +449,10 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       : '<div class="post-avatar post-avatar--placeholder"></div>';
 
     const mediaHtml = post.media_url
-      ? `<div class="post-media-wrap">
+      ? `<div class="post-media-wrap${post.is_nsfw ? ' post-media-wrap--nsfw' : ''}">
           ${post.media_type === 'video' ? '<video class="post-media" controls></video>' : '<img class="post-media" alt="" loading="lazy">'}
           ${post.media_type === 'gif' ? '<button type="button" class="dm-gif-favorite-button post-gif-favorite-button" aria-label="Save as favorite GIF">&#9733;</button>' : ''}
+          ${post.is_nsfw ? '<div class="post-nsfw-overlay"><span>NSFW<br><small>Hover to view</small></span></div>' : ''}
         </div>`
       : '';
 

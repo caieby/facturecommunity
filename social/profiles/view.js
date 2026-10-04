@@ -39,6 +39,7 @@ const profileComposerInput = document.getElementById('profileComposerInput');
 const profileCharCount = document.getElementById('profileCharCount');
 const profileVisibilitySelect = document.getElementById('profileVisibilitySelect');
 const profileReplySelect = document.getElementById('profileReplySelect');
+const profileNsfwToggle = document.getElementById('profileNsfwToggle');
 const profilePostButton = document.getElementById('profilePostButton');
 const profileComposerError = document.getElementById('profileComposerError');
 const profileAttachButton = document.getElementById('profileAttachButton');
@@ -138,7 +139,7 @@ function renderProfile(profile) {
 async function loadProfile() {
   const { data: profile, error } = await client
     .from('profiles')
-    .select('username, display_name, avatar_url, banner_url, bio, pronouns, sexuality, gender_identity, created_at, is_deactivated, deletion_requested_at, is_verified, profile_color, profile_color_type')
+    .select('username, display_name, avatar_url, banner_url, bio, pronouns, sexuality, gender_identity, created_at, is_deactivated, deletion_requested_at, is_verified, role, profile_color, profile_color_type')
     .eq('id', viewedUserId)
     .single();
 
@@ -361,6 +362,7 @@ profileFab.addEventListener('click', () => {
   profileCharCount.textContent = '0 / 500';
   profileVisibilitySelect.value = 'everyone';
   profileReplySelect.value = 'everyone';
+  profileNsfwToggle.setAttribute('aria-pressed', 'false');
   profileComposerError.textContent = '';
   resetProfileComposerMedia();
 
@@ -378,6 +380,11 @@ profileFab.addEventListener('click', () => {
 
 profileComposerInput.addEventListener('input', () => {
   profileCharCount.textContent = `${profileComposerInput.value.length} / 500`;
+});
+
+profileNsfwToggle.addEventListener('click', () => {
+  const nowActive = profileNsfwToggle.getAttribute('aria-pressed') !== 'true';
+  profileNsfwToggle.setAttribute('aria-pressed', String(nowActive));
 });
 
 profileAttachButton.addEventListener('click', () => profileAttachInput.click());
@@ -467,6 +474,7 @@ profilePostButton.addEventListener('click', async () => {
     replyPermission: profileReplySelect.value,
     mediaUrl: pendingProfileMediaUrl,
     mediaType: pendingProfileMediaType,
+    isNsfw: profileNsfwToggle.getAttribute('aria-pressed') === 'true',
   });
 
   profilePostButton.disabled = false;

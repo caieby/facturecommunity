@@ -2255,6 +2255,21 @@ body {
   opacity: 0.85;
 }
 
+.feed-nsfw-toggle {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--white);
+  background: rgba(168, 85, 247, 0.1);
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.feed-nsfw-toggle[aria-pressed="true"] {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
 .feed-select {
   /* Native <select> chrome (including its own background) persists over
      background:none until appearance is stripped — that's why the closed
@@ -2552,6 +2567,18 @@ select.hub-form-input {
   font-size: 0.6rem;
 }
 
+.name-badge--owner {
+  background: #facc15;
+  color: #1a0b2e;
+  font-size: 0.6rem;
+}
+
+.name-badge--moderator {
+  background: #22c55e;
+  color: var(--white);
+  font-size: 0.55rem;
+}
+
 .post-author-username,
 .post-dot,
 .post-time {
@@ -2624,6 +2651,45 @@ select.hub-form-input {
   border: 1px solid var(--purple-mid);
   margin-bottom: 0.75rem;
   object-fit: cover;
+}
+
+.post-media-wrap--nsfw .post-media {
+  filter: blur(24px);
+  transition: filter 0.2s ease;
+}
+
+.post-media-wrap--nsfw:hover .post-media {
+  filter: none;
+}
+
+.post-nsfw-overlay {
+  position: absolute;
+  inset: 0 0 0.75rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  background: rgba(10, 4, 20, 0.35);
+  border-radius: 12px;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.post-nsfw-overlay small {
+  display: block;
+  margin-top: 0.3rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  opacity: 0.85;
+}
+
+.post-media-wrap--nsfw:hover .post-nsfw-overlay {
+  opacity: 0;
 }
 
 .post-actions {
