@@ -80,6 +80,9 @@ function showComposerMedia(url, mediaType, { fromFavorite } = {}) {
   }
 
   feedSaveGifFavorite.hidden = !(mediaType === 'gif' && !fromFavorite);
+  if (mediaType === 'gif') {
+    postsController.wireGifFavoriteButton(feedSaveGifFavorite, url, url);
+  }
 }
 
 feedAttachButton.addEventListener('click', () => feedAttachInput.click());
@@ -111,19 +114,6 @@ feedAttachInput.addEventListener('change', async () => {
 });
 
 feedComposerMediaRemove.addEventListener('click', resetComposerMedia);
-
-feedSaveGifFavorite.addEventListener('click', async () => {
-  feedSaveGifFavorite.disabled = true;
-  const { error } = await postsController.saveFavoriteGifFromUrl(pendingMediaUrl);
-  feedSaveGifFavorite.disabled = false;
-
-  if (error) {
-    alert(`Could not save this GIF as a favorite: ${error.message}`);
-    return;
-  }
-
-  feedSaveGifFavorite.classList.add('favorited');
-});
 
 function closeFeedGifPicker() {
   feedGifPicker.hidden = true;

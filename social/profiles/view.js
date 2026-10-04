@@ -351,6 +351,9 @@ function showProfileComposerMedia(url, mediaType, { fromFavorite } = {}) {
   }
 
   profileSaveGifFavorite.hidden = !(mediaType === 'gif' && !fromFavorite);
+  if (mediaType === 'gif') {
+    postsController.wireGifFavoriteButton(profileSaveGifFavorite, url, url);
+  }
 }
 
 profileFab.addEventListener('click', () => {
@@ -406,19 +409,6 @@ profileAttachInput.addEventListener('change', async () => {
 });
 
 profileComposerMediaRemove.addEventListener('click', resetProfileComposerMedia);
-
-profileSaveGifFavorite.addEventListener('click', async () => {
-  profileSaveGifFavorite.disabled = true;
-  const { error } = await postsController.saveFavoriteGifFromUrl(pendingProfileMediaUrl);
-  profileSaveGifFavorite.disabled = false;
-
-  if (error) {
-    alert(`Could not save this GIF as a favorite: ${error.message}`);
-    return;
-  }
-
-  profileSaveGifFavorite.classList.add('favorited');
-});
 
 function closeProfileGifPicker() {
   profileGifPicker.hidden = true;

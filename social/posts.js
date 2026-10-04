@@ -162,6 +162,19 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
   const viewedPostIds = new Set();
   let viewObserver = null;
 
+  // Cache of the current user's favorite GIFs (url -> favorite_gifs.id),
+  // loaded once and kept in sync as favorites are added/removed, matching
+  // the same pattern used in direct-messages.js.
+  let favoriteGifMap = new Map();
+  let favoriteGifMapLoaded = false;
+
+  async function ensureFavoriteGifMap() {
+    if (favoriteGifMapLoaded) return;
+    const { data } = await client.from('favorite_gifs').select('id, url').eq('user_id', currentUserId);
+    favoriteGifMap = new Map((data || []).map((f) => [f.url, f.id]));
+    favoriteGifMapLoaded = true;
+  }
+
   function ensureViewObserver() {
     if (viewObserver) return viewObserver;
     viewObserver = new IntersectionObserver((entries) => {
@@ -316,6 +329,8 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       .select('id, url')
       .eq('user_id', currentUserId)
       .order('created_at', { ascending: false });
+    favoriteGifMap = new Map((data || []).map((f) => [f.url, f.id]));
+    favoriteGifMapLoaded = true;
     return data || [];
   }
 
@@ -334,16 +349,77 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
 
       const { data: publicUrlData } = client.storage.from('favorite-gifs').getPublicUrl(destPath);
 
+      // Generate the id client-side and skip .select() on the insert — doing
+      // an insert().select() here intermittently fails the SELECT-policy
+      // check during INSERT...RETURNING even though the row itself is saved,
+      // the same RLS quirk fixed elsewhere in this project the same way.
+      const newId = generatePostUUID();
       const { error: insertError } = await client
         .from('favorite_gifs')
-        .insert({ user_id: currentUserId, url: publicUrlData.publicUrl });
+        .insert({ id: newId, user_id: currentUserId, url: publicUrlData.publicUrl });
 
       if (insertError) throw insertError;
 
-      return { error: null };
+      return { id: newId, error: null };
     } catch (err) {
-      return { error: err };
+      return { id: null, error: err };
     }
+  }
+
+  // Wires a star button to toggle favorite status for a GIF. identityKey is
+  // the stable URL used to check/track favorite state (a re-shown favorite's
+  // url matches favorite_gifs.url exactly; a fresh GIF has no such match, so
+  // it simply starts as "not yet favorited," which is correct). sourceUrl is
+  // what's actually fetched when saving a brand-new favorite.
+  //
+  // Safe to call repeatedly on the same button (e.g. a composer's star that
+  // gets reused as different GIFs are attached) — any previously wired
+  // listener for that button is removed first so clicks don't stack.
+  function wireGifFavoriteButton(button, identityKey, sourceUrl) {
+    button.classList.remove('favorited', 'pending');
+    if (button._gifFavoriteHandler) {
+      button.removeEventListener('click', button._gifFavoriteHandler);
+    }
+
+    ensureFavoriteGifMap().then(() => {
+      if (favoriteGifMap.has(identityKey)) button.classList.add('favorited');
+    });
+
+    const handler = async () => {
+      await ensureFavoriteGifMap();
+      let favoriteId = favoriteGifMap.get(identityKey) || null;
+
+      // Saving means fetching + re-uploading the GIF, which can take a
+      // couple seconds — with no feedback during that wait it looks
+      // unresponsive, prompting repeat clicks. Show a pending state the
+      // instant the click registers.
+      button.disabled = true;
+      button.classList.add('pending');
+
+      if (favoriteId) {
+        const { error } = await client.from('favorite_gifs').delete().eq('id', favoriteId);
+        if (error) {
+          alert(`Could not remove favorite: ${error.message}`);
+        } else {
+          favoriteGifMap.delete(identityKey);
+          button.classList.remove('favorited');
+        }
+      } else {
+        const result = await saveFavoriteGifFromUrl(sourceUrl);
+        if (result.error) {
+          alert(`Could not save this GIF as a favorite: ${result.error.message}`);
+        } else {
+          favoriteGifMap.set(identityKey, result.id);
+          button.classList.add('favorited');
+        }
+      }
+
+      button.classList.remove('pending');
+      button.disabled = false;
+    };
+
+    button._gifFavoriteHandler = handler;
+    button.addEventListener('click', handler);
   }
 
   function buildCard(post, author, state, opts) {
@@ -562,18 +638,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     }
 
     if (gifFavoriteButton) {
-      gifFavoriteButton.addEventListener('click', async () => {
-        gifFavoriteButton.disabled = true;
-        const { error } = await saveFavoriteGifFromUrl(post.media_url);
-        gifFavoriteButton.disabled = false;
-
-        if (error) {
-          showInlineError(`Could not save this GIF: ${error.message}`);
-          return;
-        }
-
-        gifFavoriteButton.classList.add('favorited');
-      });
+      wireGifFavoriteButton(gifFavoriteButton, post.media_url, post.media_url);
     }
   }
 
@@ -606,6 +671,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
   async function renderPostList(posts, container, opts) {
     const authorMap = await fetchProfilesById(posts.map((p) => p.author_id));
     const state = await fetchInteractionState(posts.map((p) => p.id));
+    await ensureFavoriteGifMap();
     for (const post of posts) {
       container.appendChild(buildCard(post, authorMap.get(post.author_id), state, opts));
     }
@@ -620,5 +686,6 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     uploadPostMedia,
     fetchFavoriteGifs,
     saveFavoriteGifFromUrl,
+    wireGifFavoriteButton,
   };
 }
