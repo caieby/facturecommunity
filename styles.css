@@ -2693,8 +2693,8 @@ select.hub-form-input {
   align-items: center;
   padding: 0.1rem 0.45rem;
   border-radius: 6px;
-  background: linear-gradient(135deg, #facc15, #f59e0b);
-  color: #1a0e2a;
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: var(--white);
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
   font-size: 0.55rem;
