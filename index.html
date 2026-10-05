@@ -28,6 +28,17 @@
     <a class="announcement-button" href="https://discord.com/invite/Facture" target="_blank" rel="noopener noreferrer">Join Us!</a>
   </div>
 
+  <div class="hub-modal" id="betaModal" hidden>
+    <div class="hub-modal-card">
+      <h2 class="subsection-title">Beta testing is out now!</h2>
+      <p class="section-intro">If you wish to become a beta tester for FactureHub/FactureSocial, apply here.</p>
+      <div class="moderation-action-buttons">
+        <button type="button" class="action-button action-button--small" id="betaCloseButton">Close</button>
+        <a class="action-button" id="betaApplyButton" href="https://forms.gle/3CLdcPPHdBkudSB17" target="_blank" rel="noopener noreferrer">Apply</a>
+      </div>
+    </div>
+  </div>
+
   <header class="topbar">
     <a href="index.html" class="brand">
       <img src="assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
@@ -63,5 +74,26 @@
   </footer>
 
   <script src="script.js"></script>
+  <script>
+    (function () {
+      const ageGate = document.getElementById('ageGate');
+      const ageGateYes = document.getElementById('ageGateYes');
+      const betaModal = document.getElementById('betaModal');
+      const betaCloseButton = document.getElementById('betaCloseButton');
+
+      function showBetaModal() {
+        betaModal.hidden = false;
+      }
+
+      if (ageGate && ageGate.hidden) {
+        showBetaModal();
+      } else if (ageGateYes) {
+        ageGateYes.addEventListener('click', showBetaModal);
+      }
+
+      betaCloseButton.addEventListener('click', () => { betaModal.hidden = true; });
+      betaModal.addEventListener('click', (event) => { if (event.target === betaModal) betaModal.hidden = true; });
+    })();
+  </script>
 </body>
 </html>
