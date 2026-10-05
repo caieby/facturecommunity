@@ -69,8 +69,6 @@ function buildBadgesHtml(profile) {
   let html = '';
   if (profile.role === 'owner') {
     html += '<span class="owner-crown" data-tooltip="OWNER">&#128081;</span>';
-  } else if (profile.role === 'moderator') {
-    html += '<span class="name-badge name-badge--moderator" data-tooltip="MODERATOR">M</span>';
   }
   if (profile.role === 'owner' || profile.role === 'moderator') {
     html += '<span class="staff-badge" data-tooltip="STAFF">STAFF</span>';

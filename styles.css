@@ -2674,12 +2674,6 @@ select.hub-form-input {
   font-size: 0.65rem;
 }
 
-.name-badge--moderator {
-  background: #22c55e;
-  color: var(--white);
-  font-size: 0.6rem;
-}
-
 .owner-crown {
   display: inline-flex;
   align-items: center;
