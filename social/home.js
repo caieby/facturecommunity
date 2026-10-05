@@ -135,6 +135,12 @@ const terminationModal = document.getElementById('terminationModal');
 const terminationReasonText = document.getElementById('terminationReasonText');
 const terminationLogoutButton = document.getElementById('terminationLogoutButton');
 const terminationAppealButton = document.getElementById('terminationAppealButton');
+const appealResolvedModal = document.getElementById('appealResolvedModal');
+const appealResolvedCard = document.getElementById('appealResolvedCard');
+const appealResolvedIcon = document.getElementById('appealResolvedIcon');
+const appealResolvedTitle = document.getElementById('appealResolvedTitle');
+const appealResolvedMessage = document.getElementById('appealResolvedMessage');
+const appealResolvedAckButton = document.getElementById('appealResolvedAckButton');
 const appealModal = document.getElementById('appealModal');
 const appealPrompt = document.getElementById('appealPrompt');
 const appealForm = document.getElementById('appealForm');
@@ -303,6 +309,35 @@ async function init() {
     .single();
 
   pageLoading.hidden = true;
+
+  const { data: unseenAppeal } = await client
+    .from('appeals')
+    .select('id, status')
+    .eq('user_id', session.user.id)
+    .in('status', ['approved', 'denied'])
+    .is('acknowledged_at', null)
+    .order('resolved_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (unseenAppeal) {
+    const approved = unseenAppeal.status === 'approved';
+    appealResolvedCard.classList.toggle('mod-screen-card--approved', approved);
+    appealResolvedTitle.classList.toggle('mod-screen-title--approved', approved);
+    appealResolvedIcon.textContent = approved ? '✅' : '❌';
+    appealResolvedMessage.textContent = approved
+      ? 'Your appeal has been reviewed and accepted.'
+      : 'Your appeal has been reviewed and denied.';
+    appealResolvedAckButton.onclick = async () => {
+      appealResolvedAckButton.disabled = true;
+      await client.rpc('acknowledge_appeal', { _appeal_id: unseenAppeal.id });
+      appealResolvedModal.hidden = true;
+      appealResolvedAckButton.disabled = false;
+      init();
+    };
+    appealResolvedModal.hidden = false;
+    return;
+  }
 
   if (profile && (profile.role === 'moderator' || profile.role === 'owner')) {
     moderationPanelLink.hidden = false;
