@@ -120,6 +120,26 @@ const restoreDeletionModal = document.getElementById('restoreDeletionModal');
 const restoreDeletionDate = document.getElementById('restoreDeletionDate');
 const restoreDeletionButton = document.getElementById('restoreDeletionButton');
 const restoreDeletionError = document.getElementById('restoreDeletionError');
+const moderationPanelLink = document.getElementById('moderationPanelLink');
+const warningModal = document.getElementById('warningModal');
+const warningReasonText = document.getElementById('warningReasonText');
+const warningError = document.getElementById('warningError');
+const warningAckButton = document.getElementById('warningAckButton');
+const suspensionModal = document.getElementById('suspensionModal');
+const suspensionReasonText = document.getElementById('suspensionReasonText');
+const suspensionUntilText = document.getElementById('suspensionUntilText');
+const suspensionLogoutButton = document.getElementById('suspensionLogoutButton');
+const terminationModal = document.getElementById('terminationModal');
+const terminationReasonText = document.getElementById('terminationReasonText');
+const appealPrompt = document.getElementById('appealPrompt');
+const showAppealFormButton = document.getElementById('showAppealFormButton');
+const appealForm = document.getElementById('appealForm');
+const appealReason = document.getElementById('appealReason');
+const appealError = document.getElementById('appealError');
+const appealStatus = document.getElementById('appealStatus');
+const appealAlreadySubmitted = document.getElementById('appealAlreadySubmitted');
+const appealNumberText = document.getElementById('appealNumberText');
+const terminationLogoutButton = document.getElementById('terminationLogoutButton');
 const chatMenuToggle = document.getElementById('chatMenuToggle');
 const chatMenuDropdown = document.getElementById('chatMenuDropdown');
 const notifMenuToggle = document.getElementById('notifMenuToggle');
@@ -272,16 +292,47 @@ async function init() {
   currentSession = session;
   profileMenuLink.href = `profiles/${session.user.id}/`;
 
-  await loadNotifications();
-  subscribeToNotifications();
-
   const { data: profile } = await client
     .from('profiles')
-    .select('display_name, avatar_url, banner_url, gender_identity, is_deactivated, deletion_requested_at')
+    .select('display_name, avatar_url, banner_url, gender_identity, is_deactivated, deletion_requested_at, role, warning_count, pending_warning_reason, suspended_until, terminated_at, termination_reason')
     .eq('id', session.user.id)
     .single();
 
   pageLoading.hidden = true;
+
+  if (profile && (profile.role === 'moderator' || profile.role === 'owner')) {
+    moderationPanelLink.hidden = false;
+  }
+
+  if (profile && profile.terminated_at) {
+    terminationReasonText.textContent = profile.termination_reason || 'No reason provided.';
+    await showExistingAppeal(session.user.id);
+    terminationModal.hidden = false;
+    return;
+  }
+
+  if (profile && profile.suspended_until && new Date(profile.suspended_until) > new Date()) {
+    suspensionReasonText.textContent = profile.pending_warning_reason || 'No reason provided.';
+    suspensionUntilText.textContent = new Date(profile.suspended_until).toLocaleString();
+    suspensionModal.hidden = false;
+    return;
+  }
+
+  if (profile && profile.suspended_until && new Date(profile.suspended_until) <= new Date()) {
+    await client
+      .from('profiles')
+      .update({ suspended_until: null, pending_warning_reason: null })
+      .eq('id', session.user.id);
+  }
+
+  if (profile && profile.pending_warning_reason) {
+    warningReasonText.textContent = profile.pending_warning_reason;
+    warningModal.hidden = false;
+    return;
+  }
+
+  await loadNotifications();
+  subscribeToNotifications();
 
   if (profile && profile.deletion_requested_at) {
     const deletionDate = new Date(profile.deletion_requested_at);
@@ -434,6 +485,97 @@ homeLogoutButton.addEventListener('click', async (event) => {
   event.preventDefault();
   await client.auth.signOut();
   window.location.href = 'index.html';
+});
+
+async function showExistingAppeal(userId) {
+  const { data: appeal } = await client
+    .from('appeals')
+    .select('appeal_number, status')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (appeal && appeal.status === 'pending') {
+    appealPrompt.hidden = true;
+    appealForm.hidden = true;
+    appealNumberText.textContent = appeal.appeal_number;
+    appealAlreadySubmitted.hidden = false;
+  } else {
+    appealPrompt.hidden = false;
+    appealForm.hidden = true;
+    appealAlreadySubmitted.hidden = true;
+  }
+}
+
+showAppealFormButton.addEventListener('click', () => {
+  appealPrompt.hidden = true;
+  appealForm.hidden = false;
+});
+
+appealForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  appealError.textContent = '';
+  appealStatus.textContent = '';
+
+  const reason = appealReason.value.trim();
+  if (!reason) {
+    appealError.textContent = 'Please explain why your account should be reinstated.';
+    return;
+  }
+
+  const submitButton = appealForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { data, error } = await client
+    .from('appeals')
+    .insert({ user_id: currentSession.user.id, reason })
+    .select('appeal_number')
+    .single();
+
+  submitButton.disabled = false;
+
+  if (error) {
+    appealError.textContent = error.message;
+    return;
+  }
+
+  appealStatus.textContent = `Appeal submitted (${data.appeal_number}). A moderator will review it soon.`;
+  setTimeout(() => {
+    appealForm.hidden = true;
+    appealNumberText.textContent = data.appeal_number;
+    appealAlreadySubmitted.hidden = false;
+  }, 1500);
+});
+
+suspensionLogoutButton.addEventListener('click', async () => {
+  await client.auth.signOut();
+  window.location.href = 'index.html';
+});
+
+terminationLogoutButton.addEventListener('click', async () => {
+  await client.auth.signOut();
+  window.location.href = 'index.html';
+});
+
+warningAckButton.addEventListener('click', async () => {
+  warningError.textContent = '';
+  warningAckButton.disabled = true;
+
+  const { error } = await client
+    .from('profiles')
+    .update({ is_deactivated: false, pending_warning_reason: null })
+    .eq('id', currentSession.user.id);
+
+  warningAckButton.disabled = false;
+
+  if (error) {
+    warningError.textContent = error.message;
+    return;
+  }
+
+  warningModal.hidden = true;
+  init();
 });
 
 reactivateButton.addEventListener('click', async () => {
