@@ -496,6 +496,10 @@ body {
   transition: background 0.2s ease;
 }
 
+.menu-dropdown li a[hidden] {
+  display: none;
+}
+
 .menu-dropdown li a:hover {
   background: var(--purple-mid);
 }
