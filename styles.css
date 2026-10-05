@@ -1223,6 +1223,15 @@ body::after {
   font-size: 1rem;
 }
 
+.profile-name-badges .owner-crown {
+  font-size: 1.5rem;
+}
+
+.profile-name-badges .staff-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
+}
+
 .profile-edit-button {
   flex-shrink: 0;
   width: 36px;
@@ -2665,16 +2674,33 @@ select.hub-form-input {
   font-size: 0.65rem;
 }
 
-.name-badge--owner {
-  background: #facc15;
-  color: #1a0e2a;
-  font-size: 0.6rem;
-}
-
 .name-badge--moderator {
   background: #22c55e;
   color: var(--white);
   font-size: 0.6rem;
+}
+
+.owner-crown {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.staff-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #facc15, #f59e0b);
+  color: #1a0e2a;
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 0.55rem;
+  letter-spacing: 0.05em;
+  line-height: 1.4;
+  flex-shrink: 0;
 }
 
 .post-author-username,

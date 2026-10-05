@@ -68,9 +68,12 @@ function buildBadgesHtml(profile) {
   if (!profile) return '';
   let html = '';
   if (profile.role === 'owner') {
-    html += '<span class="name-badge name-badge--owner" title="Owner">O</span>';
+    html += '<span class="owner-crown" title="Owner">&#128081;</span>';
   } else if (profile.role === 'moderator') {
     html += '<span class="name-badge name-badge--moderator" title="Moderator">M</span>';
+  }
+  if (profile.role === 'owner' || profile.role === 'moderator') {
+    html += '<span class="staff-badge" title="Facture Staff">STAFF</span>';
   }
   if (profile.is_verified) {
     html += '<span class="name-badge name-badge--verified" title="Verified">&#10003;</span>';
