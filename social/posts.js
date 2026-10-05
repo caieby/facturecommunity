@@ -68,9 +68,9 @@ function buildBadgesHtml(profile) {
   if (!profile) return '';
   let html = '';
   if (profile.role === 'owner') {
-    html += '<span class="name-badge name-badge--owner" title="Owner">&#9733;</span>';
+    html += '<span class="name-badge name-badge--owner" title="Owner">O</span>';
   } else if (profile.role === 'moderator') {
-    html += '<span class="name-badge name-badge--moderator" title="Moderator">&#128737;</span>';
+    html += '<span class="name-badge name-badge--moderator" title="Moderator">M</span>';
   }
   if (profile.is_verified) {
     html += '<span class="name-badge name-badge--verified" title="Verified">&#10003;</span>';
