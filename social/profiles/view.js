@@ -19,7 +19,6 @@ const profileDisplayName = document.getElementById('profileDisplayName');
 const profileUsername = document.getElementById('profileUsername');
 const profilePronouns = document.getElementById('profilePronouns');
 const profileBio = document.getElementById('profileBio');
-const profileSexuality = document.getElementById('profileSexuality');
 const profileGenderIdentity = document.getElementById('profileGenderIdentity');
 const profileJoinedDate = document.getElementById('profileJoinedDate');
 const profileEditButton = document.getElementById('profileEditButton');
@@ -82,7 +81,6 @@ const editBannerPlaceholder = document.getElementById('editBannerPlaceholder');
 const editBannerStatus = document.getElementById('editBannerStatus');
 const editBio = document.getElementById('editBio');
 const editPronouns = document.getElementById('editPronouns');
-const editSexuality = document.getElementById('editSexuality');
 const editGenderIdentity = document.getElementById('editGenderIdentity');
 
 editAvatarDrop.addEventListener('click', () => editAvatarInput.click());
@@ -152,7 +150,6 @@ function renderProfile(profile) {
 
   profilePronouns.textContent = profile.pronouns || '';
   profileBio.textContent = profile.bio || '';
-  profileSexuality.textContent = profile.sexuality || 'Not shared';
   profileGenderIdentity.textContent = profile.gender_identity;
 
   profileJoinedDate.textContent = profile.created_at
@@ -163,7 +160,7 @@ function renderProfile(profile) {
 async function loadProfile() {
   const { data: profile, error } = await client
     .from('profiles')
-    .select('username, display_name, avatar_url, banner_url, bio, pronouns, sexuality, gender_identity, created_at, is_deactivated, deletion_requested_at, is_verified, role, profile_color, profile_color_type')
+    .select('username, display_name, avatar_url, banner_url, bio, pronouns, gender_identity, created_at, is_deactivated, deletion_requested_at, is_verified, role, profile_color, profile_color_type')
     .eq('id', viewedUserId)
     .single();
 
@@ -571,7 +568,7 @@ async function init() {
 profileEditButton.addEventListener('click', async () => {
   const { data: profile } = await client
     .from('profiles')
-    .select('display_name, avatar_url, banner_url, bio, pronouns, sexuality, gender_identity, profile_color, profile_color_type')
+    .select('display_name, avatar_url, banner_url, bio, pronouns, gender_identity, profile_color, profile_color_type')
     .eq('id', viewedUserId)
     .single();
 
@@ -580,7 +577,6 @@ profileEditButton.addEventListener('click', async () => {
   editDisplayName.value = profile.display_name || '';
   editBio.value = profile.bio || '';
   editPronouns.value = profile.pronouns || '';
-  editSexuality.value = profile.sexuality || '';
   editGenderIdentity.value = profile.gender_identity || '';
 
   uploadedAvatarUrl = null;
@@ -750,7 +746,6 @@ editProfileForm.addEventListener('submit', async (event) => {
     display_name: displayName,
     bio: editBio.value.trim() || null,
     pronouns: editPronouns.value.trim() || null,
-    sexuality: editSexuality.value.trim() || null,
     gender_identity: genderIdentity,
   };
 

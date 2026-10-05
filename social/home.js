@@ -488,8 +488,8 @@ async function submitOnboarding() {
 
   // Steps 1-2 hold required fields and are always validated on their own
   // Next click, so re-checking them here just guards against reaching this
-  // point some other way. Step 3 (bio/pronouns/sexuality) is optional by
-  // design, so Skip can call this directly without validating it at all.
+  // point some other way. Step 3 (bio/pronouns) is optional by design, so
+  // Skip can call this directly without validating it at all.
   if (!validateOnboardStep(1)) { showOnboardStep(1); return; }
   if (!validateOnboardStep(2)) { showOnboardStep(2); return; }
 
@@ -498,7 +498,6 @@ async function submitOnboarding() {
   const genderIdentity = document.getElementById('onboardGenderIdentity').value.trim();
   const bio = document.getElementById('onboardBio').value.trim();
   const pronouns = document.getElementById('onboardPronouns').value.trim();
-  const sexuality = document.getElementById('onboardSexuality').value.trim();
 
   onboardSubmitButton.disabled = true;
   onboardSkipButton.disabled = true;
@@ -513,7 +512,6 @@ async function submitOnboarding() {
       banner_url: uploadedBannerUrl,
       bio: bio || null,
       pronouns: pronouns || null,
-      sexuality: sexuality || null,
       gender_identity: genderIdentity,
     })
     .select('display_name, avatar_url, banner_url, gender_identity')
