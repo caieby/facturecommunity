@@ -68,15 +68,15 @@ function buildBadgesHtml(profile) {
   if (!profile) return '';
   let html = '';
   if (profile.role === 'owner') {
-    html += '<span class="owner-crown" title="OWNER">&#128081;</span>';
+    html += '<span class="owner-crown" data-tooltip="OWNER">&#128081;</span>';
   } else if (profile.role === 'moderator') {
-    html += '<span class="name-badge name-badge--moderator" title="MODERATOR">M</span>';
+    html += '<span class="name-badge name-badge--moderator" data-tooltip="MODERATOR">M</span>';
   }
   if (profile.role === 'owner' || profile.role === 'moderator') {
-    html += '<span class="staff-badge" title="STAFF">STAFF</span>';
+    html += '<span class="staff-badge" data-tooltip="STAFF">STAFF</span>';
   }
   if (profile.is_verified) {
-    html += '<span class="name-badge name-badge--verified" title="Verified">&#10003;</span>';
+    html += '<span class="name-badge name-badge--verified" data-tooltip="VERIFIED">&#10003;</span>';
   }
   return html;
 }
