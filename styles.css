@@ -7,6 +7,14 @@
   --banner-height: 3.5rem;
 }
 
+:root[data-theme="dark"] {
+  --purple-dark: #0f0e13;
+  --purple-deep: #1c1a24;
+  --purple-mid: #342f44;
+  --purple-bright: #9d8fd6;
+  --white: #ece9f5;
+}
+
 body.no-banner {
   --banner-height: 0rem;
 }
@@ -138,7 +146,7 @@ body::after {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: rgba(168, 101, 231, 0.08);
+  background: color-mix(in srgb, var(--purple-bright) 8%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 16px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
@@ -156,7 +164,7 @@ body::after {
   height: 48px;
   font-size: 1.1rem;
   color: var(--white);
-  background: rgba(168, 101, 231, 0.15);
+  background: color-mix(in srgb, var(--purple-bright) 15%, transparent);
   border: 1px solid var(--purple-bright);
   border-radius: 50%;
   cursor: pointer;
@@ -164,7 +172,7 @@ body::after {
 }
 
 .gallery-arrow:hover {
-  background: rgba(168, 101, 231, 0.35);
+  background: color-mix(in srgb, var(--purple-bright) 35%, transparent);
   transform: scale(1.08);
 }
 
@@ -179,7 +187,7 @@ body::after {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(168, 101, 231, 0.3);
+  background: color-mix(in srgb, var(--purple-bright) 30%, transparent);
   border: 1px solid var(--purple-bright);
   cursor: pointer;
   padding: 0;
@@ -301,7 +309,7 @@ body::after {
   background: linear-gradient(180deg, rgba(20, 9, 33, 0.7), rgba(20, 9, 33, 0));
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(168, 101, 231, 0.12);
+  border-bottom: 1px solid color-mix(in srgb, var(--purple-bright) 12%, transparent);
 }
 
 .brand {
@@ -345,17 +353,17 @@ body::after {
   color: var(--white);
   text-decoration: none;
   padding: 0.7rem 1.5rem;
-  background: linear-gradient(135deg, rgba(168, 101, 231, 0.22), rgba(113, 58, 199, 0.18));
-  border: 1px solid rgba(168, 101, 231, 0.55);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--purple-bright) 22%, transparent), color-mix(in srgb, var(--purple-mid) 18%, transparent));
+  border: 1px solid color-mix(in srgb, var(--purple-bright) 55%, transparent);
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
 }
 
 .menu-toggle:hover {
-  background: linear-gradient(135deg, rgba(168, 101, 231, 0.38), rgba(113, 58, 199, 0.3));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--purple-bright) 38%, transparent), color-mix(in srgb, var(--purple-mid) 30%, transparent));
   border-color: var(--purple-bright);
-  box-shadow: 0 0 22px rgba(168, 101, 231, 0.35);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--purple-bright) 35%, transparent);
 }
 
 .menu-toggle--icon {
@@ -431,7 +439,7 @@ body::after {
 }
 
 .notif-row.unread {
-  background: rgba(168, 101, 231, 0.15);
+  background: color-mix(in srgb, var(--purple-bright) 15%, transparent);
 }
 
 .notif-avatar {
@@ -465,7 +473,7 @@ body::after {
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--white);
-  background: rgba(168, 101, 231, 0.2);
+  background: color-mix(in srgb, var(--purple-bright) 20%, transparent);
   border: 1px solid var(--purple-bright);
   border-radius: 999px;
   padding: 0.35rem 0.7rem;
@@ -473,7 +481,7 @@ body::after {
 }
 
 .notif-follow-back:hover {
-  background: rgba(168, 101, 231, 0.4);
+  background: color-mix(in srgb, var(--purple-bright) 40%, transparent);
 }
 
 .menu-dropdown {
@@ -532,7 +540,7 @@ body::after {
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--white);
-  text-shadow: 0 0 40px rgba(168, 101, 231, 0.6);
+  text-shadow: 0 0 40px color-mix(in srgb, var(--purple-bright) 60%, transparent);
   line-height: 1;
 }
 
@@ -556,7 +564,7 @@ body::after {
 .error-title {
   font-size: clamp(6rem, 22vw, 14rem);
   color: var(--purple-bright);
-  text-shadow: 0 0 60px rgba(168, 101, 231, 0.8);
+  text-shadow: 0 0 60px color-mix(in srgb, var(--purple-bright) 80%, transparent);
 }
 
 .error-home-button {
@@ -599,7 +607,7 @@ body::after {
   max-width: 480px;
   margin: 0 auto 1.5rem;
   padding: 0.85rem 1.25rem;
-  background: rgba(168, 101, 231, 0.15);
+  background: color-mix(in srgb, var(--purple-bright) 15%, transparent);
   border: 1px solid var(--purple-bright);
   border-radius: 12px;
   font-size: 0.9rem;
@@ -720,7 +728,7 @@ body::after {
   font-family: 'Oswald', sans-serif;
   font-size: 1rem;
   color: var(--white);
-  background: rgba(168, 101, 231, 0.1);
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 8px;
   padding: 0.65rem 0.9rem;
@@ -841,7 +849,7 @@ body::after {
   align-items: center;
   gap: 0.6rem;
   padding: 0.6rem 0.75rem;
-  background: rgba(168, 101, 231, 0.08);
+  background: color-mix(in srgb, var(--purple-bright) 8%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 10px;
   cursor: pointer;
@@ -1053,7 +1061,7 @@ body::after {
 
 .onboard-badge--optional {
   color: var(--purple-bright);
-  background: rgba(168, 101, 231, 0.15);
+  background: color-mix(in srgb, var(--purple-bright) 15%, transparent);
   border: 1px solid var(--purple-mid);
 }
 
@@ -1221,7 +1229,7 @@ body::after {
   height: 36px;
   font-size: 1rem;
   color: var(--white);
-  background: rgba(168, 101, 231, 0.15);
+  background: color-mix(in srgb, var(--purple-bright) 15%, transparent);
   border: 1px solid var(--purple-bright);
   border-radius: 50%;
   cursor: pointer;
@@ -1229,7 +1237,7 @@ body::after {
 }
 
 .profile-edit-button:hover {
-  background: rgba(168, 101, 231, 0.35);
+  background: color-mix(in srgb, var(--purple-bright) 35%, transparent);
 }
 
 .profile-report-button {
@@ -1331,7 +1339,7 @@ body::after {
 }
 
 .dm-row:hover {
-  background: rgba(168, 101, 231, 0.15);
+  background: color-mix(in srgb, var(--purple-bright) 15%, transparent);
   border-color: var(--purple-bright);
   transform: translateY(-1px);
 }
@@ -1556,7 +1564,7 @@ body::after {
   right: 6px;
   width: 36px;
   height: 36px;
-  background: rgba(26, 14, 42, 0.75);
+  background: color-mix(in srgb, var(--purple-dark) 75%, transparent);
   border: 1px solid var(--purple-bright);
   border-radius: 50%;
   color: var(--white);
@@ -1566,7 +1574,7 @@ body::after {
 }
 
 .dm-gif-favorite-button:hover {
-  background: rgba(168, 101, 231, 0.6);
+  background: color-mix(in srgb, var(--purple-bright) 60%, transparent);
 }
 
 .dm-gif-favorite-button.favorited {
@@ -1682,7 +1690,7 @@ body::after {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--white);
-  background: rgba(168, 101, 231, 0.12);
+  background: color-mix(in srgb, var(--purple-bright) 12%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 999px;
   padding: 0.45rem 0.85rem;
@@ -1690,7 +1698,7 @@ body::after {
 }
 
 .chat-member-toggle:hover {
-  background: rgba(168, 101, 231, 0.22);
+  background: color-mix(in srgb, var(--purple-bright) 22%, transparent);
 }
 
 .chat-member-dropdown {
@@ -1879,7 +1887,7 @@ body::after {
   gap: 0.75rem;
   padding: 0.6rem 1rem;
   margin-bottom: 0.6rem;
-  background: rgba(168, 101, 231, 0.1);
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 12px;
   font-size: 0.85rem;
@@ -2052,7 +2060,7 @@ body::after {
 }
 
 .dm-emoji-item:hover {
-  background: rgba(168, 101, 231, 0.2);
+  background: color-mix(in srgb, var(--purple-bright) 20%, transparent);
 }
 
 .dm-send-form {
@@ -2080,7 +2088,7 @@ body::after {
 }
 
 .dm-icon-button:hover {
-  background: rgba(168, 101, 231, 0.2);
+  background: color-mix(in srgb, var(--purple-bright) 20%, transparent);
   opacity: 1;
 }
 
@@ -2177,7 +2185,7 @@ body::after {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(168, 101, 231, 0.25);
+  border: 3px solid color-mix(in srgb, var(--purple-bright) 25%, transparent);
   border-top-color: var(--purple-bright);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -2330,7 +2338,7 @@ body::after {
   gap: 0.35rem;
   height: 40px;
   padding: 0 0.75rem;
-  background: rgba(168, 101, 231, 0.1);
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 999px;
   cursor: pointer;
@@ -2346,7 +2354,7 @@ body::after {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--white);
-  background: rgba(168, 101, 231, 0.1);
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
@@ -2528,7 +2536,7 @@ select.hub-form-input {
 }
 
 .feed-load-more:hover {
-  background: rgba(168, 101, 231, 0.1);
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
 }
 
 .feed-fab {
@@ -2582,7 +2590,7 @@ select.hub-form-input {
 
 .post-card--comment {
   background: rgba(255, 255, 255, 0.02);
-  border-color: rgba(113, 58, 199, 0.5);
+  border-color: color-mix(in srgb, var(--purple-mid) 50%, transparent);
   padding: 0.75rem;
 }
 
@@ -2878,7 +2886,7 @@ select.hub-form-input {
   font-family: 'Oswald', sans-serif;
   font-size: 0.85rem;
   color: var(--white);
-  background: rgba(168, 101, 231, 0.1);
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 999px;
   padding: 0.5rem 1rem;
@@ -2922,7 +2930,7 @@ select.hub-form-input {
   font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--white);
-  text-shadow: 0 0 30px rgba(168, 101, 231, 0.5);
+  text-shadow: 0 0 30px color-mix(in srgb, var(--purple-bright) 50%, transparent);
   line-height: 1;
 }
 
@@ -2970,7 +2978,7 @@ select.hub-form-input {
   letter-spacing: 0.05em;
   text-align: center;
   color: var(--white);
-  text-shadow: 0 0 25px rgba(168, 101, 231, 0.5);
+  text-shadow: 0 0 25px color-mix(in srgb, var(--purple-bright) 50%, transparent);
 }
 
 .subsection-title {
@@ -3054,7 +3062,7 @@ select.hub-form-input {
   padding: 0.6rem 1.25rem;
   border-radius: 999px;
   border: 1px solid var(--purple-mid);
-  background: rgba(168, 101, 231, 0.08);
+  background: color-mix(in srgb, var(--purple-bright) 8%, transparent);
   color: var(--white);
   cursor: pointer;
 }
@@ -3071,7 +3079,7 @@ select.hub-form-input {
 }
 
 .mod-case-card {
-  background: rgba(168, 101, 231, 0.06);
+  background: color-mix(in srgb, var(--purple-bright) 6%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 14px;
   padding: 1.25rem;
@@ -3098,7 +3106,7 @@ select.hub-form-input {
   letter-spacing: 0.05em;
   padding: 0.2rem 0.6rem;
   border-radius: 999px;
-  background: rgba(168, 101, 231, 0.2);
+  background: color-mix(in srgb, var(--purple-bright) 20%, transparent);
 }
 
 .mod-case-status--resolved,
@@ -3219,6 +3227,56 @@ select.hub-form-input {
   margin-top: 0.4rem;
 }
 
+.theme-option-list {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  background: color-mix(in srgb, var(--purple-bright) 8%, transparent);
+  border: 1px solid var(--purple-mid);
+  border-radius: 12px;
+  cursor: pointer;
+  flex: 1;
+  min-width: 200px;
+}
+
+.theme-option:has(input:checked) {
+  border-color: var(--purple-bright);
+  background: color-mix(in srgb, var(--purple-bright) 15%, transparent);
+}
+
+.theme-option input {
+  accent-color: var(--purple-bright);
+}
+
+.theme-option-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.theme-option-swatch--purple {
+  background: radial-gradient(circle at 30% 30%, #3c1966, #1a0e2a);
+}
+
+.theme-option-swatch--dark {
+  background: radial-gradient(circle at 30% 30%, #1c1a24, #0f0e13);
+}
+
+.theme-option-label em {
+  font-style: normal;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
 .quick-link {
   font-family: 'Oswald', sans-serif;
   font-size: 0.85rem;
@@ -3227,14 +3285,14 @@ select.hub-form-input {
   color: var(--white);
   text-decoration: none;
   padding: 0.5rem 1rem;
-  background: rgba(168, 101, 231, 0.12);
+  background: color-mix(in srgb, var(--purple-bright) 12%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 999px;
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .quick-link:hover {
-  background: rgba(168, 101, 231, 0.3);
+  background: color-mix(in srgb, var(--purple-bright) 30%, transparent);
   border-color: var(--purple-bright);
 }
 
@@ -3276,7 +3334,7 @@ select.hub-form-input {
   font-family: 'Courier New', monospace;
   font-size: 0.92em;
   color: var(--purple-bright);
-  background: rgba(168, 101, 231, 0.15);
+  background: color-mix(in srgb, var(--purple-bright) 15%, transparent);
   padding: 0.15em 0.4em;
   border-radius: 4px;
   word-break: break-all;
@@ -3396,22 +3454,22 @@ select.hub-form-input {
   text-decoration: none;
   text-align: center;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, rgba(168, 101, 231, 0.22), rgba(113, 58, 199, 0.2));
-  border: 1px solid rgba(168, 101, 231, 0.6);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--purple-bright) 22%, transparent), color-mix(in srgb, var(--purple-mid) 20%, transparent));
+  border: 1px solid color-mix(in srgb, var(--purple-bright) 60%, transparent);
   border-radius: 999px;
   transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
 }
 
 .action-button:hover {
-  background: linear-gradient(135deg, rgba(168, 101, 231, 0.4), rgba(113, 58, 199, 0.32));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--purple-bright) 40%, transparent), color-mix(in srgb, var(--purple-mid) 32%, transparent));
   border-color: var(--purple-bright);
-  box-shadow: 0 8px 28px rgba(168, 101, 231, 0.3);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--purple-bright) 30%, transparent);
   transform: translateY(-2px);
 }
 
 .action-button:active {
   transform: scale(0.95);
-  background: rgba(168, 101, 231, 0.5);
+  background: color-mix(in srgb, var(--purple-bright) 50%, transparent);
   transition: background 0.1s ease, transform 0.1s ease;
 }
 
@@ -3445,7 +3503,7 @@ select.hub-form-input {
   align-items: center;
   gap: 0.6rem;
   padding: 1.75rem 1rem;
-  background: rgba(168, 101, 231, 0.1);
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 14px;
   text-align: center;
@@ -3454,7 +3512,7 @@ select.hub-form-input {
 
 .stat-card:hover {
   border-color: var(--purple-bright);
-  background: rgba(168, 101, 231, 0.18);
+  background: color-mix(in srgb, var(--purple-bright) 18%, transparent);
   transform: translateY(-3px);
 }
 
@@ -3470,7 +3528,7 @@ select.hub-form-input {
   font-size: clamp(1.75rem, 5vw, 2.5rem);
   font-weight: 700;
   color: var(--white);
-  text-shadow: 0 0 25px rgba(168, 101, 231, 0.5);
+  text-shadow: 0 0 25px color-mix(in srgb, var(--purple-bright) 50%, transparent);
 }
 
 .server-info {
@@ -3484,7 +3542,7 @@ select.hub-form-input {
   flex-direction: column;
   gap: 0.4rem;
   padding: 1rem 1.25rem;
-  background: rgba(168, 101, 231, 0.1);
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
   border: 1px solid var(--purple-mid);
   border-radius: 12px;
 }
@@ -3525,14 +3583,14 @@ select.hub-form-input {
   color: var(--white);
   cursor: pointer;
   padding: 0.4rem 0.9rem;
-  background: rgba(168, 101, 231, 0.2);
+  background: color-mix(in srgb, var(--purple-bright) 20%, transparent);
   border: 1px solid var(--purple-bright);
   border-radius: 999px;
   transition: background 0.2s ease;
 }
 
 .copy-button:hover {
-  background: rgba(168, 101, 231, 0.4);
+  background: color-mix(in srgb, var(--purple-bright) 40%, transparent);
 }
 
 @media (max-width: 640px) {
@@ -3605,7 +3663,7 @@ select.hub-form-input {
     overflow-y: auto;
     margin: 0;
     background: linear-gradient(165deg, #2a0a52 0%, #12081f 100%);
-    border: 1px solid rgba(168, 101, 231, 0.3);
+    border: 1px solid color-mix(in srgb, var(--purple-bright) 30%, transparent);
     border-radius: 14px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
     display: flex;
@@ -3633,19 +3691,19 @@ select.hub-form-input {
   }
 
   .site-menu .menu-dropdown li a:hover {
-    background: rgba(168, 101, 231, 0.18);
+    background: color-mix(in srgb, var(--purple-bright) 18%, transparent);
   }
 
   .site-menu .menu-dropdown li:first-child a {
     color: var(--purple-bright);
     font-weight: 700;
-    background: rgba(168, 101, 231, 0.12);
-    border: 1px solid rgba(168, 101, 231, 0.3);
+    background: color-mix(in srgb, var(--purple-bright) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--purple-bright) 30%, transparent);
     margin-bottom: 0.3rem;
   }
 
   .site-menu .menu-dropdown li:first-child a:hover {
-    background: rgba(168, 101, 231, 0.28);
+    background: color-mix(in srgb, var(--purple-bright) 28%, transparent);
   }
 
 

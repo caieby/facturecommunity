@@ -60,6 +60,36 @@ const infractionAppealError = document.getElementById('infractionAppealError');
 const infractionAppealStatus = document.getElementById('infractionAppealStatus');
 let appealTargetActionId = null;
 
+const themeOptionPurple = document.getElementById('themeOptionPurple');
+const themeOptionDark = document.getElementById('themeOptionDark');
+const themeError = document.getElementById('themeError');
+
+function applyTheme(theme) {
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  try { localStorage.setItem('facture-theme', theme); } catch (e) {}
+}
+
+[themeOptionPurple, themeOptionDark].forEach((input) => {
+  input.addEventListener('change', async () => {
+    themeError.textContent = '';
+    const theme = input.value;
+    applyTheme(theme);
+
+    const { error } = await client
+      .from('profiles')
+      .update({ theme })
+      .eq('id', currentSession.user.id);
+
+    if (error) {
+      themeError.textContent = error.message;
+    }
+  });
+});
+
 async function init() {
   const { data: { session } } = await client.auth.getSession();
 
@@ -79,7 +109,7 @@ async function init() {
 
   const { data: profile } = await client
     .from('profiles')
-    .select('username, dm_privacy, username_changed_at, warning_count, suspended_until, terminated_at, termination_reason')
+    .select('username, dm_privacy, username_changed_at, warning_count, suspended_until, terminated_at, termination_reason, theme')
     .eq('id', session.user.id)
     .single();
 
@@ -88,6 +118,11 @@ async function init() {
   settingsUsernameInput.value = originalUsername;
   updateUsernameHint();
   dmPrivacySelect.value = (profile && profile.dm_privacy) || 'everyone';
+
+  const theme = (profile && profile.theme) || 'purple';
+  themeOptionPurple.checked = theme === 'purple';
+  themeOptionDark.checked = theme === 'dark';
+  applyTheme(theme);
 
   refreshEmailStatus(userData.user);
   renderAccountStanding(profile || {});

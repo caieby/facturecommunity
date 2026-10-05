@@ -216,6 +216,25 @@ if (typeof supabase !== 'undefined') {
   presenceClient.auth.getSession().then(({ data: { session } }) => {
     if (!session) return;
 
+    presenceClient
+      .from('profiles')
+      .select('theme')
+      .eq('id', session.user.id)
+      .single()
+      .then(({ data: profile }) => {
+        if (!profile || !profile.theme) return;
+        let stored = null;
+        try { stored = localStorage.getItem('facture-theme'); } catch (e) {}
+        if (profile.theme === stored) return;
+
+        try { localStorage.setItem('facture-theme', profile.theme); } catch (e) {}
+        if (profile.theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+        }
+      });
+
     const presenceChannel = presenceClient.channel('facturehub-online', {
       config: { presence: { key: session.user.id } },
     });

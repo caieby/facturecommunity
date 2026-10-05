@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <script>try{if(localStorage.getItem('facture-theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -48,6 +49,26 @@
       <div class="infraction-list" id="infractionList" hidden>
         <p class="page-hint" id="infractionEmpty" hidden>No infractions on record. Keep it up!</p>
       </div>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h2 class="section-title">Appearance</h2>
+      <p class="section-intro">Choose how FactureHub looks.</p>
+
+      <div class="theme-option-list">
+        <label class="theme-option">
+          <input type="radio" name="themeChoice" value="purple" id="themeOptionPurple">
+          <span class="theme-option-swatch theme-option-swatch--purple"></span>
+          <span class="theme-option-label">Facture Purple <em>(Default)</em></span>
+        </label>
+        <label class="theme-option">
+          <input type="radio" name="themeChoice" value="dark" id="themeOptionDark">
+          <span class="theme-option-swatch theme-option-swatch--dark"></span>
+          <span class="theme-option-label">Facture Dark</span>
+        </label>
+      </div>
+      <p class="hub-form-error" id="themeError"></p>
     </section>
 
     <hr class="section-divider">
