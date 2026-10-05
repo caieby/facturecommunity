@@ -308,8 +308,6 @@ async function init() {
     .eq('id', session.user.id)
     .single();
 
-  pageLoading.hidden = true;
-
   const { data: unseenAppeal } = await client
     .from('appeals')
     .select('id, status')
@@ -335,6 +333,7 @@ async function init() {
       appealResolvedAckButton.disabled = false;
       init();
     };
+    pageLoading.hidden = true;
     appealResolvedModal.hidden = false;
     return;
   }
@@ -357,6 +356,7 @@ async function init() {
 
   if (profile && profile.terminated_at) {
     terminationReasonText.textContent = profile.termination_reason || 'No reason provided.';
+    pageLoading.hidden = true;
     terminationModal.hidden = false;
     return;
   }
@@ -364,6 +364,7 @@ async function init() {
   if (profile && profile.suspended_until && new Date(profile.suspended_until) > new Date()) {
     suspensionReasonText.textContent = profile.pending_warning_reason || 'No reason provided.';
     suspensionUntilText.textContent = new Date(profile.suspended_until).toLocaleString();
+    pageLoading.hidden = true;
     suspensionModal.hidden = false;
     return;
   }
@@ -377,6 +378,7 @@ async function init() {
 
   if (profile && profile.pending_warning_reason) {
     warningReasonText.textContent = profile.pending_warning_reason;
+    pageLoading.hidden = true;
     warningModal.hidden = false;
     return;
   }
@@ -388,11 +390,13 @@ async function init() {
     const deletionDate = new Date(profile.deletion_requested_at);
     deletionDate.setDate(deletionDate.getDate() + 30);
     restoreDeletionDate.textContent = deletionDate.toLocaleDateString();
+    pageLoading.hidden = true;
     restoreDeletionModal.hidden = false;
     return;
   }
 
   if (profile && profile.is_deactivated) {
+    pageLoading.hidden = true;
     reactivateModal.hidden = false;
     return;
   }
@@ -401,10 +405,12 @@ async function init() {
 
   if (!onboardingComplete) {
     showOnboardStep(1);
+    pageLoading.hidden = true;
     onboardModal.hidden = false;
     return;
   }
 
+  pageLoading.hidden = true;
   showHome(profile);
 }
 
