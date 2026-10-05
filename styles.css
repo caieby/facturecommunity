@@ -1105,6 +1105,9 @@ body::after {
 }
 
 .onboard-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   text-align: left;
 }
 
