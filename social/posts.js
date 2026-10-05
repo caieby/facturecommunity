@@ -470,7 +470,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       ? `<div class="post-media-wrap${post.is_nsfw ? ' post-media-wrap--nsfw' : ''}">
           ${post.media_type === 'video' ? '<video class="post-media" controls></video>' : '<img class="post-media" alt="" loading="lazy">'}
           ${post.media_type === 'gif' ? '<button type="button" class="dm-gif-favorite-button post-gif-favorite-button" aria-label="Save as favorite GIF">&#9733;</button>' : ''}
-          ${post.is_nsfw ? '<div class="post-nsfw-overlay"><span>NSFW<br><small>Hover to view</small></span></div>' : ''}
+          ${post.is_nsfw ? '<div class="post-nsfw-overlay"><span>NSFW<br><small>Tap to view</small></span></div>' : ''}
         </div>`
       : '';
 
@@ -567,6 +567,15 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       inlineError.hidden = false;
       clearTimeout(inlineError._hideTimer);
       inlineError._hideTimer = setTimeout(() => { inlineError.hidden = true; }, 4000);
+    }
+
+    const nsfwWrap = card.querySelector('.post-media-wrap--nsfw');
+    if (nsfwWrap) {
+      nsfwWrap.addEventListener('click', (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        nsfwWrap.classList.toggle('revealed');
+      });
     }
 
     likeButton.addEventListener('click', async () => {

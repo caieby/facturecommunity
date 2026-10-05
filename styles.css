@@ -1221,7 +1221,18 @@ body::after {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.profile-display-name {
+  font-size: clamp(1.6rem, 6vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--white);
+  line-height: 1.2;
+  text-align: center;
+  word-break: break-word;
 }
 
 .profile-name-badges {
@@ -1556,7 +1567,8 @@ body::after {
 .dm-bubble-embed {
   border-radius: 12px;
   border: 1px solid var(--purple-mid);
-  width: 280px;
+  width: 100%;
+  max-width: 280px;
   aspect-ratio: 16 / 9;
   display: block;
 }
@@ -2840,7 +2852,8 @@ select.hub-form-input {
   transition: filter 0.2s ease;
 }
 
-.post-media-wrap--nsfw:hover .post-media {
+.post-media-wrap--nsfw:hover .post-media,
+.post-media-wrap--nsfw.revealed .post-media {
   filter: none;
 }
 
@@ -2870,8 +2883,13 @@ select.hub-form-input {
   opacity: 0.85;
 }
 
-.post-media-wrap--nsfw:hover .post-nsfw-overlay {
+.post-media-wrap--nsfw:hover .post-nsfw-overlay,
+.post-media-wrap--nsfw.revealed .post-nsfw-overlay {
   opacity: 0;
+}
+
+.post-media-wrap--nsfw {
+  cursor: pointer;
 }
 
 .post-actions {
@@ -3774,6 +3792,33 @@ select.hub-form-input {
     background: color-mix(in srgb, var(--purple-bright) 28%, transparent);
   }
 
+  /* FactureHub's own nav (home.html's notif/chat/settings icon buttons --
+     not .site-menu). Their dropdowns use "right: 0" relative to each
+     trigger's own position, which only lines up with the viewport edge
+     for the rightmost (settings) icon. On mobile the notif/chat triggers
+     sit well left of that, so their dropdowns were anchoring far off to
+     the left and getting clipped by the viewport. A fixed panel below
+     the topbar sidesteps that entirely. */
+  .menu:not(.site-menu) {
+    gap: 0.4rem;
+  }
+
+  .menu:not(.site-menu) .menu-toggle--icon {
+    padding: 0.5rem 0.65rem;
+    font-size: 1.05rem;
+  }
+
+  .menu:not(.site-menu) .notif-dropdown,
+  .menu:not(.site-menu) .menu-dropdown {
+    position: fixed;
+    top: calc(var(--banner-height) + 4.5rem);
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+    max-height: 70vh;
+  }
 
   .hero,
   .page {
@@ -3820,6 +3865,18 @@ select.hub-form-input {
   .action-button {
     font-size: 0.95rem;
     padding: 0.9rem 1.25rem;
+  }
+
+  .hub-modal {
+    padding: 1rem;
+  }
+
+  .hub-modal-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .profile-name-row {
+    gap: 0.5rem;
   }
 }
 
