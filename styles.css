@@ -937,6 +937,19 @@ body::after {
   cursor: pointer;
 }
 
+.color-custom-gradient-preview {
+  width: 48px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--purple-mid);
+  flex-shrink: 0;
+}
+
+#profileContent {
+  transition: background 0.3s ease;
+  border-radius: 24px;
+}
+
 .onboard-banner-preview {
   width: 100%;
   max-height: 140px;

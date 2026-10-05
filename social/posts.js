@@ -48,6 +48,11 @@ function rankPosts(posts) {
   return [...posts].sort((a, b) => scorePost(b) - scorePost(a));
 }
 
+function buildProfileGradient(colorPair, direction) {
+  const [start, end] = colorPair.split(',');
+  return `linear-gradient(${direction}, ${start}, ${end})`;
+}
+
 function applyNameColor(el, color, colorType) {
   el.style.color = '';
   el.style.background = '';
@@ -55,7 +60,7 @@ function applyNameColor(el, color, colorType) {
   el.style.backgroundClip = '';
   if (!color) return;
   if (colorType === 'gradient') {
-    el.style.background = color;
+    el.style.background = buildProfileGradient(color, '90deg');
     el.style.webkitBackgroundClip = 'text';
     el.style.backgroundClip = 'text';
     el.style.color = 'transparent';

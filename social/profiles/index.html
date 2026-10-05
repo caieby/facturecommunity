@@ -168,13 +168,20 @@
           <button type="button" class="color-swatch" data-color="#22c55e" data-type="solid" style="background:#22c55e;" title="Green"></button>
           <button type="button" class="color-swatch" data-color="#3b82f6" data-type="solid" style="background:#3b82f6;" title="Blue"></button>
           <button type="button" class="color-swatch" data-color="#ec4899" data-type="solid" style="background:#ec4899;" title="Pink"></button>
-          <button type="button" class="color-swatch" data-color="linear-gradient(90deg, #a855f7, #ec4899)" data-type="gradient" style="background:linear-gradient(90deg, #a855f7, #ec4899);" title="Purple to Pink"></button>
-          <button type="button" class="color-swatch" data-color="linear-gradient(90deg, #3b82f6, #a855f7)" data-type="gradient" style="background:linear-gradient(90deg, #3b82f6, #a855f7);" title="Blue to Purple"></button>
-          <button type="button" class="color-swatch" data-color="linear-gradient(90deg, #f97316, #ec4899)" data-type="gradient" style="background:linear-gradient(90deg, #f97316, #ec4899);" title="Sunset"></button>
+          <button type="button" class="color-swatch" data-color="#a855f7,#ec4899" data-type="gradient" style="background:linear-gradient(90deg, #a855f7, #ec4899);" title="Purple to Pink"></button>
+          <button type="button" class="color-swatch" data-color="#3b82f6,#a855f7" data-type="gradient" style="background:linear-gradient(90deg, #3b82f6, #a855f7);" title="Blue to Purple"></button>
+          <button type="button" class="color-swatch" data-color="#f97316,#ec4899" data-type="gradient" style="background:linear-gradient(90deg, #f97316, #ec4899);" title="Sunset"></button>
+        </div>
+
+        <div class="color-custom-row">
+          <label class="color-custom-label">Custom solid:</label>
+          <input type="color" id="editCustomColorInput" class="color-custom-input" value="#f5f0ff">
         </div>
         <div class="color-custom-row">
-          <label for="editCustomColorInput" class="color-custom-label">Custom:</label>
-          <input type="color" id="editCustomColorInput" class="color-custom-input" value="#f5f0ff">
+          <label class="color-custom-label">Custom gradient:</label>
+          <input type="color" id="editCustomGradientStart" class="color-custom-input" value="#a855f7">
+          <input type="color" id="editCustomGradientEnd" class="color-custom-input" value="#ec4899">
+          <span class="color-custom-gradient-preview" id="colorCustomGradientPreview"></span>
         </div>
 
         <p class="hub-form-error" id="editProfileError"></p>

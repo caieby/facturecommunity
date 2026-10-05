@@ -89,18 +89,34 @@ editAvatarDrop.addEventListener('click', () => editAvatarInput.click());
 editBannerDrop.addEventListener('click', () => editBannerInput.click());
 const colorSwatchRow = document.getElementById('colorSwatchRow');
 const editCustomColorInput = document.getElementById('editCustomColorInput');
+const editCustomGradientStart = document.getElementById('editCustomGradientStart');
+const editCustomGradientEnd = document.getElementById('editCustomGradientEnd');
+const colorCustomGradientPreview = document.getElementById('colorCustomGradientPreview');
 const profileNameBadges = document.getElementById('profileNameBadges');
 
 let pendingColor = null;
 let pendingColorType = null;
 
-function applyFrameColor(frameEl, color) {
+function applyFrameColor(frameEl, color, colorType) {
   if (color) {
-    frameEl.style.background = color;
+    frameEl.style.background = colorType === 'gradient' ? buildProfileGradient(color, '135deg') : color;
     frameEl.classList.add('has-color');
   } else {
     frameEl.style.background = '';
     frameEl.classList.remove('has-color');
+  }
+}
+
+function applyPageColorWash(color, colorType) {
+  if (!color) {
+    profileContent.style.background = '';
+    return;
+  }
+  if (colorType === 'gradient') {
+    const [start, end] = color.split(',');
+    profileContent.style.background = `linear-gradient(180deg, color-mix(in srgb, ${start} 22%, transparent), color-mix(in srgb, ${end} 22%, transparent))`;
+  } else {
+    profileContent.style.background = `color-mix(in srgb, ${color} 18%, transparent)`;
   }
 }
 
@@ -125,8 +141,9 @@ function renderProfile(profile) {
   profileBannerFrame.hidden = !profile.banner_url;
   if (profile.banner_url) profileBanner.src = profile.banner_url;
 
-  applyFrameColor(profileAvatarFrame, profile.profile_color);
-  applyFrameColor(profileBannerFrame, profile.profile_color);
+  applyFrameColor(profileAvatarFrame, profile.profile_color, profile.profile_color_type);
+  applyFrameColor(profileBannerFrame, profile.profile_color, profile.profile_color_type);
+  applyPageColorWash(profile.profile_color, profile.profile_color_type);
 
   profilePronouns.textContent = profile.pronouns || '';
   profileBio.textContent = profile.bio || '';
@@ -589,8 +606,19 @@ profileEditButton.addEventListener('click', async () => {
 
   pendingColor = profile.profile_color || null;
   pendingColorType = profile.profile_color_type || null;
-  if (pendingColorType === 'solid' && !colorSwatchRow.querySelector(`[data-color="${pendingColor}"]`)) {
+
+  const isPreset = pendingColor && Array.from(colorSwatchRow.querySelectorAll('.color-swatch')).some(
+    (swatch) => swatch.dataset.color === pendingColor && swatch.dataset.type === pendingColorType
+  );
+
+  if (!isPreset && pendingColorType === 'solid' && pendingColor) {
     editCustomColorInput.value = pendingColor;
+    setActiveSwatch('__custom__', '__custom__');
+  } else if (!isPreset && pendingColorType === 'gradient' && pendingColor) {
+    const [start, end] = pendingColor.split(',');
+    if (start) editCustomGradientStart.value = start;
+    if (end) editCustomGradientEnd.value = end;
+    updateGradientPreview();
     setActiveSwatch('__custom__', '__custom__');
   } else {
     setActiveSwatch(pendingColor, pendingColorType);
@@ -658,6 +686,21 @@ editCustomColorInput.addEventListener('input', () => {
   pendingColorType = 'solid';
   setActiveSwatch('__custom__', '__custom__');
 });
+
+function updateGradientPreview() {
+  colorCustomGradientPreview.style.background = `linear-gradient(90deg, ${editCustomGradientStart.value}, ${editCustomGradientEnd.value})`;
+}
+
+[editCustomGradientStart, editCustomGradientEnd].forEach((input) => {
+  input.addEventListener('input', () => {
+    pendingColor = `${editCustomGradientStart.value},${editCustomGradientEnd.value}`;
+    pendingColorType = 'gradient';
+    updateGradientPreview();
+    setActiveSwatch('__custom__', '__custom__');
+  });
+});
+
+updateGradientPreview();
 
 editAvatarInput.addEventListener('change', async () => {
   const file = editAvatarInput.files[0];
