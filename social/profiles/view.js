@@ -98,8 +98,9 @@ let pendingColor = null;
 let pendingColorType = null;
 
 function applyFrameColor(frameEl, color, colorType) {
-  if (color) {
-    frameEl.style.background = colorType === 'gradient' ? buildProfileGradient(color, '135deg') : color;
+  const background = colorType === 'gradient' ? (color ? buildProfileGradient(color, '135deg') : null) : color;
+  if (background) {
+    frameEl.style.background = background;
     frameEl.classList.add('has-color');
   } else {
     frameEl.style.background = '';
@@ -113,8 +114,12 @@ function applyPageColorWash(color, colorType) {
     return;
   }
   if (colorType === 'gradient') {
-    const [start, end] = color.split(',');
-    profileContent.style.background = `linear-gradient(180deg, color-mix(in srgb, ${start} 22%, transparent), color-mix(in srgb, ${end} 22%, transparent))`;
+    const parts = parseColorPair(color);
+    if (!parts) {
+      profileContent.style.background = '';
+      return;
+    }
+    profileContent.style.background = `linear-gradient(180deg, color-mix(in srgb, ${parts[0]} 22%, transparent), color-mix(in srgb, ${parts[1]} 22%, transparent))`;
   } else {
     profileContent.style.background = `color-mix(in srgb, ${color} 18%, transparent)`;
   }

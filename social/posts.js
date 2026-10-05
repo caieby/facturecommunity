@@ -48,9 +48,18 @@ function rankPosts(posts) {
   return [...posts].sort((a, b) => scorePost(b) - scorePost(a));
 }
 
+function parseColorPair(colorPair) {
+  const parts = String(colorPair).split(',').map((p) => p.trim());
+  if (parts.length !== 2 || !/^#[0-9a-fA-F]{3,8}$/.test(parts[0]) || !/^#[0-9a-fA-F]{3,8}$/.test(parts[1])) {
+    return null;
+  }
+  return parts;
+}
+
 function buildProfileGradient(colorPair, direction) {
-  const [start, end] = colorPair.split(',');
-  return `linear-gradient(${direction}, ${start}, ${end})`;
+  const parts = parseColorPair(colorPair);
+  if (!parts) return null;
+  return `linear-gradient(${direction}, ${parts[0]}, ${parts[1]})`;
 }
 
 function applyNameColor(el, color, colorType) {
@@ -60,7 +69,9 @@ function applyNameColor(el, color, colorType) {
   el.style.backgroundClip = '';
   if (!color) return;
   if (colorType === 'gradient') {
-    el.style.background = buildProfileGradient(color, '90deg');
+    const gradient = buildProfileGradient(color, '90deg');
+    if (!gradient) return;
+    el.style.background = gradient;
     el.style.webkitBackgroundClip = 'text';
     el.style.backgroundClip = 'text';
     el.style.color = 'transparent';
