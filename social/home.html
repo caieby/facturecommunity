@@ -165,7 +165,10 @@
       <p class="section-intro">To prevent more infractions, please get familar with our terms of service.</p>
       <a href="/social/tos.html" class="inline-link">Read the Terms of Service</a>
       <p class="hub-form-error" id="warningError"></p>
-      <button type="button" class="action-button" id="warningAckButton">I Understand</button>
+      <div class="moderation-action-buttons">
+        <button type="button" class="action-button" id="warningAckButton">I Understand</button>
+        <button type="button" class="action-button action-button--small" id="warningAppealButton">Appeal This Warning</button>
+      </div>
     </div>
   </div>
 
@@ -176,7 +179,10 @@
       <div class="mod-reason-box"><strong>Reason:</strong> <span id="suspensionReasonText"></span></div>
       <p class="section-intro">Your account is suspended until <strong id="suspensionUntilText"></strong>.</p>
       <p class="mod-screen-note">You'll be able to log back in once the suspension ends.</p>
-      <button type="button" class="action-button action-button--small" id="suspensionLogoutButton">Log Out</button>
+      <div class="moderation-action-buttons">
+        <button type="button" class="action-button action-button--small" id="suspensionAppealButton">Appeal This Suspension</button>
+        <button type="button" class="action-button action-button--small" id="suspensionLogoutButton">Log Out</button>
+      </div>
     </div>
   </div>
 
@@ -186,22 +192,29 @@
       <h2 class="mod-screen-title">Account Terminated</h2>
       <div class="mod-reason-box"><strong>Reason:</strong> <span id="terminationReasonText"></span></div>
       <p class="section-intro">Your account has been permanently terminated for violating our terms of service.</p>
+      <div class="moderation-action-buttons">
+        <button type="button" class="action-button" id="terminationAppealButton">Appeal This Decision</button>
+        <button type="button" class="action-button action-button--small" id="terminationLogoutButton">Log Out</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hub-modal" id="appealModal" hidden>
+    <div class="hub-modal-card">
+      <button type="button" class="hub-modal-close" aria-label="Close">&times;</button>
+      <h2 class="subsection-title">Submit an Appeal</h2>
 
       <div id="appealPrompt">
-        <button type="button" class="action-button" id="showAppealFormButton">Appeal This Decision</button>
+        <form id="appealForm" class="hub-form">
+          <label class="hub-form-label" for="appealReason">Why should this decision be reconsidered?</label>
+          <textarea class="hub-form-input hub-form-textarea" id="appealReason" maxlength="1000" required></textarea>
+          <p class="hub-form-error" id="appealError"></p>
+          <p class="hub-form-status" id="appealStatus"></p>
+          <button type="submit" class="action-button">Submit Appeal</button>
+        </form>
       </div>
 
-      <form id="appealForm" class="hub-form" hidden>
-        <label class="hub-form-label" for="appealReason">Why should your account be reinstated?</label>
-        <textarea class="hub-form-input hub-form-textarea" id="appealReason" maxlength="1000" required></textarea>
-        <p class="hub-form-error" id="appealError"></p>
-        <p class="hub-form-status" id="appealStatus"></p>
-        <button type="submit" class="action-button">Submit Appeal</button>
-      </form>
-
       <p class="mod-screen-note" id="appealAlreadySubmitted" hidden>Your appeal (<span id="appealNumberText"></span>) is pending review.</p>
-
-      <button type="button" class="action-button action-button--small" id="terminationLogoutButton">Log Out</button>
     </div>
   </div>
 

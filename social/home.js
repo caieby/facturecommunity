@@ -125,21 +125,25 @@ const warningModal = document.getElementById('warningModal');
 const warningReasonText = document.getElementById('warningReasonText');
 const warningError = document.getElementById('warningError');
 const warningAckButton = document.getElementById('warningAckButton');
+const warningAppealButton = document.getElementById('warningAppealButton');
 const suspensionModal = document.getElementById('suspensionModal');
 const suspensionReasonText = document.getElementById('suspensionReasonText');
 const suspensionUntilText = document.getElementById('suspensionUntilText');
 const suspensionLogoutButton = document.getElementById('suspensionLogoutButton');
+const suspensionAppealButton = document.getElementById('suspensionAppealButton');
 const terminationModal = document.getElementById('terminationModal');
 const terminationReasonText = document.getElementById('terminationReasonText');
+const terminationLogoutButton = document.getElementById('terminationLogoutButton');
+const terminationAppealButton = document.getElementById('terminationAppealButton');
+const appealModal = document.getElementById('appealModal');
 const appealPrompt = document.getElementById('appealPrompt');
-const showAppealFormButton = document.getElementById('showAppealFormButton');
 const appealForm = document.getElementById('appealForm');
 const appealReason = document.getElementById('appealReason');
 const appealError = document.getElementById('appealError');
 const appealStatus = document.getElementById('appealStatus');
 const appealAlreadySubmitted = document.getElementById('appealAlreadySubmitted');
 const appealNumberText = document.getElementById('appealNumberText');
-const terminationLogoutButton = document.getElementById('terminationLogoutButton');
+let latestInfractionActionId = null;
 const chatMenuToggle = document.getElementById('chatMenuToggle');
 const chatMenuDropdown = document.getElementById('chatMenuDropdown');
 const notifMenuToggle = document.getElementById('notifMenuToggle');
@@ -304,9 +308,20 @@ async function init() {
     moderationPanelLink.hidden = false;
   }
 
+  if (profile && (profile.terminated_at || (profile.suspended_until && new Date(profile.suspended_until) > new Date()) || profile.pending_warning_reason)) {
+    const { data: latestAction } = await client
+      .from('moderation_actions')
+      .select('id')
+      .eq('target_user_id', session.user.id)
+      .in('action_type', ['warn', 'terminate'])
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    latestInfractionActionId = latestAction ? latestAction.id : null;
+  }
+
   if (profile && profile.terminated_at) {
     terminationReasonText.textContent = profile.termination_reason || 'No reason provided.';
-    await showExistingAppeal(session.user.id);
     terminationModal.hidden = false;
     return;
   }
@@ -487,31 +502,38 @@ homeLogoutButton.addEventListener('click', async (event) => {
   window.location.href = 'index.html';
 });
 
-async function showExistingAppeal(userId) {
+async function openAppealModal() {
+  appealError.textContent = '';
+  appealStatus.textContent = '';
+  appealForm.reset();
+
   const { data: appeal } = await client
     .from('appeals')
     .select('appeal_number, status')
-    .eq('user_id', userId)
+    .eq('user_id', currentSession.user.id)
+    .eq('moderation_action_id', latestInfractionActionId)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (appeal && appeal.status === 'pending') {
     appealPrompt.hidden = true;
-    appealForm.hidden = true;
     appealNumberText.textContent = appeal.appeal_number;
     appealAlreadySubmitted.hidden = false;
   } else {
     appealPrompt.hidden = false;
-    appealForm.hidden = true;
     appealAlreadySubmitted.hidden = true;
   }
+
+  appealModal.hidden = false;
 }
 
-showAppealFormButton.addEventListener('click', () => {
-  appealPrompt.hidden = true;
-  appealForm.hidden = false;
-});
+warningAppealButton.addEventListener('click', openAppealModal);
+suspensionAppealButton.addEventListener('click', openAppealModal);
+terminationAppealButton.addEventListener('click', openAppealModal);
+
+appealModal.querySelector('.hub-modal-close').addEventListener('click', () => { appealModal.hidden = true; });
+appealModal.addEventListener('click', (event) => { if (event.target === appealModal) appealModal.hidden = true; });
 
 appealForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -520,7 +542,7 @@ appealForm.addEventListener('submit', async (event) => {
 
   const reason = appealReason.value.trim();
   if (!reason) {
-    appealError.textContent = 'Please explain why your account should be reinstated.';
+    appealError.textContent = 'Please explain why this decision should be reconsidered.';
     return;
   }
 
@@ -529,7 +551,7 @@ appealForm.addEventListener('submit', async (event) => {
 
   const { data, error } = await client
     .from('appeals')
-    .insert({ user_id: currentSession.user.id, reason })
+    .insert({ user_id: currentSession.user.id, reason, moderation_action_id: latestInfractionActionId })
     .select('appeal_number')
     .single();
 
@@ -542,7 +564,7 @@ appealForm.addEventListener('submit', async (event) => {
 
   appealStatus.textContent = `Appeal submitted (${data.appeal_number}). A moderator will review it soon.`;
   setTimeout(() => {
-    appealForm.hidden = true;
+    appealPrompt.hidden = true;
     appealNumberText.textContent = data.appeal_number;
     appealAlreadySubmitted.hidden = false;
   }, 1500);
