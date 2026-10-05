@@ -126,7 +126,7 @@ async function renderReports() {
 async function renderAppeals() {
   const { data: appeals, error } = await client
     .from('appeals')
-    .select('id, appeal_number, user_id, reason, status, created_at')
+    .select('id, appeal_number, user_id, reason, status, created_at, moderation_action_id')
     .order('created_at', { ascending: false });
 
   if (error || !appeals || appeals.length === 0) {
@@ -141,6 +141,18 @@ async function renderAppeals() {
   for (const appeal of appeals) {
     const profile = await profileLabel(appeal.user_id);
 
+    let infractionLine = '';
+    if (appeal.moderation_action_id) {
+      const { data: action } = await client
+        .from('moderation_actions')
+        .select('action_type, reason')
+        .eq('id', appeal.moderation_action_id)
+        .single();
+      if (action) {
+        infractionLine = `<p class="mod-case-meta">Appealing: ${action.action_type === 'terminate' ? 'Termination' : 'Warning'} &ndash; ${action.reason}</p>`;
+      }
+    }
+
     const card = document.createElement('div');
     card.className = 'mod-case-card';
     card.innerHTML = `
@@ -149,6 +161,7 @@ async function renderAppeals() {
         <span class="mod-case-status mod-case-status--${appeal.status}">${appeal.status}</span>
       </div>
       <p class="mod-case-meta">From <a href="/social/profiles/${appeal.user_id}/" class="inline-link" target="_blank" rel="noopener"><strong>${profile.username}</strong></a> on ${formatDate(appeal.created_at)}</p>
+      ${infractionLine}
       <p class="mod-case-reason">${appeal.reason}</p>
       <div class="mod-case-actions">
         ${appeal.status === 'pending' ? `
@@ -161,7 +174,7 @@ async function renderAppeals() {
     const approveButton = card.querySelector('[data-action="approve"]');
     if (approveButton) {
       approveButton.addEventListener('click', async () => {
-        if (!window.confirm('Approve this appeal and reinstate the account?')) return;
+        if (!window.confirm('Approve this appeal? This removes one warning from their record and updates their status accordingly.')) return;
         await client.rpc('resolve_appeal', { _appeal_id: appeal.id, _approve: true });
         renderAppeals();
       });

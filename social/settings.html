@@ -39,6 +39,19 @@
 
     <hr class="section-divider">
     <section class="section">
+      <h2 class="section-title">Account Status</h2>
+      <div class="standing-meter"><div class="standing-meter-fill" id="standingMeterFill"></div></div>
+      <p class="standing-label" id="standingLabel">Loading...</p>
+      <p class="section-intro" id="standingDetail"></p>
+      <button type="button" class="hub-text-link" id="toggleInfractionsButton" hidden>View Infraction History</button>
+
+      <div class="infraction-list" id="infractionList" hidden>
+        <p class="page-hint" id="infractionEmpty" hidden>No infractions on record. Keep it up!</p>
+      </div>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section">
       <h2 class="section-title">Username</h2>
       <p class="section-intro" id="usernameHint">Changing your username requires your current password and can only be done once every 7 days.</p>
 
@@ -145,6 +158,21 @@
       </div>
     </section>
   </main>
+
+  <div class="hub-modal" id="infractionAppealModal" hidden>
+    <div class="hub-modal-card">
+      <button type="button" class="hub-modal-close" aria-label="Close">&times;</button>
+      <h2 class="subsection-title">Appeal Infraction</h2>
+      <p class="section-intro" id="infractionAppealTarget"></p>
+      <form id="infractionAppealForm" class="hub-form">
+        <label class="hub-form-label" for="infractionAppealReason">Why should this infraction be reconsidered?</label>
+        <textarea class="hub-form-input hub-form-textarea" id="infractionAppealReason" maxlength="1000" required></textarea>
+        <p class="hub-form-error" id="infractionAppealError"></p>
+        <p class="hub-form-status" id="infractionAppealStatus"></p>
+        <button type="submit" class="action-button">Submit Appeal</button>
+      </form>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <p>&copy; Facture 2023-Present all rights reserved. This website was made by your favorite gooners&lt;3</p>

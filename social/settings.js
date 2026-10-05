@@ -45,6 +45,21 @@ const dmPrivacySelect = document.getElementById('dmPrivacySelect');
 const privacyFormError = document.getElementById('privacyFormError');
 const privacyFormStatus = document.getElementById('privacyFormStatus');
 
+const standingMeterFill = document.getElementById('standingMeterFill');
+const standingLabel = document.getElementById('standingLabel');
+const standingDetail = document.getElementById('standingDetail');
+const toggleInfractionsButton = document.getElementById('toggleInfractionsButton');
+const infractionList = document.getElementById('infractionList');
+const infractionEmpty = document.getElementById('infractionEmpty');
+
+const infractionAppealModal = document.getElementById('infractionAppealModal');
+const infractionAppealTarget = document.getElementById('infractionAppealTarget');
+const infractionAppealForm = document.getElementById('infractionAppealForm');
+const infractionAppealReason = document.getElementById('infractionAppealReason');
+const infractionAppealError = document.getElementById('infractionAppealError');
+const infractionAppealStatus = document.getElementById('infractionAppealStatus');
+let appealTargetActionId = null;
+
 async function init() {
   const { data: { session } } = await client.auth.getSession();
 
@@ -64,7 +79,7 @@ async function init() {
 
   const { data: profile } = await client
     .from('profiles')
-    .select('username, dm_privacy, username_changed_at')
+    .select('username, dm_privacy, username_changed_at, warning_count, suspended_until, terminated_at, termination_reason')
     .eq('id', session.user.id)
     .single();
 
@@ -75,7 +90,159 @@ async function init() {
   dmPrivacySelect.value = (profile && profile.dm_privacy) || 'everyone';
 
   refreshEmailStatus(userData.user);
+  renderAccountStanding(profile || {});
 }
+
+function renderAccountStanding(profile) {
+  const count = profile.warning_count || 0;
+  const percent = Math.min(100, Math.round((count / 6) * 100));
+  standingMeterFill.style.width = `${percent}%`;
+
+  let colorClass = '';
+  if (count >= 5) colorClass = 'standing-critical';
+  else if (count >= 3) colorClass = 'standing-danger';
+  else if (count >= 1) colorClass = 'standing-warn';
+
+  standingMeterFill.className = `standing-meter-fill ${colorClass}`;
+  standingLabel.className = `standing-label ${colorClass}`;
+
+  const isSuspended = profile.suspended_until && new Date(profile.suspended_until) > new Date();
+
+  if (profile.terminated_at) {
+    standingLabel.textContent = 'Terminated';
+    standingDetail.textContent = `Your account was permanently terminated. Reason: ${profile.termination_reason || 'No reason provided.'} You can appeal this from the infraction history below.`;
+  } else if (isSuspended) {
+    standingLabel.textContent = 'Suspended';
+    standingDetail.textContent = `Your account is suspended until ${new Date(profile.suspended_until).toLocaleString()}.`;
+  } else if (count === 0) {
+    standingLabel.textContent = 'Good Standing';
+    standingDetail.textContent = 'You have no infractions on your account. Keep it up!';
+  } else if (count <= 2) {
+    standingLabel.textContent = `${count} Warning${count === 1 ? '' : 's'}`;
+    standingDetail.textContent = `${3 - count} more warning${3 - count === 1 ? '' : 's'} will result in a 7-day suspension.`;
+  } else if (count === 3) {
+    standingLabel.textContent = '3 Warnings';
+    standingDetail.textContent = 'One more warning will result in a 14-day suspension.';
+  } else if (count === 4) {
+    standingLabel.textContent = '4 Warnings';
+    standingDetail.textContent = 'One more warning will result in a 30-day suspension.';
+  } else {
+    standingLabel.textContent = '5 Warnings';
+    standingDetail.textContent = 'This is your final warning. One more infraction will result in permanent account termination.';
+  }
+
+  if (count > 0 || profile.terminated_at) {
+    toggleInfractionsButton.hidden = false;
+  }
+}
+
+async function loadInfractions() {
+  const { data: actions } = await client
+    .from('moderation_actions')
+    .select('id, action_type, reason, resulting_warning_count, created_at')
+    .eq('target_user_id', currentSession.user.id)
+    .in('action_type', ['warn', 'terminate'])
+    .order('created_at', { ascending: false });
+
+  const { data: myAppeals } = await client
+    .from('appeals')
+    .select('moderation_action_id, status')
+    .eq('user_id', currentSession.user.id);
+
+  const appealByActionId = new Map();
+  (myAppeals || []).forEach((appeal) => {
+    if (appeal.moderation_action_id) appealByActionId.set(appeal.moderation_action_id, appeal.status);
+  });
+
+  infractionList.innerHTML = '';
+  infractionList.appendChild(infractionEmpty);
+
+  if (!actions || actions.length === 0) {
+    infractionEmpty.hidden = false;
+    return;
+  }
+
+  infractionEmpty.hidden = true;
+
+  actions.forEach((action) => {
+    const existingAppealStatus = appealByActionId.get(action.id);
+
+    const card = document.createElement('div');
+    card.className = 'infraction-card';
+    card.innerHTML = `
+      <div class="infraction-card-header">
+        <span class="infraction-type">${action.action_type === 'terminate' ? 'Termination' : 'Warning'}</span>
+        <span class="infraction-date">${new Date(action.created_at).toLocaleDateString()}</span>
+      </div>
+      <p class="infraction-reason">${action.reason}</p>
+      ${existingAppealStatus
+        ? `<p class="infraction-appeal-status">Appeal ${existingAppealStatus}.</p>`
+        : '<button type="button" class="hub-text-link" data-action-id="' + action.id + '">Appeal this infraction</button>'}
+    `;
+
+    const appealButton = card.querySelector('[data-action-id]');
+    if (appealButton) {
+      appealButton.addEventListener('click', () => {
+        appealTargetActionId = action.id;
+        infractionAppealTarget.textContent = `Appealing: ${action.action_type === 'terminate' ? 'Termination' : 'Warning'} issued ${new Date(action.created_at).toLocaleDateString()} — ${action.reason}`;
+        infractionAppealForm.reset();
+        infractionAppealError.textContent = '';
+        infractionAppealStatus.textContent = '';
+        infractionAppealModal.hidden = false;
+      });
+    }
+
+    infractionList.appendChild(card);
+  });
+}
+
+toggleInfractionsButton.addEventListener('click', async () => {
+  const showing = !infractionList.hidden;
+  infractionList.hidden = showing;
+  toggleInfractionsButton.textContent = showing ? 'View Infraction History' : 'Hide Infraction History';
+  if (!showing) await loadInfractions();
+});
+
+infractionAppealModal.querySelector('.hub-modal-close').addEventListener('click', () => {
+  infractionAppealModal.hidden = true;
+});
+infractionAppealModal.addEventListener('click', (event) => {
+  if (event.target === infractionAppealModal) infractionAppealModal.hidden = true;
+});
+
+infractionAppealForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  infractionAppealError.textContent = '';
+  infractionAppealStatus.textContent = '';
+
+  const reason = infractionAppealReason.value.trim();
+  if (!reason) {
+    infractionAppealError.textContent = 'Please explain why this infraction should be reconsidered.';
+    return;
+  }
+
+  const submitButton = infractionAppealForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { data, error } = await client
+    .from('appeals')
+    .insert({ user_id: currentSession.user.id, reason, moderation_action_id: appealTargetActionId })
+    .select('appeal_number')
+    .single();
+
+  submitButton.disabled = false;
+
+  if (error) {
+    infractionAppealError.textContent = error.message;
+    return;
+  }
+
+  infractionAppealStatus.textContent = `Appeal submitted (${data.appeal_number}). A moderator will review it soon.`;
+  setTimeout(() => {
+    infractionAppealModal.hidden = true;
+    loadInfractions();
+  }, 1500);
+});
 
 function isValidUsername(username) {
   return /^[a-zA-Z0-9_]{3,20}$/.test(username);
