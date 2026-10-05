@@ -108,24 +108,24 @@
 
         <div class="onboard-step" data-step="2" hidden>
           <label class="hub-form-label" for="onboardUsername">Username <span class="onboard-badge onboard-badge--required">Required</span></label>
-          <input class="hub-form-input" type="text" id="onboardUsername" maxlength="20" required>
+          <input class="hub-form-input" type="text" id="onboardUsername" maxlength="20" autocomplete="off" required>
 
           <label class="hub-form-label" for="onboardDisplayName">Display Name <span class="onboard-badge onboard-badge--required">Required</span></label>
-          <input class="hub-form-input" type="text" id="onboardDisplayName" maxlength="32" required>
+          <input class="hub-form-input" type="text" id="onboardDisplayName" maxlength="32" autocomplete="off" required>
 
           <label class="hub-form-label" for="onboardGenderIdentity">Gender Identity <span class="onboard-badge onboard-badge--required">Required</span></label>
-          <input class="hub-form-input" type="text" id="onboardGenderIdentity" maxlength="50" required>
+          <input class="hub-form-input" type="text" id="onboardGenderIdentity" maxlength="50" autocomplete="off" required>
         </div>
 
         <div class="onboard-step" data-step="3" hidden>
           <label class="hub-form-label" for="onboardBio">Bio <span class="onboard-badge onboard-badge--optional">Optional</span></label>
-          <textarea class="hub-form-input hub-form-textarea" id="onboardBio" maxlength="500"></textarea>
+          <textarea class="hub-form-input hub-form-textarea" id="onboardBio" maxlength="500" autocomplete="off"></textarea>
 
           <label class="hub-form-label" for="onboardPronouns">Pronouns <span class="onboard-badge onboard-badge--optional">Optional</span></label>
-          <input class="hub-form-input" type="text" id="onboardPronouns" maxlength="50">
+          <input class="hub-form-input" type="text" id="onboardPronouns" maxlength="50" autocomplete="off">
 
           <label class="hub-form-label" for="onboardSexuality">Sexuality <span class="onboard-badge onboard-badge--optional">Optional</span></label>
-          <input class="hub-form-input" type="text" id="onboardSexuality" maxlength="50">
+          <input class="hub-form-input" type="text" id="onboardSexuality" maxlength="50" autocomplete="off">
         </div>
 
         <p class="hub-form-error" id="onboardError"></p>
