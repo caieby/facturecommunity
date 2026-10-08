@@ -362,6 +362,12 @@ body::after {
   box-shadow: 0 0 22px color-mix(in srgb, var(--purple-bright) 35%, transparent);
 }
 
+.site-menu.site-menu--nsfw .menu-toggle:hover {
+  background: linear-gradient(135deg, color-mix(in srgb, #ef4444 40%, transparent), color-mix(in srgb, var(--purple-bright) 35%, transparent));
+  border-color: #ef4444;
+  box-shadow: 0 0 22px color-mix(in srgb, #ef4444 35%, transparent);
+}
+
 .menu-toggle--icon {
   position: relative;
   padding: 0.6rem 0.85rem;
@@ -519,6 +525,10 @@ body::after {
 
 .menu-dropdown li a:hover {
   background: var(--purple-mid);
+}
+
+.site-menu.site-menu--nsfw .menu-dropdown li a:hover {
+  background: linear-gradient(135deg, color-mix(in srgb, #ef4444 30%, transparent), color-mix(in srgb, var(--purple-bright) 25%, transparent));
 }
 
 .hero {
