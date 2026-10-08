@@ -50,6 +50,19 @@ body {
   position: relative;
 }
 
+body.nsfwhub-body {
+  background: linear-gradient(180deg, var(--purple-deep) 0%, #6b0f1a 65%, #2a0508 100%);
+  background-attachment: fixed;
+}
+
+.hero-spoiler-gif {
+  margin-top: 2rem;
+  max-width: min(90vw, 480px);
+  border-radius: 16px;
+  border: 1px solid var(--purple-bright);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
 body::after {
   content: "";
   position: fixed;
