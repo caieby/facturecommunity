@@ -1,43 +1,40 @@
 const ageGate = document.getElementById('ageGate');
-const ageGateYes = document.getElementById('ageGateYes');
-const ageGateNo = document.getElementById('ageGateNo');
+
+// Not a one-time "agree once, never see again" gate: past the cooldown
+// window, each page load has a random chance of re-prompting, so bots
+// can't just solve it once and skip verification forever after.
+const HUMAN_VERIFY_KEY = 'factureHumanVerifiedAt';
+const HUMAN_REVERIFY_COOLDOWN_MS = 30 * 60 * 1000;
+const HUMAN_REVERIFY_CHANCE = 0.15;
 
 function onTurnstileSuccess() {
-  if (ageGateYes) {
-    ageGateYes.disabled = false;
+  if (ageGate) {
+    ageGate.hidden = true;
+    document.body.style.overflow = '';
   }
+  try {
+    localStorage.setItem(HUMAN_VERIFY_KEY, String(Date.now()));
+  } catch (error) {
+    // Storage unavailable (e.g. private browsing) - not required to proceed.
+  }
+  document.dispatchEvent(new CustomEvent('facture:humanVerified'));
 }
 
 if (ageGate) {
-  let alreadyVerified = false;
+  let lastVerifiedAt = 0;
   try {
-    alreadyVerified = localStorage.getItem('factureAgeVerified') === 'true';
+    lastVerifiedAt = Number(localStorage.getItem(HUMAN_VERIFY_KEY)) || 0;
   } catch (error) {
-    alreadyVerified = false;
+    lastVerifiedAt = 0;
   }
 
-  if (!alreadyVerified) {
+  const withinCooldown = Date.now() - lastVerifiedAt < HUMAN_REVERIFY_COOLDOWN_MS;
+  const shouldShow = lastVerifiedAt === 0 || (!withinCooldown && Math.random() < HUMAN_REVERIFY_CHANCE);
+
+  if (shouldShow) {
     ageGate.hidden = false;
     document.body.style.overflow = 'hidden';
   }
-
-  ageGateYes.addEventListener('click', () => {
-    ageGate.hidden = true;
-    document.body.style.overflow = '';
-    try {
-      localStorage.setItem('factureAgeVerified', 'true');
-    } catch (error) {
-      // Storage unavailable (e.g. private browsing) - not required to proceed.
-    }
-  });
-
-  ageGateNo.addEventListener('click', () => {
-    window.open('', '_self');
-    window.close();
-    setTimeout(() => {
-      window.location.href = 'about:blank';
-    }, 200);
-  });
 }
 
 const menuToggle = document.getElementById('menuToggle');

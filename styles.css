@@ -230,23 +230,6 @@ body::after {
   margin-bottom: 2rem;
 }
 
-.age-gate-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-}
-
-.age-gate-buttons .action-button {
-  flex: 1;
-  border-radius: 999px;
-  cursor: pointer;
-}
-
-.age-gate-buttons .action-button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
 .cf-turnstile {
   display: flex;
   justify-content: center;
