@@ -292,6 +292,26 @@ body::after {
   transform: translateY(-1px);
 }
 
+.announcement-banner--nsfw {
+  background: linear-gradient(90deg, #4a0509, #ef4444, #4a0509);
+  box-shadow: 0 4px 28px rgba(239, 68, 68, 0.45);
+}
+
+.announcement-banner--nsfw .announcement-text {
+  text-shadow: 0 0 14px rgba(255, 255, 255, 0.35);
+}
+
+.announcement-banner--nsfw .announcement-button {
+  color: #7a0d1a;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.5);
+}
+
+.announcement-banner--nsfw .announcement-button:hover {
+  background: #fff1f1;
+  box-shadow: 0 0 26px rgba(239, 68, 68, 0.75);
+  transform: translateY(-1px) scale(1.03);
+}
+
 .topbar {
   position: fixed;
   top: var(--banner-height);
