@@ -712,6 +712,8 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
             reporter_id: currentUserId,
             target_type: 'post',
             target_id: post.id,
+            target_author_id: post.author_id,
+            target_content: post.content,
             reason,
             custom_reason: customReason,
           });
@@ -733,11 +735,11 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
           `@${targetProfile.username} (post)`,
           targetProfile.warning_count || 0,
           async (reason) => {
-            const { data, error } = await client.rpc('warn_user', { _target_user_id: post.author_id, _reason: reason });
+            const { data, error } = await client.rpc('warn_user', { _target_user_id: post.author_id, _reason: reason, _delete_post_id: post.id });
             return { error, result: data };
           },
           async (reason) => {
-            const { error } = await client.rpc('terminate_user', { _target_user_id: post.author_id, _reason: reason });
+            const { error } = await client.rpc('terminate_user', { _target_user_id: post.author_id, _reason: reason, _delete_post_id: post.id });
             return { error };
           }
         );

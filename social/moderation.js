@@ -42,6 +42,16 @@ async function resolveReportTarget(report) {
     return { userId: report.target_id, username: profile.username, warningCount: profile.warning_count, link: `/social/profiles/${report.target_id}/`, content: null };
   }
 
+  // Posts/messages are deleted automatically when a moderator warns or
+  // terminates over them, so prefer the snapshot captured at report time --
+  // it's still accurate after deletion and keeps us from losing track of
+  // who to act against just because the content itself is gone.
+  if (report.target_author_id) {
+    const profile = await profileLabel(report.target_author_id);
+    const link = report.target_type === 'post' ? `/social/posts/${report.target_id}/` : null;
+    return { userId: report.target_author_id, username: profile.username, warningCount: profile.warning_count, link, content: report.target_content };
+  }
+
   if (report.target_type === 'message') {
     const { data: message } = await client
       .from('messages')
@@ -80,7 +90,7 @@ function targetTypeLabel(targetType) {
 async function renderReports() {
   const { data: reports, error } = await client
     .from('reports')
-    .select('id, case_number, reporter_id, target_type, target_id, reason, custom_reason, status, created_at')
+    .select('id, case_number, reporter_id, target_type, target_id, target_author_id, target_content, reason, custom_reason, status, created_at')
     .order('created_at', { ascending: false });
 
   if (error || !reports || reports.length === 0) {
@@ -134,13 +144,26 @@ async function renderReports() {
 
     const moderateButton = card.querySelector('[data-action="moderate"]');
     if (moderateButton) {
+      const deletePostId = report.target_type === 'post' ? report.target_id : null;
+      const deleteMessageId = report.target_type === 'message' ? report.target_id : null;
+
       moderateButton.addEventListener('click', () => {
         openModerationModal(target.username, target.warningCount, async (reason) => {
-          const { data, error: rpcError } = await client.rpc('warn_user', { _target_user_id: target.userId, _reason: reason });
+          const { data, error: rpcError } = await client.rpc('warn_user', {
+            _target_user_id: target.userId,
+            _reason: reason,
+            _delete_post_id: deletePostId,
+            _delete_message_id: deleteMessageId,
+          });
           if (!rpcError) renderReports();
           return { error: rpcError, result: data };
         }, async (reason) => {
-          const { error: rpcError } = await client.rpc('terminate_user', { _target_user_id: target.userId, _reason: reason });
+          const { error: rpcError } = await client.rpc('terminate_user', {
+            _target_user_id: target.userId,
+            _reason: reason,
+            _delete_post_id: deletePostId,
+            _delete_message_id: deleteMessageId,
+          });
           if (!rpcError) renderReports();
           return { error: rpcError };
         });

@@ -772,6 +772,8 @@ async function appendMessage(message) {
           reporter_id: currentUserId,
           target_type: 'message',
           target_id: message.id,
+          target_author_id: message.sender_id,
+          target_content: message.content,
           reason,
           custom_reason: customReason,
         });
