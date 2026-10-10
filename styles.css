@@ -23,7 +23,7 @@ body.no-banner {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Ccircle cx='6' cy='6' r='5' fill='white'/%3E%3C/svg%3E") 6 6, auto !important;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23a865e7' stroke-width='1.5' opacity='0.85'/%3E%3Ccircle cx='12' cy='12' r='3' fill='white'/%3E%3C/svg%3E") 12 12, auto !important;
 }
 
 html, body {
@@ -54,6 +54,11 @@ body {
 body.nsfwhub-body {
   background: linear-gradient(180deg, var(--purple-deep) 0%, #6b0f1a 65%, #2a0508 100%);
   background-attachment: fixed;
+}
+
+body.nsfwhub-body,
+body.nsfwhub-body * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='%23c2447f' stroke-width='1.5' opacity='0.85'/%3E%3Ccircle cx='12' cy='12' r='3' fill='white'/%3E%3C/svg%3E") 12 12, auto !important;
 }
 
 .hero-spoiler-gif {
