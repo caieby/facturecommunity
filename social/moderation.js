@@ -154,6 +154,7 @@ async function renderReports() {
             _reason: reason,
             _delete_post_id: deletePostId,
             _delete_message_id: deleteMessageId,
+            _content: target.content,
           });
           if (!rpcError) renderReports();
           return { error: rpcError, result: data };
@@ -163,6 +164,7 @@ async function renderReports() {
             _reason: reason,
             _delete_post_id: deletePostId,
             _delete_message_id: deleteMessageId,
+            _content: target.content,
           });
           if (!rpcError) renderReports();
           return { error: rpcError };
@@ -196,11 +198,15 @@ async function renderAppeals() {
     if (appeal.moderation_action_id) {
       const { data: action } = await client
         .from('moderation_actions')
-        .select('action_type, reason')
+        .select('action_type, reason, target_post_id, target_message_id, target_content')
         .eq('id', appeal.moderation_action_id)
         .single();
       if (action) {
-        infractionLine = `<p class="mod-case-meta">Appealing: ${action.action_type === 'terminate' ? 'Termination' : 'Warning'} &ndash; ${escapeHtml(action.reason)}</p>`;
+        const targetId = action.target_post_id || action.target_message_id;
+        const targetIdLabel = action.target_post_id ? 'Post ID' : action.target_message_id ? 'Message ID' : null;
+        infractionLine = `<p class="mod-case-meta">Appealing: ${action.action_type === 'terminate' ? 'Termination' : 'Warning'} &ndash; ${escapeHtml(action.reason)}</p>`
+          + (action.target_content ? `<p class="mod-case-meta"><strong>Flagged content:</strong> ${escapeHtml(action.target_content)}</p>` : '')
+          + (targetId ? `<p class="mod-case-meta"><strong>${targetIdLabel}:</strong> <span class="mod-case-target-id">${escapeHtml(targetId)}</span></p>` : '');
       }
     }
 

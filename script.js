@@ -224,7 +224,7 @@ async function checkAutomodAndWarn(client, content) {
   );
   if (!proceed) return false;
 
-  await client.rpc('automod_warn_self');
+  await client.rpc('automod_warn_self', { _content: content });
   return true;
 }
 

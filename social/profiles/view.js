@@ -196,11 +196,11 @@ function renderProfile(profile) {
 async function loadProfile() {
   const { data: profile, error } = await client
     .from('profiles')
-    .select('username, display_name, avatar_url, banner_url, bio, pronouns, gender_identity, created_at, is_deactivated, deletion_requested_at, is_verified, role, profile_color, profile_color_type, is_nsfw_account')
+    .select('username, display_name, avatar_url, banner_url, bio, pronouns, gender_identity, created_at, is_deactivated, deletion_requested_at, terminated_at, is_verified, role, profile_color, profile_color_type, is_nsfw_account')
     .eq('id', viewedUserId)
     .single();
 
-  if (error || !profile || profile.is_deactivated || profile.deletion_requested_at) {
+  if (error || !profile || profile.is_deactivated || profile.deletion_requested_at || profile.terminated_at) {
     profileNotFound.hidden = false;
     return null;
   }

@@ -5,6 +5,12 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentSession = null;
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
 const usernameForm = document.getElementById('usernameForm');
 const settingsUsernameInput = document.getElementById('settingsUsernameInput');
 const settingsUsernamePassword = document.getElementById('settingsUsernamePassword');
@@ -226,7 +232,7 @@ function renderAccountStanding(profile) {
 async function loadInfractions() {
   const { data: actions } = await client
     .from('moderation_actions')
-    .select('id, action_type, reason, resulting_warning_count, created_at')
+    .select('id, action_type, reason, resulting_warning_count, created_at, target_post_id, target_message_id, target_content')
     .eq('target_user_id', currentSession.user.id)
     .in('action_type', ['warn', 'terminate'])
     .order('created_at', { ascending: false });
@@ -253,6 +259,8 @@ async function loadInfractions() {
 
   actions.forEach((action) => {
     const existingAppealStatus = appealByActionId.get(action.id);
+    const targetId = action.target_post_id || action.target_message_id;
+    const targetIdLabel = action.target_post_id ? 'Post ID' : action.target_message_id ? 'Message ID' : null;
 
     const card = document.createElement('div');
     card.className = 'infraction-card';
@@ -261,7 +269,9 @@ async function loadInfractions() {
         <span class="infraction-type">${action.action_type === 'terminate' ? 'Termination' : 'Warning'}</span>
         <span class="infraction-date">${new Date(action.created_at).toLocaleDateString()}</span>
       </div>
-      <p class="infraction-reason">${action.reason}</p>
+      <p class="infraction-reason">${escapeHtml(action.reason)}</p>
+      ${action.target_content ? `<p class="infraction-reason"><strong>Flagged content:</strong> ${escapeHtml(action.target_content)}</p>` : ''}
+      ${targetId ? `<p class="infraction-reason"><strong>${targetIdLabel}:</strong> ${escapeHtml(targetId)}</p>` : ''}
       ${existingAppealStatus
         ? `<p class="infraction-appeal-status">Appeal ${existingAppealStatus}.</p>`
         : '<button type="button" class="hub-text-link" data-action-id="' + action.id + '">Appeal this infraction</button>'}
@@ -271,7 +281,7 @@ async function loadInfractions() {
     if (appealButton) {
       appealButton.addEventListener('click', () => {
         appealTargetActionId = action.id;
-        infractionAppealTarget.textContent = `Appealing: ${action.action_type === 'terminate' ? 'Termination' : 'Warning'} issued ${new Date(action.created_at).toLocaleDateString()} — ${action.reason}`;
+        infractionAppealTarget.textContent = `Appealing: ${action.action_type === 'terminate' ? 'Termination' : 'Warning'} issued ${new Date(action.created_at).toLocaleDateString()} — ${action.reason}${action.target_content ? ` (flagged content: ${action.target_content})` : ''}${targetId ? ` (${targetIdLabel}: ${targetId})` : ''}`;
         infractionAppealForm.reset();
         infractionAppealError.textContent = '';
         infractionAppealStatus.textContent = '';

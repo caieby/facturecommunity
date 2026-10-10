@@ -735,11 +735,11 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
           `@${targetProfile.username} (post)`,
           targetProfile.warning_count || 0,
           async (reason) => {
-            const { data, error } = await client.rpc('warn_user', { _target_user_id: post.author_id, _reason: reason, _delete_post_id: post.id });
+            const { data, error } = await client.rpc('warn_user', { _target_user_id: post.author_id, _reason: reason, _delete_post_id: post.id, _content: post.content });
             return { error, result: data };
           },
           async (reason) => {
-            const { error } = await client.rpc('terminate_user', { _target_user_id: post.author_id, _reason: reason, _delete_post_id: post.id });
+            const { error } = await client.rpc('terminate_user', { _target_user_id: post.author_id, _reason: reason, _delete_post_id: post.id, _content: post.content });
             return { error };
           }
         );
