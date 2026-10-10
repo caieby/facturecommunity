@@ -66,6 +66,8 @@ const themeError = document.getElementById('themeError');
 
 const autoUnblurNsfwCheckbox = document.getElementById('autoUnblurNsfwCheckbox');
 const autoUnblurError = document.getElementById('autoUnblurError');
+const nsfwAccountCheckbox = document.getElementById('nsfwAccountCheckbox');
+const nsfwAccountError = document.getElementById('nsfwAccountError');
 const adultConfirmCache = { confirmed: false };
 
 function applyTheme(theme) {
@@ -115,6 +117,27 @@ autoUnblurNsfwCheckbox.addEventListener('change', async () => {
   }
 });
 
+nsfwAccountCheckbox.addEventListener('change', async () => {
+  nsfwAccountError.textContent = '';
+
+  if (nsfwAccountCheckbox.checked) {
+    if (!(await ensureAdultConfirmed(client, currentSession.user.id, adultConfirmCache))) {
+      nsfwAccountCheckbox.checked = false;
+      return;
+    }
+  }
+
+  const { error } = await client
+    .from('profiles')
+    .update({ is_nsfw_account: nsfwAccountCheckbox.checked })
+    .eq('id', currentSession.user.id);
+
+  if (error) {
+    nsfwAccountError.textContent = error.message;
+    nsfwAccountCheckbox.checked = !nsfwAccountCheckbox.checked;
+  }
+});
+
 async function init() {
   const { data: { session } } = await client.auth.getSession();
 
@@ -134,11 +157,12 @@ async function init() {
 
   const { data: profile } = await client
     .from('profiles')
-    .select('username, dm_privacy, username_changed_at, warning_count, suspended_until, terminated_at, termination_reason, theme, auto_unblur_nsfw, confirmed_adult_content')
+    .select('username, dm_privacy, username_changed_at, warning_count, suspended_until, terminated_at, termination_reason, theme, auto_unblur_nsfw, confirmed_adult_content, is_nsfw_account')
     .eq('id', session.user.id)
     .single();
 
   autoUnblurNsfwCheckbox.checked = !!(profile && profile.auto_unblur_nsfw);
+  nsfwAccountCheckbox.checked = !!(profile && profile.is_nsfw_account);
   adultConfirmCache.confirmed = !!(profile && profile.confirmed_adult_content);
 
   originalUsername = (profile && profile.username) || '';
