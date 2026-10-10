@@ -168,42 +168,6 @@ if (galleryMedia && galleryPrev && galleryNext && galleryDots) {
   showItem(0);
 }
 
-let comingSoonModalEl = null;
-
-function ensureComingSoonModal() {
-  if (comingSoonModalEl) return comingSoonModalEl;
-
-  const modal = document.createElement('div');
-  modal.className = 'hub-modal';
-  modal.hidden = true;
-  modal.innerHTML = `
-    <div class="hub-modal-card">
-      <button type="button" class="hub-modal-close" aria-label="Close">&times;</button>
-      <h2 class="subsection-title">Coming Soon</h2>
-      <p class="section-intro">FactureHub isn't open yet — check back soon!</p>
-      <button type="button" class="action-button">Got it</button>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  const close = () => { modal.hidden = true; };
-  modal.querySelector('.hub-modal-close').addEventListener('click', close);
-  modal.querySelector('.action-button').addEventListener('click', close);
-  modal.addEventListener('click', (event) => {
-    if (event.target === modal) close();
-  });
-
-  comingSoonModalEl = modal;
-  return modal;
-}
-
-document.querySelectorAll('a[href="social/"], a[href="/social/"]').forEach((link) => {
-  link.addEventListener('click', (event) => {
-    event.preventDefault();
-    ensureComingSoonModal().hidden = false;
-  });
-});
-
 if (typeof supabase !== 'undefined') {
   const presenceClient = supabase.createClient(
     'https://vrhfajwulxjfmgzyzaxx.supabase.co',
