@@ -35,10 +35,14 @@ async function init() {
 
   const { data: viewerProfile } = await client
     .from('profiles')
-    .select('role')
+    .select('role, auto_unblur_nsfw, confirmed_adult_content')
     .eq('id', currentUserId)
     .single();
   const currentUserRole = viewerProfile && viewerProfile.role;
+  const viewerNsfwPrefs = {
+    autoUnblurNsfw: !!(viewerProfile && viewerProfile.auto_unblur_nsfw),
+    adultConfirmCache: { confirmed: !!(viewerProfile && viewerProfile.confirmed_adult_content) },
+  };
 
   if (!postId) {
     pageLoading.hidden = true;
@@ -59,7 +63,7 @@ async function init() {
     return;
   }
 
-  const postsController = createPostsController(client, currentUserId, SUPABASE_URL, SUPABASE_ANON_KEY, currentUserRole);
+  const postsController = createPostsController(client, currentUserId, SUPABASE_URL, SUPABASE_ANON_KEY, currentUserRole, viewerNsfwPrefs);
 
   const authorMap = await postsController.fetchProfilesById([post.author_id]);
   const state = await postsController.fetchInteractionState([post.id]);

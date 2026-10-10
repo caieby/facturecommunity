@@ -13,8 +13,10 @@ const profileContent = document.getElementById('profileContent');
 const profileNotFound = document.getElementById('profileNotFound');
 const profileBannerFrame = document.getElementById('profileBannerFrame');
 const profileBanner = document.getElementById('profileBanner');
+const profileBannerNsfwOverlay = document.getElementById('profileBannerNsfwOverlay');
 const profileAvatarFrame = document.getElementById('profileAvatarFrame');
 const profileAvatar = document.getElementById('profileAvatar');
+const profileAvatarNsfwOverlay = document.getElementById('profileAvatarNsfwOverlay');
 const profileDisplayName = document.getElementById('profileDisplayName');
 const profileUsername = document.getElementById('profileUsername');
 const profilePronouns = document.getElementById('profilePronouns');
@@ -123,6 +125,40 @@ function applyPageColorWash(color, colorType) {
   }
 }
 
+function applyProfileNsfwBlur(profile, isOwnProfile, nsfwPrefs) {
+  const shouldBlur = !!profile.is_nsfw_account && !isOwnProfile && !nsfwPrefs.autoUnblurNsfw;
+
+  [
+    { frame: profileAvatarFrame, img: profileAvatar, overlay: profileAvatarNsfwOverlay },
+    { frame: profileBannerFrame, img: profileBanner, overlay: profileBannerNsfwOverlay },
+  ].forEach(({ frame, img, overlay }) => {
+    if (!shouldBlur) {
+      frame.classList.remove('post-nsfw-wrap', 'revealed');
+      img.classList.remove('post-nsfw-blur');
+      if (overlay) overlay.hidden = true;
+      return;
+    }
+
+    frame.classList.add('post-nsfw-wrap');
+    img.classList.add('post-nsfw-blur');
+    if (overlay) overlay.hidden = false;
+
+    if (!frame.dataset.nsfwWired) {
+      frame.dataset.nsfwWired = 'true';
+      frame.addEventListener('click', async (event) => {
+        if (!frame.classList.contains('post-nsfw-wrap')) return;
+        event.preventDefault();
+        if (frame.classList.contains('revealed')) {
+          frame.classList.remove('revealed');
+          return;
+        }
+        if (!(await ensureAdultConfirmed(client, currentUserId, nsfwPrefs.adultConfirmCache))) return;
+        frame.classList.add('revealed');
+      });
+    }
+  });
+}
+
 function getUserIdFromUrl() {
   const segments = window.location.pathname.split('/').filter(Boolean);
   const profilesIndex = segments.indexOf('profiles');
@@ -160,7 +196,7 @@ function renderProfile(profile) {
 async function loadProfile() {
   const { data: profile, error } = await client
     .from('profiles')
-    .select('username, display_name, avatar_url, banner_url, bio, pronouns, gender_identity, created_at, is_deactivated, deletion_requested_at, is_verified, role, profile_color, profile_color_type')
+    .select('username, display_name, avatar_url, banner_url, bio, pronouns, gender_identity, created_at, is_deactivated, deletion_requested_at, is_verified, role, profile_color, profile_color_type, is_nsfw_account')
     .eq('id', viewedUserId)
     .single();
 
@@ -536,6 +572,7 @@ async function init() {
   await loadFollowStats();
 
   let currentUserRole = null;
+  let viewerNsfwPrefs = { autoUnblurNsfw: false, adultConfirmCache: { confirmed: false } };
 
   const { data: { session } } = await client.auth.getSession();
   if (session) {
@@ -543,10 +580,14 @@ async function init() {
 
     const { data: viewerProfile } = await client
       .from('profiles')
-      .select('role')
+      .select('role, auto_unblur_nsfw, confirmed_adult_content')
       .eq('id', session.user.id)
       .single();
     currentUserRole = viewerProfile && viewerProfile.role;
+    viewerNsfwPrefs = {
+      autoUnblurNsfw: !!(viewerProfile && viewerProfile.auto_unblur_nsfw),
+      adultConfirmCache: { confirmed: !!(viewerProfile && viewerProfile.confirmed_adult_content) },
+    };
 
     if (session.user.id === viewedUserId) {
       profileEditButton.hidden = false;
@@ -561,7 +602,9 @@ async function init() {
     }
   }
 
-  postsController = createPostsController(client, currentUserId, SUPABASE_URL, SUPABASE_ANON_KEY, currentUserRole);
+  applyProfileNsfwBlur(profile, currentUserId === viewedUserId, viewerNsfwPrefs);
+
+  postsController = createPostsController(client, currentUserId, SUPABASE_URL, SUPABASE_ANON_KEY, currentUserRole, viewerNsfwPrefs);
   await loadProfilePosts('posts');
 }
 

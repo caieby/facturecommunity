@@ -264,6 +264,23 @@ async function checkAutomodAndWarn(client, content) {
   return true;
 }
 
+// Gates any adult-content interaction (revealing a blurred NSFW post/profile,
+// turning on auto-unblur, marking your own account as dedicated NSFW) behind
+// a one-time 18+ confirmation. `cache` is a plain { confirmed: boolean }
+// object the caller owns, seeded from profiles.confirmed_adult_content, so
+// repeated calls in the same page session don't re-prompt or re-write once
+// the user has already said yes.
+async function ensureAdultConfirmed(client, userId, cache) {
+  if (cache.confirmed) return true;
+
+  const proceed = window.confirm('This involves adult content. Please confirm you are 18 years of age or older to continue.');
+  if (!proceed) return false;
+
+  cache.confirmed = true;
+  await client.from('profiles').update({ confirmed_adult_content: true }).eq('id', userId);
+  return true;
+}
+
 const REPORT_REASONS = [
   'Illegal Content',
   'Disturbing content (such as gore or scat)',

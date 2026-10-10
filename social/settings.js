@@ -64,6 +64,10 @@ const themeOptionPurple = document.getElementById('themeOptionPurple');
 const themeOptionDark = document.getElementById('themeOptionDark');
 const themeError = document.getElementById('themeError');
 
+const autoUnblurNsfwCheckbox = document.getElementById('autoUnblurNsfwCheckbox');
+const autoUnblurError = document.getElementById('autoUnblurError');
+const adultConfirmCache = { confirmed: false };
+
 function applyTheme(theme) {
   if (theme === 'dark') {
     document.documentElement.setAttribute('data-theme', 'dark');
@@ -90,6 +94,27 @@ function applyTheme(theme) {
   });
 });
 
+autoUnblurNsfwCheckbox.addEventListener('change', async () => {
+  autoUnblurError.textContent = '';
+
+  if (autoUnblurNsfwCheckbox.checked) {
+    if (!(await ensureAdultConfirmed(client, currentSession.user.id, adultConfirmCache))) {
+      autoUnblurNsfwCheckbox.checked = false;
+      return;
+    }
+  }
+
+  const { error } = await client
+    .from('profiles')
+    .update({ auto_unblur_nsfw: autoUnblurNsfwCheckbox.checked })
+    .eq('id', currentSession.user.id);
+
+  if (error) {
+    autoUnblurError.textContent = error.message;
+    autoUnblurNsfwCheckbox.checked = !autoUnblurNsfwCheckbox.checked;
+  }
+});
+
 async function init() {
   const { data: { session } } = await client.auth.getSession();
 
@@ -109,9 +134,12 @@ async function init() {
 
   const { data: profile } = await client
     .from('profiles')
-    .select('username, dm_privacy, username_changed_at, warning_count, suspended_until, terminated_at, termination_reason, theme')
+    .select('username, dm_privacy, username_changed_at, warning_count, suspended_until, terminated_at, termination_reason, theme, auto_unblur_nsfw, confirmed_adult_content')
     .eq('id', session.user.id)
     .single();
+
+  autoUnblurNsfwCheckbox.checked = !!(profile && profile.auto_unblur_nsfw);
+  adultConfirmCache.confirmed = !!(profile && profile.confirmed_adult_content);
 
   originalUsername = (profile && profile.username) || '';
   usernameChangedAt = profile ? profile.username_changed_at : null;

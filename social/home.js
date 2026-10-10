@@ -64,6 +64,7 @@ function validateOnboardStep(step) {
     const username = document.getElementById('onboardUsername').value.trim();
     const displayName = document.getElementById('onboardDisplayName').value.trim();
     const genderIdentity = document.getElementById('onboardGenderIdentity').value.trim();
+    const nsfwAccountChoice = document.querySelector('input[name="onboardNsfwAccount"]:checked');
 
     if (!isValidUsername(username)) {
       onboardError.textContent = 'Username must be 3-20 characters: letters, numbers, and underscores only.';
@@ -77,11 +78,24 @@ function validateOnboardStep(step) {
       onboardError.textContent = 'Please enter your gender identity.';
       return false;
     }
+    if (!nsfwAccountChoice) {
+      onboardError.textContent = 'Please let us know if this is a dedicated NSFW account.';
+      return false;
+    }
     return true;
   }
 
   return true;
 }
+
+const onboardAdultConfirmCache = { confirmed: false };
+
+document.getElementById('onboardNsfwYes').addEventListener('change', async (event) => {
+  if (!event.target.checked) return;
+  if (!(await ensureAdultConfirmed(client, currentSession.user.id, onboardAdultConfirmCache))) {
+    event.target.checked = false;
+  }
+});
 
 onboardNextButton.addEventListener('click', () => {
   if (!validateOnboardStep(onboardCurrentStep)) return;
@@ -498,6 +512,7 @@ async function submitOnboarding() {
   const genderIdentity = document.getElementById('onboardGenderIdentity').value.trim();
   const bio = document.getElementById('onboardBio').value.trim();
   const pronouns = document.getElementById('onboardPronouns').value.trim();
+  const isNsfwAccount = document.getElementById('onboardNsfwYes').checked;
 
   onboardSubmitButton.disabled = true;
   onboardSkipButton.disabled = true;
@@ -513,6 +528,7 @@ async function submitOnboarding() {
       bio: bio || null,
       pronouns: pronouns || null,
       gender_identity: genderIdentity,
+      is_nsfw_account: isNsfwAccount,
     })
     .select('display_name, avatar_url, banner_url, gender_identity')
     .single();

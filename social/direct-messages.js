@@ -826,10 +826,6 @@ sendMessageForm.addEventListener('submit', async (event) => {
   if (!content && !pendingAttachmentFile) return;
   if (!activeConversationId) return;
 
-  if (!(await checkAutomodAndWarn(client, content))) {
-    return;
-  }
-
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
 

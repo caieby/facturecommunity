@@ -120,6 +120,18 @@
 
           <label class="hub-form-label" for="onboardGenderIdentity">Gender Identity <span class="onboard-badge onboard-badge--required">Required</span></label>
           <input class="hub-form-input" type="text" id="onboardGenderIdentity" maxlength="50" autocomplete="off" required>
+
+          <label class="hub-form-label">Is this a dedicated NSFW account? <span class="onboard-badge onboard-badge--required">Required</span></label>
+          <div class="theme-option-list">
+            <label class="theme-option">
+              <input type="radio" name="onboardNsfwAccount" value="no" id="onboardNsfwNo">
+              <span class="theme-option-label">No</span>
+            </label>
+            <label class="theme-option">
+              <input type="radio" name="onboardNsfwAccount" value="yes" id="onboardNsfwYes">
+              <span class="theme-option-label">Yes</span>
+            </label>
+          </div>
         </div>
 
         <div class="onboard-step" data-step="3" hidden>

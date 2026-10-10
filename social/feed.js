@@ -280,11 +280,16 @@ async function init() {
 
   const { data: profile } = await client
     .from('profiles')
-    .select('avatar_url, role')
+    .select('avatar_url, role, auto_unblur_nsfw, confirmed_adult_content')
     .eq('id', session.user.id)
     .single();
 
-  postsController = createPostsController(client, session.user.id, SUPABASE_URL, SUPABASE_ANON_KEY, profile && profile.role);
+  const viewerNsfwPrefs = {
+    autoUnblurNsfw: !!(profile && profile.auto_unblur_nsfw),
+    adultConfirmCache: { confirmed: !!(profile && profile.confirmed_adult_content) },
+  };
+
+  postsController = createPostsController(client, session.user.id, SUPABASE_URL, SUPABASE_ANON_KEY, profile && profile.role, viewerNsfwPrefs);
 
   if (profile && profile.avatar_url) {
     feedComposerAvatar.src = profile.avatar_url;

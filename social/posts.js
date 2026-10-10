@@ -184,8 +184,9 @@ function uploadPostFileWithProgress(client, supabaseUrl, supabaseAnonKey, bucket
   });
 }
 
-function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonKey, currentUserRole) {
+function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonKey, currentUserRole, viewerNsfwPrefs) {
   const isModerator = currentUserRole === 'moderator' || currentUserRole === 'owner';
+  const nsfwPrefs = viewerNsfwPrefs || { autoUnblurNsfw: false, adultConfirmCache: { confirmed: false } };
   const viewedPostIds = new Set();
   let viewObserver = null;
 
@@ -222,7 +223,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     if (uniqueIds.length === 0) return new Map();
     const { data } = await client
       .from('profiles')
-      .select('id, username, display_name, avatar_url, is_verified, role, profile_color, profile_color_type')
+      .select('id, username, display_name, avatar_url, is_verified, role, profile_color, profile_color_type, is_nsfw_account')
       .in('id', uniqueIds);
     return new Map((data || []).map((p) => [p.id, p]));
   }
@@ -471,12 +472,22 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       : '<div class="post-avatar post-avatar--placeholder"></div>';
 
     const mediaHtml = post.media_url
-      ? `<div class="post-media-wrap${post.is_nsfw ? ' post-media-wrap--nsfw' : ''}">
+      ? `<div class="post-media-wrap">
           ${post.media_type === 'video' ? '<video class="post-media" controls></video>' : '<img class="post-media" alt="" loading="lazy">'}
           ${post.media_type === 'gif' ? '<button type="button" class="dm-gif-favorite-button post-gif-favorite-button" aria-label="Save as favorite GIF">&#9733;</button>' : ''}
-          ${post.is_nsfw ? '<div class="post-nsfw-overlay"><span>NSFW<br><small>Tap to view</small></span></div>' : ''}
         </div>`
       : '';
+
+    const isNsfwPost = !!post.is_nsfw || !!(author && author.is_nsfw_account);
+    const shouldBlur = isNsfwPost && !isOwn && !nsfwPrefs.autoUnblurNsfw;
+
+    const bodyContentHtml = `<p class="post-content"></p>${mediaHtml}`;
+    const contentBlock = shouldBlur
+      ? `<div class="post-nsfw-wrap">
+          <div class="post-nsfw-blur">${bodyContentHtml}</div>
+          <div class="post-nsfw-overlay"><span>NSFW<br><small>Tap to view</small></span></div>
+        </div>`
+      : bodyContentHtml;
 
     const visibilityLabels = { everyone: 'Everyone', followers: 'Followers', friends: 'Friends' };
 
@@ -495,8 +506,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
             ${!isOwn ? '<button type="button" class="post-report-button" aria-label="Report this post">&#128680;</button>' : ''}
             ${!isOwn && isModerator ? '<button type="button" class="post-moderate-button" aria-label="Moderation actions">&#128296;</button>' : ''}
           </div>
-          <p class="post-content"></p>
-          ${mediaHtml}
+          ${contentBlock}
           ${opts.detailView ? `
           <p class="post-permissions">
             <span class="post-permissions-item">&#128065; Visible to: <strong>${visibilityLabels[post.visibility] || 'Everyone'}</strong></span>
@@ -573,12 +583,17 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       inlineError._hideTimer = setTimeout(() => { inlineError.hidden = true; }, 4000);
     }
 
-    const nsfwWrap = card.querySelector('.post-media-wrap--nsfw');
+    const nsfwWrap = card.querySelector('.post-nsfw-wrap');
     if (nsfwWrap) {
-      nsfwWrap.addEventListener('click', (event) => {
+      nsfwWrap.addEventListener('click', async (event) => {
         event.stopPropagation();
         event.preventDefault();
-        nsfwWrap.classList.toggle('revealed');
+        if (nsfwWrap.classList.contains('revealed')) {
+          nsfwWrap.classList.remove('revealed');
+          return;
+        }
+        if (!(await ensureAdultConfirmed(client, currentUserId, nsfwPrefs.adultConfirmCache))) return;
+        nsfwWrap.classList.add('revealed');
       });
     }
 

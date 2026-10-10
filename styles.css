@@ -964,6 +964,22 @@ body::after {
   cursor: pointer;
 }
 
+.settings-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-top: 0.5rem;
+}
+
+.settings-checkbox-row input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--purple-bright);
+  cursor: pointer;
+}
+
 .color-custom-gradient-preview {
   width: 48px;
   height: 24px;
@@ -1245,6 +1261,21 @@ body::after {
 
 .profile-banner-frame:not([hidden]) + .profile-avatar-frame {
   margin-top: -48px;
+}
+
+.profile-avatar-frame.post-nsfw-wrap {
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.profile-banner-frame.post-nsfw-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.profile-avatar-frame .post-nsfw-overlay,
+.profile-banner-frame .post-nsfw-overlay {
+  border-radius: inherit;
 }
 
 .profile-name-row {
@@ -2904,14 +2935,26 @@ select.hub-form-input {
   object-fit: cover;
 }
 
-.post-media-wrap--nsfw .post-media {
-  filter: blur(24px);
-  transition: filter 0.2s ease;
+.post-nsfw-wrap {
+  position: relative;
+  cursor: pointer;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.post-media-wrap--nsfw:hover .post-media,
-.post-media-wrap--nsfw.revealed .post-media {
+.post-nsfw-blur {
+  filter: blur(14px);
+  transition: filter 0.2s ease;
+  user-select: none;
+}
+
+.post-nsfw-wrap:hover .post-nsfw-blur,
+.post-nsfw-wrap.revealed .post-nsfw-blur {
   filter: none;
+}
+
+.post-nsfw-wrap.revealed .post-nsfw-blur {
+  user-select: auto;
 }
 
 .post-nsfw-overlay {
@@ -2940,13 +2983,9 @@ select.hub-form-input {
   opacity: 0.85;
 }
 
-.post-media-wrap--nsfw:hover .post-nsfw-overlay,
-.post-media-wrap--nsfw.revealed .post-nsfw-overlay {
+.post-nsfw-wrap:hover .post-nsfw-overlay,
+.post-nsfw-wrap.revealed .post-nsfw-overlay {
   opacity: 0;
-}
-
-.post-media-wrap--nsfw {
-  cursor: pointer;
 }
 
 .post-actions {
