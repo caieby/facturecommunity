@@ -30,24 +30,51 @@ function formatDate(value) {
   return new Date(value).toLocaleString();
 }
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
 async function resolveReportTarget(report) {
   if (report.target_type === 'profile') {
     const profile = await profileLabel(report.target_id);
-    return { userId: report.target_id, username: profile.username, warningCount: profile.warning_count, link: `/social/profiles/${report.target_id}/` };
+    return { userId: report.target_id, username: profile.username, warningCount: profile.warning_count, link: `/social/profiles/${report.target_id}/`, content: null };
+  }
+
+  if (report.target_type === 'message') {
+    const { data: message } = await client
+      .from('messages')
+      .select('sender_id, content')
+      .eq('id', report.target_id)
+      .single();
+
+    if (!message) {
+      return { userId: null, username: '(deleted message)', warningCount: 0, link: null, content: null };
+    }
+
+    const profile = await profileLabel(message.sender_id);
+    return { userId: message.sender_id, username: profile.username, warningCount: profile.warning_count, link: null, content: message.content };
   }
 
   const { data: post } = await client
     .from('posts')
-    .select('author_id')
+    .select('author_id, content')
     .eq('id', report.target_id)
     .single();
 
   if (!post) {
-    return { userId: null, username: '(deleted post)', warningCount: 0, link: null };
+    return { userId: null, username: '(deleted post)', warningCount: 0, link: null, content: null };
   }
 
   const profile = await profileLabel(post.author_id);
-  return { userId: post.author_id, username: profile.username, warningCount: profile.warning_count, link: `/social/posts/${report.target_id}/` };
+  return { userId: post.author_id, username: profile.username, warningCount: profile.warning_count, link: `/social/posts/${report.target_id}/`, content: post.content };
+}
+
+function targetTypeLabel(targetType) {
+  if (targetType === 'profile') return 'Profile';
+  if (targetType === 'message') return 'Message';
+  return 'Post';
 }
 
 async function renderReports() {
@@ -76,9 +103,10 @@ async function renderReports() {
         <span class="mod-case-id">${report.case_number}</span>
         <span class="mod-case-status mod-case-status--${report.status}">${report.status}</span>
       </div>
-      <p class="mod-case-meta">Reported by <strong>${reporter.username}</strong> on ${formatDate(report.created_at)}</p>
-      <p class="mod-case-meta">Target: ${report.target_type === 'profile' ? 'Profile' : 'Post'} &ndash; ${target.link ? `<a href="${target.link}" class="inline-link" target="_blank" rel="noopener">${target.username}</a>` : target.username}</p>
-      <p class="mod-case-reason"><strong>Reason:</strong> ${report.reason}${report.custom_reason ? ` &mdash; ${report.custom_reason}` : ''}</p>
+      <p class="mod-case-meta">Reported by <strong>${escapeHtml(reporter.username)}</strong> on ${formatDate(report.created_at)}</p>
+      <p class="mod-case-meta">Target: ${targetTypeLabel(report.target_type)} &ndash; ${target.link ? `<a href="${target.link}" class="inline-link" target="_blank" rel="noopener">${escapeHtml(target.username)}</a>` : escapeHtml(target.username)} <span class="mod-case-target-id">(ID: ${escapeHtml(report.target_id)})</span></p>
+      ${target.content ? `<p class="mod-case-meta"><strong>Reported content:</strong> ${escapeHtml(target.content)}</p>` : ''}
+      <p class="mod-case-reason"><strong>Reason:</strong> ${escapeHtml(report.reason)}${report.custom_reason ? ` &mdash; ${escapeHtml(report.custom_reason)}` : ''}</p>
       <div class="mod-case-actions">
         ${report.status === 'open' ? `
           <button type="button" class="action-button action-button--small" data-action="resolve">Mark Resolved</button>
@@ -149,7 +177,7 @@ async function renderAppeals() {
         .eq('id', appeal.moderation_action_id)
         .single();
       if (action) {
-        infractionLine = `<p class="mod-case-meta">Appealing: ${action.action_type === 'terminate' ? 'Termination' : 'Warning'} &ndash; ${action.reason}</p>`;
+        infractionLine = `<p class="mod-case-meta">Appealing: ${action.action_type === 'terminate' ? 'Termination' : 'Warning'} &ndash; ${escapeHtml(action.reason)}</p>`;
       }
     }
 
@@ -160,9 +188,9 @@ async function renderAppeals() {
         <span class="mod-case-id">${appeal.appeal_number}</span>
         <span class="mod-case-status mod-case-status--${appeal.status}">${appeal.status}</span>
       </div>
-      <p class="mod-case-meta">From <a href="/social/profiles/${appeal.user_id}/" class="inline-link" target="_blank" rel="noopener"><strong>${profile.username}</strong></a> on ${formatDate(appeal.created_at)}</p>
+      <p class="mod-case-meta">From <a href="/social/profiles/${appeal.user_id}/" class="inline-link" target="_blank" rel="noopener"><strong>${escapeHtml(profile.username)}</strong></a> on ${formatDate(appeal.created_at)}</p>
       ${infractionLine}
-      <p class="mod-case-reason">${appeal.reason}</p>
+      <p class="mod-case-reason">${escapeHtml(appeal.reason)}</p>
       <div class="mod-case-actions">
         ${appeal.status === 'pending' ? `
           <button type="button" class="action-button action-button--small" data-action="approve">Approve</button>

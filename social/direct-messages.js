@@ -757,9 +757,29 @@ async function appendMessage(message) {
       wrapper.remove();
     });
     row.appendChild(unsendButton);
+    row.appendChild(bubble);
+  } else {
+    row.appendChild(bubble);
+
+    const reportButton = document.createElement('button');
+    reportButton.type = 'button';
+    reportButton.className = 'dm-report-button';
+    reportButton.setAttribute('aria-label', 'Report message');
+    reportButton.innerHTML = '&#128681;';
+    reportButton.addEventListener('click', () => {
+      openReportModal(async (reason, customReason) => {
+        return await client.from('reports').insert({
+          reporter_id: currentUserId,
+          target_type: 'message',
+          target_id: message.id,
+          reason,
+          custom_reason: customReason,
+        });
+      });
+    });
+    row.appendChild(reportButton);
   }
 
-  row.appendChild(bubble);
   wrapper.appendChild(row);
 
   const timeEl = document.createElement('span');
@@ -805,6 +825,10 @@ sendMessageForm.addEventListener('submit', async (event) => {
   const content = messageInput.value.trim();
   if (!content && !pendingAttachmentFile) return;
   if (!activeConversationId) return;
+
+  if (!(await checkAutomodAndWarn(client, content))) {
+    return;
+  }
 
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;

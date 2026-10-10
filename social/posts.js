@@ -240,6 +240,10 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
   }
 
   async function createPost({ content, visibility, replyPermission, parentPostId, mediaUrl, mediaType, isNsfw }) {
+    if (!(await checkAutomodAndWarn(client, content))) {
+      return { data: null, error: null, cancelled: true };
+    }
+
     const id = generatePostUUID();
     const payload = {
       id,
@@ -645,9 +649,11 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
         const submitButton = commentForm.querySelector('.post-comment-submit');
         submitButton.disabled = true;
 
-        const { data: newComment, error } = await createPost({ content, parentPostId: post.id });
+        const { data: newComment, error, cancelled } = await createPost({ content, parentPostId: post.id });
 
         submitButton.disabled = false;
+
+        if (cancelled) return;
 
         if (error) {
           commentError.textContent = error.message.includes('row-level security')

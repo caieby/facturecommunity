@@ -177,7 +177,7 @@ feedPostButton.addEventListener('click', async () => {
 
   feedPostButton.disabled = true;
 
-  const { data: newPost, error } = await postsController.createPost({
+  const { data: newPost, error, cancelled } = await postsController.createPost({
     content,
     visibility: feedVisibilitySelect.value,
     replyPermission: feedReplySelect.value,
@@ -187,6 +187,10 @@ feedPostButton.addEventListener('click', async () => {
   });
 
   feedPostButton.disabled = false;
+
+  if (cancelled) {
+    return;
+  }
 
   if (error) {
     feedComposerError.textContent = `Error: ${error.message}`;

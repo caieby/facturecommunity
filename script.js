@@ -244,6 +244,26 @@ if (typeof supabase !== 'undefined') {
   });
 }
 
+// Checks content against the server-side automod term list (never exposed
+// to the client directly -- only whether it matched). If flagged, asks the
+// user to confirm before sending; proceeding logs an automatic warning via
+// the same escalation path as a moderator-issued one. Returns true if the
+// caller should go ahead and send/post the content.
+async function checkAutomodAndWarn(client, content) {
+  if (!content || !content.trim()) return true;
+
+  const { data: flagged } = await client.rpc('check_automod', { _content: content });
+  if (!flagged) return true;
+
+  const proceed = window.confirm(
+    'This message may contain content that violates our Terms of Service. Are you sure you want to send it?'
+  );
+  if (!proceed) return false;
+
+  await client.rpc('automod_warn_self');
+  return true;
+}
+
 const REPORT_REASONS = [
   'Illegal Content',
   'Disturbing content (such as gore or scat)',

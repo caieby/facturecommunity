@@ -1676,6 +1676,29 @@ body::after {
   color: #ff5c5c;
 }
 
+.dm-report-button {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  color: var(--white);
+  opacity: 0;
+  font-size: 0.8rem;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.dm-bubble-wrapper:hover .dm-report-button {
+  opacity: 0.45;
+}
+
+.dm-report-button:hover {
+  opacity: 1 !important;
+  color: #ef4444;
+}
+
 /* ---------- Public Chat ---------- */
 
 .public-chat-list {
@@ -3245,6 +3268,12 @@ select.hub-form-input {
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.7);
   margin: 0.2rem 0;
+}
+
+.mod-case-target-id {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  font-family: monospace;
 }
 
 .mod-case-reason {
