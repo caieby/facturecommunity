@@ -222,12 +222,25 @@ async function buildAndAppendPost(post) {
 }
 
 async function loadFeed() {
-  const { data: posts, error } = await client
+  const { data: terminatedProfiles } = await client
+    .from('profiles')
+    .select('id')
+    .not('terminated_at', 'is', null);
+  const terminatedIds = (terminatedProfiles || []).map((p) => p.id);
+
+  let query = client
     .from('posts')
     .select(POST_SELECT_COLUMNS)
     .is('parent_post_id', null)
+    .is('removed_at', null)
     .order('created_at', { ascending: false })
     .limit(FEED_FETCH_LIMIT);
+
+  if (terminatedIds.length > 0) {
+    query = query.not('author_id', 'in', `(${terminatedIds.join(',')})`);
+  }
+
+  const { data: posts, error } = await query;
 
   if (error) {
     feedList.innerHTML = `<p class="hub-form-error">Failed to load feed: ${error.message}</p>`;

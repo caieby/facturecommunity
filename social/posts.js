@@ -95,7 +95,7 @@ function buildBadgesHtml(profile) {
   return html;
 }
 
-const POST_SELECT_COLUMNS = 'id, author_id, content, parent_post_id, visibility, reply_permission, view_count, like_count, repost_count, reply_count, media_url, media_type, is_nsfw, created_at';
+const POST_SELECT_COLUMNS = 'id, author_id, content, parent_post_id, visibility, reply_permission, view_count, like_count, repost_count, reply_count, media_url, media_type, is_nsfw, created_at, removed_at';
 
 const MAX_POST_IMAGE_BYTES = 15 * 1024 * 1024;
 const MAX_POST_VIDEO_BYTES = 150 * 1024 * 1024;
@@ -459,6 +459,15 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
   function buildCard(post, author, state, opts) {
     opts = opts || {};
     const depth = opts.depth || 0;
+
+    if (post.removed_at) {
+      const removedCard = document.createElement('article');
+      removedCard.className = `post-card post-card--removed${depth > 0 ? ' post-card--comment' : ''}`;
+      removedCard.dataset.postId = post.id;
+      removedCard.innerHTML = '<p class="post-removed-notice">This post was removed for violating FactureHub Terms of Service.</p>';
+      return removedCard;
+    }
+
     const isOwn = post.author_id === currentUserId;
     const liked = state.liked.has(post.id);
     const reposted = state.reposted.has(post.id);
@@ -752,6 +761,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       .from('posts')
       .select(POST_SELECT_COLUMNS)
       .eq('parent_post_id', postId)
+      .is('removed_at', null)
       .order('created_at', { ascending: true });
 
     if (error) {

@@ -2935,6 +2935,17 @@ select.hub-form-input {
   object-fit: cover;
 }
 
+.post-card--removed {
+  opacity: 0.7;
+}
+
+.post-removed-notice {
+  color: var(--white);
+  opacity: 0.6;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
 .post-nsfw-wrap {
   position: relative;
   cursor: pointer;

@@ -11,6 +11,8 @@ let uploadedBannerUrl = null;
 const pageLoading = document.getElementById('pageLoading');
 const profileContent = document.getElementById('profileContent');
 const profileNotFound = document.getElementById('profileNotFound');
+const profileNotFoundTitle = document.getElementById('profileNotFoundTitle');
+const profileNotFoundHint = document.getElementById('profileNotFoundHint');
 const profileBannerFrame = document.getElementById('profileBannerFrame');
 const profileBanner = document.getElementById('profileBanner');
 const profileBannerNsfwOverlay = document.getElementById('profileBannerNsfwOverlay');
@@ -201,6 +203,13 @@ async function loadProfile() {
     .single();
 
   if (error || !profile || profile.is_deactivated || profile.deletion_requested_at || profile.terminated_at) {
+    if (profile && profile.terminated_at) {
+      profileNotFoundTitle.textContent = 'Account Terminated';
+      profileNotFoundHint.textContent = 'This account was terminated for violating FactureHub Terms Of Service.';
+    } else {
+      profileNotFoundTitle.textContent = 'Profile Not Found';
+      profileNotFoundHint.textContent = 'This FactureHub profile doesn’t exist.';
+    }
     profileNotFound.hidden = false;
     return null;
   }
@@ -275,6 +284,7 @@ async function loadProfilePosts(tab) {
     .from('posts')
     .select(POST_SELECT_COLUMNS)
     .eq('author_id', viewedUserId)
+    .is('removed_at', null)
     .order('created_at', { ascending: false });
 
   if (tab === 'replies') {
@@ -311,6 +321,7 @@ async function loadPostsTabWithReposts() {
       .select(POST_SELECT_COLUMNS)
       .eq('author_id', viewedUserId)
       .is('parent_post_id', null)
+      .is('removed_at', null)
       .order('created_at', { ascending: false }),
     client
       .from('post_reposts')
@@ -330,7 +341,8 @@ async function loadPostsTabWithReposts() {
     const { data: repostedPosts, error: repostedError } = await client
       .from('posts')
       .select(POST_SELECT_COLUMNS)
-      .in('id', repostRows.map((r) => r.post_id));
+      .in('id', repostRows.map((r) => r.post_id))
+      .is('removed_at', null);
 
     if (repostedError) {
       profilePostList.innerHTML = `<p class="hub-form-error">Failed to load reposts: ${repostedError.message}</p>`;
