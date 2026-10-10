@@ -2960,7 +2960,6 @@ select.hub-form-input {
 .post-nsfw-overlay {
   position: absolute;
   inset: 0 0 0.75rem 0;
-  display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
@@ -2972,6 +2971,10 @@ select.hub-form-input {
   border-radius: 12px;
   pointer-events: none;
   transition: opacity 0.2s ease;
+}
+
+.post-nsfw-overlay:not([hidden]) {
+  display: flex;
 }
 
 .post-nsfw-overlay small {
