@@ -56,6 +56,26 @@ body.nsfwhub-body {
   background-attachment: fixed;
 }
 
+body.nexus-body {
+  background: linear-gradient(180deg, #2b2b2e 0%, #141416 65%, #050505 100%);
+  background-attachment: fixed;
+}
+
+.nexus-hero-logo {
+  width: min(70vw, 300px);
+  height: auto;
+}
+
+.nexus-slogan {
+  color: #b4b4ba;
+  text-transform: none;
+  letter-spacing: 0.08em;
+}
+
+.nexus-invite-button {
+  margin-top: 2rem;
+}
+
 .hero-spoiler-gif {
   margin-top: 2rem;
   max-width: min(90vw, 480px);
@@ -550,6 +570,16 @@ body::after {
 
 .site-menu.site-menu--nsfw .menu-dropdown li a:hover {
   background: linear-gradient(135deg, color-mix(in srgb, #ef4444 30%, transparent), color-mix(in srgb, var(--purple-bright) 25%, transparent));
+}
+
+.site-menu.site-menu--nexus .menu-toggle:hover {
+  background: linear-gradient(135deg, color-mix(in srgb, #b4b4ba 40%, transparent), color-mix(in srgb, #444448 35%, transparent));
+  border-color: #b4b4ba;
+  box-shadow: 0 0 22px color-mix(in srgb, #b4b4ba 35%, transparent);
+}
+
+.site-menu.site-menu--nexus .menu-dropdown li a:hover {
+  background: linear-gradient(135deg, color-mix(in srgb, #b4b4ba 30%, transparent), color-mix(in srgb, #444448 25%, transparent));
 }
 
 .hero {
@@ -3684,6 +3714,21 @@ select.hub-form-input {
 .action-button--small {
   padding: 0.6rem 1.1rem;
   font-size: 0.85rem;
+}
+
+.action-button--nexus {
+  background: linear-gradient(135deg, color-mix(in srgb, #b4b4ba 22%, transparent), color-mix(in srgb, #444448 20%, transparent));
+  border: 1px solid color-mix(in srgb, #b4b4ba 60%, transparent);
+}
+
+.action-button--nexus:hover {
+  background: linear-gradient(135deg, color-mix(in srgb, #b4b4ba 40%, transparent), color-mix(in srgb, #444448 32%, transparent));
+  border-color: #b4b4ba;
+  box-shadow: 0 8px 28px color-mix(in srgb, #b4b4ba 30%, transparent);
+}
+
+.action-button--nexus:active {
+  background: color-mix(in srgb, #b4b4ba 50%, transparent);
 }
 
 .info-page .page-hint {

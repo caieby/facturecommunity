@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Project Nexus is a Discord bot focused on community intelligence and security, built by Facture.">
+  <meta property="og:title" content="Project Nexus">
+  <meta property="og:description" content="Community Intelligence and Security. Invite Project Nexus to your Discord server.">
+  <meta property="og:image" content="https://facturecommunity.org/assets/Nexus_Logo.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Project Nexus">
+  <meta name="twitter:description" content="Community Intelligence and Security. Invite Project Nexus to your Discord server.">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <title>Project Nexus | Facture</title>
+  <link rel="icon" type="image/png" href="../assets/Nexus_Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body class="nexus-body">
+  <div class="age-gate" id="ageGate" hidden>
+    <div class="age-gate-card">
+      <p class="age-gate-text">Let&rsquo;s make sure you are human.</p>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEmh6xhRr9ApRWq6" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <a href="/nexus/" class="brand">
+      <img src="../assets/Nexus_Logo.png" alt="Project Nexus logo" class="brand-logo">
+      <span class="brand-name">Project Nexus</span>
+    </a>
+    <nav class="menu site-menu site-menu--nexus">
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="menuDropdown">
+        <span class="menu-toggle-text">MENU</span>
+        <span class="hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+      <ul class="menu-dropdown" id="menuDropdown">
+        <li><a href="/nexus/">Home</a></li>
+        <li><a href="/nexus/privacy-policy.html">Privacy Policy</a></li>
+        <li><a href="/nexus/tos.html">Terms Of Service</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="hero">
+    <img class="nexus-hero-logo" src="../assets/Nexus_Logo.png" alt="Project Nexus">
+    <p class="hero-subtitle nexus-slogan">Community Intelligence and Security</p>
+    <a class="action-button action-button--nexus nexus-invite-button" href="https://discord.com/oauth2/authorize?client_id=1558593523790520383" target="_blank" rel="noopener noreferrer">Invite Bot</a>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; Facture 2023-Present all rights reserved.</p>
+  </footer>
+
+  <script src="../script.js"></script>
+</body>
+</html>
