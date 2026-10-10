@@ -2948,7 +2948,6 @@ select.hub-form-input {
   user-select: none;
 }
 
-.post-nsfw-wrap:hover .post-nsfw-blur,
 .post-nsfw-wrap.revealed .post-nsfw-blur {
   filter: none;
 }
@@ -2986,7 +2985,6 @@ select.hub-form-input {
   opacity: 0.85;
 }
 
-.post-nsfw-wrap:hover .post-nsfw-overlay,
 .post-nsfw-wrap.revealed .post-nsfw-overlay {
   opacity: 0;
 }
