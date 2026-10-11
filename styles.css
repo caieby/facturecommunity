@@ -124,6 +124,13 @@ body.nexus-body {
   100% { opacity: 0; }
 }
 
+.nexus-hero-icon {
+  width: min(28vw, 120px);
+  height: auto;
+  filter: drop-shadow(0 0 30px color-mix(in srgb, var(--purple-bright) 50%, transparent));
+  margin-bottom: 1.5rem;
+}
+
 .nexus-hero-title {
   font-size: clamp(2.5rem, 9vw, 5.5rem);
   font-weight: 700;
