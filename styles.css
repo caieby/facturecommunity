@@ -2580,6 +2580,7 @@ body::after {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--purple-mid);
   border-radius: 16px;
+  text-align: left;
 }
 
 .status-section-title {
@@ -2588,6 +2589,7 @@ body::after {
   letter-spacing: 0.04em;
   color: var(--white);
   margin-bottom: 1.25rem;
+  text-align: center;
 }
 
 .status-row + .status-row {
