@@ -52,10 +52,19 @@
     <h1 class="nexus-hero-title">PROJECT NEXUS</h1>
     <p class="hero-subtitle nexus-slogan">Community Intelligence and Security</p>
     <a class="action-button nexus-invite-button" href="https://discord.com/oauth2/authorize?client_id=1558593523790520383" target="_blank" rel="noopener noreferrer">Invite Bot</a>
-    <p class="nexus-status-pill">
-      <span class="nexus-status-dot" id="nexusStatusDot"></span>
-      <span id="nexusStatusText">Checking status&hellip;</span>
-    </p>
+
+    <section class="status-section">
+      <h2 class="status-section-title">System Status</h2>
+
+      <div class="status-row" data-service="nexus">
+        <div class="status-row-header">
+          <span class="status-dot" id="statusDot-nexus"></span>
+          <span class="status-row-label">Project Nexus</span>
+          <span class="status-row-state" id="statusState-nexus">Checking&hellip;</span>
+        </div>
+        <div class="status-bars" id="statusBars-nexus"></div>
+      </div>
+    </section>
   </main>
 
   <section class="nexus-about">
@@ -104,6 +113,6 @@
 
   <script src="../script.js"></script>
   <script src="../nexus.js"></script>
-  <script src="../nexus-status.js"></script>
+  <script src="../status-widget.js"></script>
 </body>
 </html>

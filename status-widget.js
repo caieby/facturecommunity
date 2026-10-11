@@ -4,7 +4,8 @@
   const BAR_COUNT = 40;
 
   const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const services = ['facturehub', 'facturecommunity'];
+  const services = Array.from(document.querySelectorAll('.status-row[data-service]'))
+    .map((row) => row.dataset.service);
 
   async function loadService(service) {
     const dot = document.getElementById(`statusDot-${service}`);
