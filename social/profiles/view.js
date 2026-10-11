@@ -760,8 +760,12 @@ updateGradientPreview();
 
 editAvatarInput.addEventListener('change', async () => {
   const file = editAvatarInput.files[0];
+  editAvatarInput.value = '';
   if (!file) return;
-  const url = await uploadProfileImage(file, 'avatar', editAvatarPreview, editAvatarStatus);
+  const croppedBlob = await window.openImageCropper(file, { aspect: 1, circle: true });
+  if (!croppedBlob) return;
+  const croppedFile = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
+  const url = await uploadProfileImage(croppedFile, 'avatar', editAvatarPreview, editAvatarStatus);
   if (url) {
     uploadedAvatarUrl = url;
     editAvatarPlaceholder.hidden = true;
@@ -770,8 +774,12 @@ editAvatarInput.addEventListener('change', async () => {
 
 editBannerInput.addEventListener('change', async () => {
   const file = editBannerInput.files[0];
+  editBannerInput.value = '';
   if (!file) return;
-  const url = await uploadProfileImage(file, 'banner', editBannerPreview, editBannerStatus);
+  const croppedBlob = await window.openImageCropper(file, { aspect: 3, circle: false });
+  if (!croppedBlob) return;
+  const croppedFile = new File([croppedBlob], 'banner.jpg', { type: 'image/jpeg' });
+  const url = await uploadProfileImage(croppedFile, 'banner', editBannerPreview, editBannerStatus);
   if (url) {
     uploadedBannerUrl = url;
     editBannerPlaceholder.hidden = true;

@@ -475,8 +475,12 @@ async function uploadProfileImage(file, filenamePrefix, previewEl, statusEl) {
 
 onboardAvatarInput.addEventListener('change', async () => {
   const file = onboardAvatarInput.files[0];
+  onboardAvatarInput.value = '';
   if (!file) return;
-  const url = await uploadProfileImage(file, 'avatar', onboardAvatarPreview, onboardAvatarStatus);
+  const croppedBlob = await window.openImageCropper(file, { aspect: 1, circle: true });
+  if (!croppedBlob) return;
+  const croppedFile = new File([croppedBlob], 'avatar.jpg', { type: 'image/jpeg' });
+  const url = await uploadProfileImage(croppedFile, 'avatar', onboardAvatarPreview, onboardAvatarStatus);
   if (url) {
     uploadedAvatarUrl = url;
     onboardAvatarPlaceholder.hidden = true;
@@ -485,8 +489,12 @@ onboardAvatarInput.addEventListener('change', async () => {
 
 onboardBannerInput.addEventListener('change', async () => {
   const file = onboardBannerInput.files[0];
+  onboardBannerInput.value = '';
   if (!file) return;
-  const url = await uploadProfileImage(file, 'banner', onboardBannerPreview, onboardBannerStatus);
+  const croppedBlob = await window.openImageCropper(file, { aspect: 3, circle: false });
+  if (!croppedBlob) return;
+  const croppedFile = new File([croppedBlob], 'banner.jpg', { type: 'image/jpeg' });
+  const url = await uploadProfileImage(croppedFile, 'banner', onboardBannerPreview, onboardBannerStatus);
   if (url) {
     uploadedBannerUrl = url;
     onboardBannerPlaceholder.hidden = true;
