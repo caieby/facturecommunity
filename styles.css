@@ -56,14 +56,82 @@ body.nsfwhub-body {
   background-attachment: fixed;
 }
 
+/* Scoping the palette variables here means every shared component
+   (buttons, borders, dividers, link hovers, glows) that already
+   references var(--purple-*) automatically renders in grey/black on
+   Nexus pages, with no need to override each component individually. */
 body.nexus-body {
-  background: linear-gradient(180deg, #2b2b2e 0%, #141416 65%, #050505 100%);
-  background-attachment: fixed;
+  --purple-dark: #09090a;
+  --purple-deep: #2a2a2e;
+  --purple-mid: #55555c;
+  --purple-bright: #c6c6cc;
+
+  background: linear-gradient(135deg, #2b2b2e, #141416, #050505, #1c1c1f);
+  background-size: 400% 400%;
+  animation: nexus-bg-shift 18s ease infinite;
+  position: relative;
 }
 
-.nexus-hero-logo {
-  width: min(70vw, 300px);
-  height: auto;
+@keyframes nexus-bg-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.nexus-body .topbar,
+.nexus-body .hero,
+.nexus-body .info-page,
+.nexus-body .site-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.nexus-starfield {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.nexus-star {
+  position: absolute;
+  background: #e6e6ec;
+  border-radius: 50%;
+  animation: nexus-twinkle 4s ease-in-out infinite;
+}
+
+@keyframes nexus-twinkle {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; }
+}
+
+.nexus-shooting-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 6px 1px rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  animation: nexus-shoot 9s linear infinite;
+}
+
+@keyframes nexus-shoot {
+  0% { opacity: 0; transform: translate(0, 0) rotate(45deg) scaleX(1); }
+  2% { opacity: 1; }
+  14% { opacity: 1; transform: translate(260px, 260px) rotate(45deg) scaleX(60); }
+  16% { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+.nexus-hero-title {
+  font-size: clamp(2.5rem, 9vw, 5.5rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--white);
+  text-shadow: 0 0 40px color-mix(in srgb, var(--purple-bright) 50%, transparent);
+  line-height: 1.1;
 }
 
 .nexus-slogan {
@@ -74,6 +142,84 @@ body.nexus-body {
 
 .nexus-invite-button {
   margin-top: 2rem;
+}
+
+.nexus-about {
+  width: min(960px, 92vw);
+  margin: 0 auto;
+  padding: 4rem 1rem 5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.nexus-eyebrow {
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--purple-bright);
+  font-size: 0.9rem;
+}
+
+.nexus-about-intro {
+  text-align: center;
+  max-width: 680px;
+  margin: 1rem auto 0;
+  color: var(--white);
+  opacity: 0.85;
+  line-height: 1.6;
+}
+
+.nexus-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+.nexus-feature-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--purple-mid);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.nexus-feature-card:hover {
+  border-color: var(--purple-bright);
+  transform: translateY(-2px);
+}
+
+.nexus-feature-title {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  margin-bottom: 0.6rem;
+}
+
+.nexus-feature-card p {
+  color: var(--white);
+  opacity: 0.8;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin-bottom: 0.5rem;
+}
+
+.nexus-feature-card p:last-child {
+  margin-bottom: 0;
+}
+
+.nexus-support-line {
+  text-align: center;
+  margin-top: 3rem;
+  color: var(--white);
+  opacity: 0.8;
+}
+
+.nexus-support-line a {
+  color: var(--purple-bright);
 }
 
 .hero-spoiler-gif {
@@ -403,6 +549,17 @@ body::after {
   box-shadow: 0 0 22px color-mix(in srgb, var(--purple-bright) 35%, transparent);
 }
 
+.menu-toggle--nexus {
+  background: linear-gradient(135deg, color-mix(in srgb, #c6c6cc 22%, transparent), color-mix(in srgb, #55555a 25%, transparent));
+  border-color: color-mix(in srgb, #c6c6cc 55%, transparent);
+}
+
+.menu-toggle--nexus:hover {
+  background: linear-gradient(135deg, color-mix(in srgb, #c6c6cc 40%, transparent), color-mix(in srgb, #55555a 38%, transparent));
+  border-color: #c6c6cc;
+  box-shadow: 0 0 22px color-mix(in srgb, #c6c6cc 35%, transparent);
+}
+
 .site-menu.site-menu--nsfw .menu-toggle:hover {
   background: linear-gradient(135deg, color-mix(in srgb, #ef4444 40%, transparent), color-mix(in srgb, var(--purple-bright) 35%, transparent));
   border-color: #ef4444;
@@ -570,16 +727,6 @@ body::after {
 
 .site-menu.site-menu--nsfw .menu-dropdown li a:hover {
   background: linear-gradient(135deg, color-mix(in srgb, #ef4444 30%, transparent), color-mix(in srgb, var(--purple-bright) 25%, transparent));
-}
-
-.site-menu.site-menu--nexus .menu-toggle:hover {
-  background: linear-gradient(135deg, color-mix(in srgb, #b4b4ba 40%, transparent), color-mix(in srgb, #444448 35%, transparent));
-  border-color: #b4b4ba;
-  box-shadow: 0 0 22px color-mix(in srgb, #b4b4ba 35%, transparent);
-}
-
-.site-menu.site-menu--nexus .menu-dropdown li a:hover {
-  background: linear-gradient(135deg, color-mix(in srgb, #b4b4ba 30%, transparent), color-mix(in srgb, #444448 25%, transparent));
 }
 
 .hero {
@@ -3714,21 +3861,6 @@ select.hub-form-input {
 .action-button--small {
   padding: 0.6rem 1.1rem;
   font-size: 0.85rem;
-}
-
-.action-button--nexus {
-  background: linear-gradient(135deg, color-mix(in srgb, #b4b4ba 22%, transparent), color-mix(in srgb, #444448 20%, transparent));
-  border: 1px solid color-mix(in srgb, #b4b4ba 60%, transparent);
-}
-
-.action-button--nexus:hover {
-  background: linear-gradient(135deg, color-mix(in srgb, #b4b4ba 40%, transparent), color-mix(in srgb, #444448 32%, transparent));
-  border-color: #b4b4ba;
-  box-shadow: 0 8px 28px color-mix(in srgb, #b4b4ba 30%, transparent);
-}
-
-.action-button--nexus:active {
-  background: color-mix(in srgb, #b4b4ba 50%, transparent);
 }
 
 .info-page .page-hint {

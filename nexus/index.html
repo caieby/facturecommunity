@@ -6,14 +6,14 @@
   <meta name="description" content="Project Nexus is a Discord bot focused on community intelligence and security, built by Facture.">
   <meta property="og:title" content="Project Nexus">
   <meta property="og:description" content="Community Intelligence and Security. Invite Project Nexus to your Discord server.">
-  <meta property="og:image" content="https://facturecommunity.org/assets/Nexus_Logo.png">
+  <meta property="og:image" content="https://facturecommunity.org/assets/Nexus_Icon.png">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="Project Nexus">
   <meta name="twitter:description" content="Community Intelligence and Security. Invite Project Nexus to your Discord server.">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <title>Project Nexus | Facture</title>
-  <link rel="icon" type="image/png" href="../assets/Nexus_Logo.png">
+  <link rel="icon" type="image/png" href="../assets/Nexus_Icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
@@ -30,7 +30,7 @@
 
   <header class="topbar">
     <a href="/nexus/" class="brand">
-      <img src="../assets/Nexus_Logo.png" alt="Project Nexus logo" class="brand-logo">
+      <img src="../assets/Nexus_Icon.png" alt="Project Nexus logo" class="brand-logo">
       <span class="brand-name">Project Nexus</span>
     </a>
     <nav class="menu site-menu site-menu--nexus">
@@ -47,15 +47,56 @@
   </header>
 
   <main class="hero">
-    <img class="nexus-hero-logo" src="../assets/Nexus_Logo.png" alt="Project Nexus">
+    <h1 class="nexus-hero-title">PROJECT NEXUS</h1>
     <p class="hero-subtitle nexus-slogan">Community Intelligence and Security</p>
-    <a class="action-button action-button--nexus nexus-invite-button" href="https://discord.com/oauth2/authorize?client_id=1558593523790520383" target="_blank" rel="noopener noreferrer">Invite Bot</a>
+    <a class="action-button nexus-invite-button" href="https://discord.com/oauth2/authorize?client_id=1558593523790520383" target="_blank" rel="noopener noreferrer">Invite Bot</a>
   </main>
+
+  <section class="nexus-about">
+    <p class="nexus-eyebrow">Project NEXUS &middot; Community Intelligence</p>
+    <p class="nexus-about-intro">NEXUS helps server owners and members spot known bad actors before they cause harm. Our staff review reports and evidence, then add confirmed offenders to a shared database that anyone can check from any server NEXUS is in, or from your DMs.</p>
+
+    <div class="nexus-feature-grid">
+      <div class="nexus-feature-card">
+        <h3 class="nexus-feature-title">&#128269; Check any user &mdash; /check</h3>
+        <p>See whether a user is flagged, along with their risk level (Clear, Low, Moderate, High or Critical) and NEXUS ID.</p>
+        <p>View their known accounts and alts, the servers associated with what they did, and the reason they were flagged.</p>
+        <p>See their linked Roblox accounts and the Roblox communities they own.</p>
+        <p>Or right-click any user and choose Apps &rarr; NEXUS Check.</p>
+      </div>
+      <div class="nexus-feature-card">
+        <h3 class="nexus-feature-title">&#128681; Report a user &mdash; /report</h3>
+        <p>Step-by-step instructions for submitting a report with verified video evidence to our staff.</p>
+      </div>
+      <div class="nexus-feature-card">
+        <h3 class="nexus-feature-title">&#9878;&#65039; Appeal a record &mdash; /appeal</h3>
+        <p>Flagged and think it's a mistake? Explain your side and share evidence. Staff review every appeal, and you'll get the decision by DM.</p>
+      </div>
+      <div class="nexus-feature-card">
+        <h3 class="nexus-feature-title">&#128274; Private by design</h3>
+        <p>Every command reply is visible only to you.</p>
+        <p>Evidence is visible only to NEXUS staff.</p>
+      </div>
+      <div class="nexus-feature-card">
+        <h3 class="nexus-feature-title">&#128737;&#65039; Built to follow Discord's rules</h3>
+        <p>NEXUS doesn't read your messages, track activity or scrape member lists.</p>
+        <p>It needs no privileged intents and only 4 basic permissions.</p>
+        <p>Every record is added by hand by staff, backed by evidence.</p>
+      </div>
+      <div class="nexus-feature-card">
+        <h3 class="nexus-feature-title">&#128242; Works everywhere</h3>
+        <p>Add NEXUS to your server, or to your account to use it in any DM or group chat.</p>
+      </div>
+    </div>
+
+    <p class="nexus-support-line">Need help? Join our support server: <a href="https://discord.gg/RSA75s3Fzq" target="_blank" rel="noopener noreferrer">discord.gg/RSA75s3Fzq</a></p>
+  </section>
 
   <footer class="site-footer">
     <p>&copy; Facture 2023-Present all rights reserved.</p>
   </footer>
 
   <script src="../script.js"></script>
+  <script src="../nexus.js"></script>
 </body>
 </html>
