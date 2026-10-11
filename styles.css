@@ -489,7 +489,7 @@ body::after {
   justify-content: space-between;
   padding: 1.5rem;
   z-index: 100;
-  background: linear-gradient(180deg, rgba(20, 9, 33, 0.7), rgba(20, 9, 33, 0));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--purple-dark) 85%, transparent), transparent);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid color-mix(in srgb, var(--purple-bright) 12%, transparent);
