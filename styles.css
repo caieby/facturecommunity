@@ -78,7 +78,6 @@ body.nexus-body {
   100% { background-position: 0% 50%; }
 }
 
-.nexus-body .topbar,
 .nexus-body .hero,
 .nexus-body .info-page,
 .nexus-body .site-footer {
@@ -4039,7 +4038,7 @@ select.hub-form-input {
     max-height: 85dvh;
     overflow-y: auto;
     margin: 0;
-    background: linear-gradient(165deg, #2a0a52 0%, #12081f 100%);
+    background: linear-gradient(165deg, color-mix(in srgb, var(--purple-deep) 92%, black) 0%, color-mix(in srgb, var(--purple-dark) 92%, black) 100%);
     border: 1px solid color-mix(in srgb, var(--purple-bright) 30%, transparent);
     border-radius: 14px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
