@@ -1950,8 +1950,11 @@ body::after {
 
 .dm-unsend-button {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: var(--white);
@@ -1959,7 +1962,8 @@ body::after {
   font-size: 0.8rem;
   cursor: pointer;
   padding: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
+  border-radius: 50%;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .dm-bubble-wrapper:hover .dm-unsend-button {
@@ -1969,12 +1973,16 @@ body::after {
 .dm-unsend-button:hover {
   opacity: 1 !important;
   color: #ff5c5c;
+  background: rgba(255, 92, 92, 0.12);
 }
 
 .dm-report-button {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: var(--white);
@@ -1982,7 +1990,8 @@ body::after {
   font-size: 0.8rem;
   cursor: pointer;
   padding: 0;
-  transition: opacity 0.15s ease, color 0.15s ease;
+  border-radius: 50%;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .dm-bubble-wrapper:hover .dm-report-button {
@@ -1992,6 +2001,7 @@ body::after {
 .dm-report-button:hover {
   opacity: 1 !important;
   color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
 }
 
 /* ---------- Public Chat ---------- */
@@ -3238,11 +3248,18 @@ select.hub-form-input {
   font-size: 1.1rem;
   cursor: pointer;
   line-height: 1;
+  padding: 0.5rem;
+  margin-top: -0.5rem;
+  margin-right: -0.5rem;
+  margin-bottom: -0.5rem;
+  border-radius: 8px;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .post-delete:hover {
   opacity: 1;
   color: #ff5c5c;
+  background: rgba(255, 92, 92, 0.1);
 }
 
 .post-report-button,
@@ -3254,6 +3271,12 @@ select.hub-form-input {
   font-size: 0.95rem;
   cursor: pointer;
   line-height: 1;
+  padding: 0.5rem;
+  margin-top: -0.5rem;
+  margin-right: -0.5rem;
+  margin-bottom: -0.5rem;
+  border-radius: 8px;
+  transition: opacity 0.15s ease, background 0.15s ease;
 }
 
 .post-moderate-button {
@@ -3263,6 +3286,7 @@ select.hub-form-input {
 .post-report-button:hover,
 .post-moderate-button:hover {
   opacity: 1;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .post-content {
@@ -3371,15 +3395,23 @@ select.hub-form-input {
   opacity: 0.6;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: opacity 0.15s ease, color 0.15s ease;
+  padding: 0.5rem;
+  margin: -0.5rem;
+  border-radius: 8px;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
 
 .post-action:hover {
   opacity: 1;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .post-action--views {
   cursor: default;
+}
+
+.post-action--views:hover {
+  background: none;
 }
 
 .post-action--like.active {

@@ -735,7 +735,8 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     }
 
     if (deleteButton) {
-      deleteButton.addEventListener('click', async () => {
+      deleteButton.addEventListener('click', async (event) => {
+        event.stopPropagation();
         if (!window.confirm('Delete this post? This cannot be undone.')) return;
         const { error } = await client.from('posts').delete().eq('id', post.id);
         if (error) {
@@ -752,7 +753,8 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     }
 
     if (reportButton) {
-      reportButton.addEventListener('click', () => {
+      reportButton.addEventListener('click', (event) => {
+        event.stopPropagation();
         openReportModal(async (reason, customReason) => {
           return await client.from('reports').insert({
             reporter_id: currentUserId,
@@ -768,7 +770,8 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     }
 
     if (moderateButton) {
-      moderateButton.addEventListener('click', async () => {
+      moderateButton.addEventListener('click', async (event) => {
+        event.stopPropagation();
         const { data: targetProfile } = await client
           .from('profiles')
           .select('username, warning_count')
