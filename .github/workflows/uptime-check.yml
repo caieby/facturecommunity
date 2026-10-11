@@ -1,0 +1,36 @@
+name: Uptime Check
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Facture Community
+        id: main_site
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://facturecommunity.org/ || echo "000")
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Check FactureHub
+        id: hub
+        run: |
+          status=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://facturecommunity.org/social/ || echo "000")
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Log results to Supabase
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          main_up=$([ "${{ steps.main_site.outputs.status }}" = "200" ] && echo true || echo false)
+          hub_up=$([ "${{ steps.hub.outputs.status }}" = "200" ] && echo true || echo false)
+
+          curl -s -X POST "https://vrhfajwulxjfmgzyzaxx.supabase.co/rest/v1/uptime_checks" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=minimal" \
+            -d "[{\"service\":\"facturecommunity\",\"is_up\":$main_up},{\"service\":\"facturehub\",\"is_up\":$hub_up}]"

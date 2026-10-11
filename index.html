@@ -19,6 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body>
   <div class="age-gate" id="ageGate" hidden>
@@ -75,11 +76,34 @@
     <p class="hero-hint">Use the menu button on the top right of this page to navigate the website.</p>
   </main>
 
+  <section class="status-section">
+    <h2 class="status-section-title">System Status</h2>
+
+    <div class="status-row" data-service="facturehub">
+      <div class="status-row-header">
+        <span class="status-dot" id="statusDot-facturehub"></span>
+        <span class="status-row-label">FactureHub</span>
+        <span class="status-row-state" id="statusState-facturehub">Checking&hellip;</span>
+      </div>
+      <div class="status-bars" id="statusBars-facturehub"></div>
+    </div>
+
+    <div class="status-row" data-service="facturecommunity">
+      <div class="status-row-header">
+        <span class="status-dot" id="statusDot-facturecommunity"></span>
+        <span class="status-row-label">Facture Community</span>
+        <span class="status-row-state" id="statusState-facturecommunity">Checking&hellip;</span>
+      </div>
+      <div class="status-bars" id="statusBars-facturecommunity"></div>
+    </div>
+  </section>
+
   <footer class="site-footer">
     <p>&copy; Facture 2023-Present all rights reserved.</p>
   </footer>
 
   <script src="script.js"></script>
+  <script src="status-widget.js"></script>
   <script>
     (function () {
       const ageGate = document.getElementById('ageGate');
