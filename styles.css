@@ -3489,6 +3489,53 @@ select.hub-form-input {
   cursor: pointer;
 }
 
+.post-comment-media {
+  position: relative;
+  display: inline-block;
+  max-width: 180px;
+  margin-top: 0.5rem;
+}
+
+.post-comment-media:not([hidden]) {
+  display: inline-block;
+}
+
+.post-comment-media-preview,
+.post-comment-media-video-preview {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.post-comment-media-preview:not([hidden]),
+.post-comment-media-video-preview:not([hidden]) {
+  display: block;
+}
+
+.post-comment-media-remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: var(--purple-deep);
+  color: var(--white);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.post-comment-media-status {
+  font-size: 0.75rem;
+  color: var(--white);
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+.post-comment-media-status:empty {
+  display: none;
+}
+
 .post-comment-error {
   font-size: 0.8rem;
   color: #ff5c5c;

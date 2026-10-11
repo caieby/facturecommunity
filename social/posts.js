@@ -545,8 +545,16 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
             <div class="post-comment-list" id="post-comment-list-${post.id}"></div>
             <form class="post-comment-form" data-post-id="${post.id}">
               <input type="text" class="post-comment-input" maxlength="500" placeholder="Post your reply">
+              <button type="button" class="post-comment-attach-button dm-icon-button" aria-label="Attach an image or GIF">&#128247;</button>
+              <input type="file" class="post-comment-attach-input" accept="image/*,video/*" hidden>
               <button type="submit" class="post-comment-submit">Reply</button>
             </form>
+            <div class="post-comment-media" hidden>
+              <img class="post-comment-media-preview" alt="" hidden>
+              <video class="post-comment-media-video-preview" muted hidden></video>
+              <button type="button" class="post-comment-media-remove" aria-label="Remove attachment">&times;</button>
+            </div>
+            <p class="post-comment-media-status"></p>
             <p class="post-comment-error" hidden></p>
           </div>` : ''}
         </div>
@@ -685,7 +693,28 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       const commentForm = card.querySelector('.post-comment-form');
       const commentInput = card.querySelector('.post-comment-input');
       const commentError = card.querySelector('.post-comment-error');
+      const commentAttachButton = card.querySelector('.post-comment-attach-button');
+      const commentAttachInput = card.querySelector('.post-comment-attach-input');
+      const commentMedia = card.querySelector('.post-comment-media');
+      const commentMediaPreview = card.querySelector('.post-comment-media-preview');
+      const commentMediaVideoPreview = card.querySelector('.post-comment-media-video-preview');
+      const commentMediaRemove = card.querySelector('.post-comment-media-remove');
+      const commentMediaStatus = card.querySelector('.post-comment-media-status');
       let loaded = false;
+      let pendingCommentMediaUrl = null;
+      let pendingCommentMediaType = null;
+
+      function resetCommentMedia() {
+        pendingCommentMediaUrl = null;
+        pendingCommentMediaType = null;
+        commentMedia.hidden = true;
+        commentMediaPreview.hidden = true;
+        commentMediaVideoPreview.hidden = true;
+        commentMediaPreview.src = '';
+        commentMediaVideoPreview.src = '';
+        commentAttachInput.value = '';
+        commentMediaStatus.textContent = '';
+      }
 
       commentButton.addEventListener('click', async () => {
         commentsWrap.hidden = !commentsWrap.hidden;
@@ -701,16 +730,58 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
         loadComments(post.id, commentList);
       }
 
+      if (commentAttachButton) {
+        commentAttachButton.addEventListener('click', () => commentAttachInput.click());
+
+        commentAttachInput.addEventListener('change', async () => {
+          const file = commentAttachInput.files[0];
+          if (!file) return;
+
+          commentMedia.hidden = false;
+          commentMediaStatus.textContent = 'Uploading...';
+
+          const { url, mediaType, error } = await uploadPostMedia(file, () => {});
+
+          if (error) {
+            commentMediaStatus.textContent = error.message;
+            commentMedia.hidden = true;
+            commentAttachInput.value = '';
+            return;
+          }
+
+          commentMediaStatus.textContent = '';
+          pendingCommentMediaUrl = url;
+          pendingCommentMediaType = mediaType;
+
+          if (mediaType === 'video') {
+            commentMediaVideoPreview.src = url;
+            commentMediaVideoPreview.hidden = false;
+            commentMediaPreview.hidden = true;
+          } else {
+            commentMediaPreview.src = url;
+            commentMediaPreview.hidden = false;
+            commentMediaVideoPreview.hidden = true;
+          }
+        });
+
+        commentMediaRemove.addEventListener('click', resetCommentMedia);
+      }
+
       commentForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         commentError.hidden = true;
         const content = commentInput.value.trim();
-        if (!content) return;
+        if (!content && !pendingCommentMediaUrl) return;
 
         const submitButton = commentForm.querySelector('.post-comment-submit');
         submitButton.disabled = true;
 
-        const { data: newComment, error, cancelled } = await createPost({ content, parentPostId: post.id });
+        const { data: newComment, error, cancelled } = await createPost({
+          content,
+          parentPostId: post.id,
+          mediaUrl: pendingCommentMediaUrl,
+          mediaType: pendingCommentMediaType,
+        });
 
         submitButton.disabled = false;
 
@@ -725,6 +796,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
         }
 
         commentInput.value = '';
+        resetCommentMedia();
         const authorProfile = await fetchProfilesById([currentUserId]);
         const commentCard = buildCard(newComment, authorProfile.get(currentUserId), { liked: new Set(), reposted: new Set() }, { depth: 1 });
         commentList.appendChild(commentCard);
