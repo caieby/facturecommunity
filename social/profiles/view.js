@@ -13,6 +13,7 @@ const profileContent = document.getElementById('profileContent');
 const profileNotFound = document.getElementById('profileNotFound');
 const profileNotFoundTitle = document.getElementById('profileNotFoundTitle');
 const profileNotFoundHint = document.getElementById('profileNotFoundHint');
+const profileAuthRequired = document.getElementById('profileAuthRequired');
 const profileBannerFrame = document.getElementById('profileBannerFrame');
 const profileBanner = document.getElementById('profileBanner');
 const profileBannerNsfwOverlay = document.getElementById('profileBannerNsfwOverlay');
@@ -569,6 +570,13 @@ profilePostButton.addEventListener('click', async () => {
 });
 
 async function init() {
+  const { data: { session } } = await client.auth.getSession();
+  if (!session) {
+    pageLoading.hidden = true;
+    profileAuthRequired.hidden = false;
+    return;
+  }
+
   viewedUserId = getUserIdFromUrl();
 
   if (!viewedUserId) {
@@ -583,34 +591,28 @@ async function init() {
 
   await loadFollowStats();
 
-  let currentUserRole = null;
-  let viewerNsfwPrefs = { autoUnblurNsfw: false, adultConfirmCache: { confirmed: false } };
+  currentUserId = session.user.id;
 
-  const { data: { session } } = await client.auth.getSession();
-  if (session) {
-    currentUserId = session.user.id;
+  const { data: viewerProfile } = await client
+    .from('profiles')
+    .select('role, auto_unblur_nsfw, confirmed_adult_content')
+    .eq('id', session.user.id)
+    .single();
+  const currentUserRole = viewerProfile && viewerProfile.role;
+  const viewerNsfwPrefs = {
+    autoUnblurNsfw: !!(viewerProfile && viewerProfile.auto_unblur_nsfw),
+    adultConfirmCache: { confirmed: !!(viewerProfile && viewerProfile.confirmed_adult_content) },
+  };
 
-    const { data: viewerProfile } = await client
-      .from('profiles')
-      .select('role, auto_unblur_nsfw, confirmed_adult_content')
-      .eq('id', session.user.id)
-      .single();
-    currentUserRole = viewerProfile && viewerProfile.role;
-    viewerNsfwPrefs = {
-      autoUnblurNsfw: !!(viewerProfile && viewerProfile.auto_unblur_nsfw),
-      adultConfirmCache: { confirmed: !!(viewerProfile && viewerProfile.confirmed_adult_content) },
-    };
+  if (session.user.id === viewedUserId) {
+    profileEditButton.hidden = false;
+    profileFab.hidden = false;
+  } else {
+    await refreshFollowButton();
+    profileReportButton.hidden = false;
 
-    if (session.user.id === viewedUserId) {
-      profileEditButton.hidden = false;
-      profileFab.hidden = false;
-    } else {
-      await refreshFollowButton();
-      profileReportButton.hidden = false;
-
-      if (currentUserRole === 'moderator' || currentUserRole === 'owner') {
-        profileModerateButton.hidden = false;
-      }
+    if (currentUserRole === 'moderator' || currentUserRole === 'owner') {
+      profileModerateButton.hidden = false;
     }
   }
 
