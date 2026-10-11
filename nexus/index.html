@@ -19,6 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body class="nexus-body no-banner">
   <div class="age-gate" id="ageGate" hidden>
@@ -51,6 +52,10 @@
     <h1 class="nexus-hero-title">PROJECT NEXUS</h1>
     <p class="hero-subtitle nexus-slogan">Community Intelligence and Security</p>
     <a class="action-button nexus-invite-button" href="https://discord.com/oauth2/authorize?client_id=1558593523790520383" target="_blank" rel="noopener noreferrer">Invite Bot</a>
+    <p class="nexus-status-pill">
+      <span class="nexus-status-dot" id="nexusStatusDot"></span>
+      <span id="nexusStatusText">Checking status&hellip;</span>
+    </p>
   </main>
 
   <section class="nexus-about">
@@ -99,5 +104,6 @@
 
   <script src="../script.js"></script>
   <script src="../nexus.js"></script>
+  <script src="../nexus-status.js"></script>
 </body>
 </html>
