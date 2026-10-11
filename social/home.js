@@ -542,9 +542,13 @@ async function submitOnboarding() {
     .single();
 
   if (error) {
-    onboardError.textContent = error.message.includes('duplicate')
-      ? 'That username is already taken.'
-      : `Error: ${error.message}`;
+    if (error.message.includes('duplicate')) {
+      onboardError.textContent = 'That username is already taken.';
+    } else if (error.message.includes('Too many accounts')) {
+      onboardError.textContent = error.message;
+    } else {
+      onboardError.textContent = `Error: ${error.message}`;
+    }
     onboardSubmitButton.disabled = false;
     onboardSkipButton.disabled = false;
     return;

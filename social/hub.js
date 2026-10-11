@@ -63,6 +63,17 @@ document.getElementById('hubSignupForm').addEventListener('submit', async (event
       return;
     }
 
+    if (data.user) {
+      // Fire-and-forget -- a failure here shouldn't block signup itself,
+      // it just means the alt-account IP cap won't have this account's
+      // network on record.
+      fetch('/api/record-signup-ip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: data.user.id }),
+      }).catch(() => {});
+    }
+
     if (data.session) {
       window.location.href = 'home.html';
       return;
