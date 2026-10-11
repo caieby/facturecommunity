@@ -3392,6 +3392,11 @@ select.hub-form-input {
   color: #22c55e;
 }
 
+.post-action--share.copied {
+  opacity: 1;
+  color: #22c55e;
+}
+
 .post-inline-error {
   margin-top: 0.5rem;
   font-size: 0.8rem;

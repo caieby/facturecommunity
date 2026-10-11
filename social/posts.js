@@ -535,6 +535,9 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
             <span class="post-action post-action--views" title="Views">
               <span class="post-action-icon">&#128065;</span><span class="post-action-count">${post.view_count || 0}</span>
             </span>
+            <button type="button" class="post-action post-action--share" data-action="share" aria-label="Share this post">
+              <span class="post-action-icon">&#128279;</span>
+            </button>
           </div>
           <p class="post-inline-error" hidden></p>
           ${depth === 0 ? `
@@ -566,6 +569,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     const likeButton = card.querySelector('[data-action="like"]');
     const repostButton = card.querySelector('[data-action="repost"]');
     const commentButton = card.querySelector('[data-action="comment"]');
+    const shareButton = card.querySelector('[data-action="share"]');
     const deleteButton = card.querySelector('.post-delete');
     const reportButton = card.querySelector('.post-report-button');
     const moderateButton = card.querySelector('.post-moderate-button');
@@ -641,6 +645,39 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
         showInlineError(error.message.includes('row-level security') ? "You can't interact with this post." : `Error: ${error.message}`);
       }
     });
+
+    if (shareButton) {
+      shareButton.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        const postUrl = `${window.location.origin}/social/posts/${post.id}/`;
+
+        if (navigator.share) {
+          try {
+            await navigator.share({ url: postUrl });
+            return;
+          } catch (err) {
+            if (err.name === 'AbortError') return;
+          }
+        }
+
+        const icon = shareButton.querySelector('.post-action-icon');
+        const original = icon.innerHTML;
+
+        try {
+          await navigator.clipboard.writeText(postUrl);
+          icon.innerHTML = '&#9989;';
+        } catch (err) {
+          window.prompt('Copy this link:', postUrl);
+          return;
+        }
+
+        shareButton.classList.add('copied');
+        setTimeout(() => {
+          icon.innerHTML = original;
+          shareButton.classList.remove('copied');
+        }, 1500);
+      });
+    }
 
     if (commentButton) {
       const commentsWrap = card.querySelector('.post-comments');
