@@ -446,3 +446,15 @@ document.querySelectorAll('[data-password-toggle]').forEach((button) => {
     button.classList.toggle('hub-password-toggle--active', !showing);
   });
 });
+
+// "Back" links carry an href to a sensible fallback page (used when there's
+// no browser history to go back to -- a direct link, a new tab, etc.), but
+// actually going back one step is almost always what someone means by it.
+document.querySelectorAll('[data-back-link]').forEach((link) => {
+  link.addEventListener('click', (event) => {
+    if (window.history.length > 1) {
+      event.preventDefault();
+      window.history.back();
+    }
+  });
+});
