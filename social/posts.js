@@ -543,10 +543,22 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
           ${depth === 0 ? `
           <div class="post-comments" id="post-comments-${post.id}" hidden>
             <div class="post-comment-list" id="post-comment-list-${post.id}"></div>
+            <div class="dm-picker post-comment-gif-picker" hidden>
+              <div class="dm-picker-header">
+                <span>Favorite GIFs</span>
+                <button type="button" class="dm-picker-close post-comment-gif-picker-close" aria-label="Close">&times;</button>
+              </div>
+              <div class="dm-picker-grid post-comment-gif-picker-grid">
+                <p class="dm-picker-empty post-comment-gif-picker-empty">No favorite GIFs yet.</p>
+              </div>
+            </div>
             <form class="post-comment-form" data-post-id="${post.id}">
               <input type="text" class="post-comment-input" maxlength="500" placeholder="Post your reply">
               <button type="button" class="post-comment-attach-button dm-icon-button" aria-label="Attach an image or GIF">&#128247;</button>
               <input type="file" class="post-comment-attach-input" accept="image/*,video/*" hidden>
+              <button type="button" class="post-comment-gif-button dm-icon-button" aria-label="Favorite GIFs">
+                <span class="dm-gif-label">GIF</span>
+              </button>
               <button type="submit" class="post-comment-submit">Reply</button>
             </form>
             <div class="post-comment-media" hidden>
@@ -695,6 +707,11 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       const commentError = card.querySelector('.post-comment-error');
       const commentAttachButton = card.querySelector('.post-comment-attach-button');
       const commentAttachInput = card.querySelector('.post-comment-attach-input');
+      const commentGifButton = card.querySelector('.post-comment-gif-button');
+      const commentGifPicker = card.querySelector('.post-comment-gif-picker');
+      const commentGifPickerGrid = card.querySelector('.post-comment-gif-picker-grid');
+      const commentGifPickerEmpty = card.querySelector('.post-comment-gif-picker-empty');
+      const commentGifPickerClose = card.querySelector('.post-comment-gif-picker-close');
       const commentMedia = card.querySelector('.post-comment-media');
       const commentMediaPreview = card.querySelector('.post-comment-media-preview');
       const commentMediaVideoPreview = card.querySelector('.post-comment-media-video-preview');
@@ -714,6 +731,22 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
         commentMediaVideoPreview.src = '';
         commentAttachInput.value = '';
         commentMediaStatus.textContent = '';
+      }
+
+      function showCommentMedia(url, mediaType) {
+        pendingCommentMediaUrl = url;
+        pendingCommentMediaType = mediaType;
+        commentMedia.hidden = false;
+
+        if (mediaType === 'video') {
+          commentMediaVideoPreview.src = url;
+          commentMediaVideoPreview.hidden = false;
+          commentMediaPreview.hidden = true;
+        } else {
+          commentMediaPreview.src = url;
+          commentMediaPreview.hidden = false;
+          commentMediaVideoPreview.hidden = true;
+        }
       }
 
       commentButton.addEventListener('click', async () => {
@@ -750,21 +783,47 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
           }
 
           commentMediaStatus.textContent = '';
-          pendingCommentMediaUrl = url;
-          pendingCommentMediaType = mediaType;
-
-          if (mediaType === 'video') {
-            commentMediaVideoPreview.src = url;
-            commentMediaVideoPreview.hidden = false;
-            commentMediaPreview.hidden = true;
-          } else {
-            commentMediaPreview.src = url;
-            commentMediaPreview.hidden = false;
-            commentMediaVideoPreview.hidden = true;
-          }
+          showCommentMedia(url, mediaType);
         });
 
         commentMediaRemove.addEventListener('click', resetCommentMedia);
+      }
+
+      if (commentGifButton) {
+        const closeCommentGifPicker = () => { commentGifPicker.hidden = true; };
+
+        commentGifButton.addEventListener('click', async () => {
+          const willOpen = commentGifPicker.hidden;
+          closeCommentGifPicker();
+          if (!willOpen) return;
+
+          commentGifPicker.hidden = false;
+
+          const favorites = await fetchFavoriteGifs();
+          commentGifPickerGrid.querySelectorAll('.dm-gif-thumb').forEach((el) => el.remove());
+          commentGifPickerEmpty.hidden = favorites.length > 0;
+
+          favorites.forEach((fav) => {
+            const img = document.createElement('img');
+            img.className = 'dm-gif-thumb';
+            img.src = fav.url;
+            img.alt = 'Favorite GIF';
+            img.addEventListener('click', () => {
+              closeCommentGifPicker();
+              commentMediaStatus.textContent = '';
+              showCommentMedia(fav.url, 'gif');
+            });
+            commentGifPickerGrid.appendChild(img);
+          });
+        });
+
+        commentGifPickerClose.addEventListener('click', closeCommentGifPicker);
+
+        document.addEventListener('click', (event) => {
+          if (!commentGifPicker.contains(event.target) && !commentGifButton.contains(event.target)) {
+            commentGifPicker.hidden = true;
+          }
+        });
       }
 
       commentForm.addEventListener('submit', async (event) => {
