@@ -95,6 +95,8 @@ const editCustomColorInput = document.getElementById('editCustomColorInput');
 const editCustomGradientStart = document.getElementById('editCustomGradientStart');
 const editCustomGradientEnd = document.getElementById('editCustomGradientEnd');
 const colorCustomGradientPreview = document.getElementById('colorCustomGradientPreview');
+const matchPhotoButton = document.getElementById('matchPhotoButton');
+const matchPhotoStatus = document.getElementById('matchPhotoStatus');
 const profileNameBadges = document.getElementById('profileNameBadges');
 
 let pendingColor = null;
@@ -759,6 +761,130 @@ function updateGradientPreview() {
 });
 
 updateGradientPreview();
+
+// Pulls two accent colors out of an image (avatar preferred, banner as a
+// fallback) so the gradient picker can suggest something that actually
+// matches what's already on the profile, the same idea as Discord's
+// "match my new banner" theme color button.
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (d !== 0) {
+    s = d / (1 - Math.abs(2 * l - 1));
+    switch (max) {
+      case r: h = ((g - b) / d) % 6; break;
+      case g: h = (b - r) / d + 2; break;
+      default: h = (r - g) / d + 4;
+    }
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return [h, s, l];
+}
+
+function hslToRgb(h, s, l) {
+  const c = (1 - Math.abs(2 * l - 1)) * s;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  let r = 0, g = 0, b = 0;
+  if (h < 60) { r = c; g = x; } else if (h < 120) { r = x; g = c; }
+  else if (h < 180) { g = c; b = x; } else if (h < 240) { g = x; b = c; }
+  else if (h < 300) { r = x; b = c; } else { r = c; b = x; }
+  return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
+}
+
+function rgbToHex(r, g, b) {
+  return `#${[r, g, b].map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join('')}`;
+}
+
+function hueDistance(a, b) {
+  const diff = Math.abs(a - b) % 360;
+  return diff > 180 ? 360 - diff : diff;
+}
+
+function extractGradientFromUrl(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try {
+        const size = 60;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, size, size);
+        const { data } = ctx.getImageData(0, 0, size, size);
+
+        const candidates = [];
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+          if (a < 200) continue;
+          const [h, s, l] = rgbToHsl(r, g, b);
+          if (l < 0.08 || l > 0.92) continue;
+          candidates.push({ r, g, b, h, s, l });
+        }
+
+        if (candidates.length === 0) {
+          reject(new Error('Could not pull a color from this image.'));
+          return;
+        }
+
+        candidates.sort((a, b) => (b.s * (1 - Math.abs(b.l - 0.5))) - (a.s * (1 - Math.abs(a.l - 0.5))));
+        const first = candidates[0];
+
+        let second = candidates.find((c) => hueDistance(c.h, first.h) > 35);
+        if (!second) {
+          const shiftedL = first.l > 0.5 ? Math.max(0.15, first.l - 0.35) : Math.min(0.85, first.l + 0.35);
+          const [r2, g2, b2] = hslToRgb(first.h, first.s, shiftedL);
+          second = { r: r2, g: g2, b: b2 };
+        }
+
+        resolve([rgbToHex(first.r, first.g, first.b), rgbToHex(second.r, second.g, second.b)]);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    img.onerror = () => reject(new Error('Could not load this image.'));
+    img.src = url;
+  });
+}
+
+if (matchPhotoButton) {
+  matchPhotoButton.addEventListener('click', async () => {
+    const sourceUrl = (!editAvatarPreview.hidden && editAvatarPreview.src)
+      ? editAvatarPreview.src
+      : (!editBannerPreview.hidden && editBannerPreview.src) ? editBannerPreview.src : null;
+
+    if (!sourceUrl) {
+      matchPhotoStatus.textContent = 'Add a profile picture or banner first.';
+      return;
+    }
+
+    matchPhotoStatus.textContent = 'Matching your photo…';
+    matchPhotoButton.disabled = true;
+
+    try {
+      const [start, end] = await extractGradientFromUrl(sourceUrl);
+      editCustomGradientStart.value = start;
+      editCustomGradientEnd.value = end;
+      pendingColor = `${start},${end}`;
+      pendingColorType = 'gradient';
+      updateGradientPreview();
+      setActiveSwatch('__custom__', '__custom__');
+      matchPhotoStatus.textContent = 'Matched!';
+    } catch (err) {
+      matchPhotoStatus.textContent = err.message || 'Could not match this image.';
+    } finally {
+      matchPhotoButton.disabled = false;
+    }
+  });
+}
 
 editAvatarInput.addEventListener('change', async () => {
   const file = editAvatarInput.files[0];
