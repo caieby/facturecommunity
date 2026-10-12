@@ -172,6 +172,8 @@ async function runUptimeChecks(env) {
       { service: 'nexus', is_up: nexusUp },
     ]),
   });
+
+  return { facturecommunity: mainUp, facturehub: hubUp, nexus: nexusUp };
 }
 
 export default {
@@ -180,6 +182,14 @@ export default {
 
     if (url.pathname === '/api/record-signup-ip') {
       return recordSignupIp(request, env);
+    }
+
+    // Manual trigger for runUptimeChecks, for verifying a fix without
+    // waiting on the next 5-minute Cron Trigger window. Read-only/benign
+    // (just appends an uptime_checks row), so no auth gate.
+    if (url.pathname === '/api/run-uptime-check' && request.method === 'POST') {
+      const result = await runUptimeChecks(env);
+      return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } });
     }
 
     if (url.pathname.startsWith('/social/profiles/') && url.pathname !== '/social/profiles/index.html') {
