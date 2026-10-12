@@ -3582,6 +3582,189 @@ select.hub-form-input {
   display: block;
 }
 
+.post-action--notes.active {
+  opacity: 1;
+  color: var(--purple-bright);
+}
+
+.post-note-public {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--purple-bright) 40%, transparent);
+  border-radius: 10px;
+}
+
+.post-note-public:not([hidden]) {
+  display: block;
+}
+
+.post-note-public-label {
+  display: block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--purple-bright);
+  margin-bottom: 0.35rem;
+}
+
+.post-note-public-content {
+  font-size: 0.85rem;
+  color: var(--white);
+  line-height: 1.4;
+}
+
+.post-notes-panel {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--purple-mid) 50%, transparent);
+}
+
+.post-notes-panel:not([hidden]) {
+  display: block;
+}
+
+.post-notes-empty {
+  font-size: 0.8rem;
+  color: var(--white);
+  opacity: 0.6;
+}
+
+.post-note-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--purple-mid);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.6rem;
+}
+
+.post-note-badge {
+  display: inline-block;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--purple-bright);
+  background: color-mix(in srgb, var(--purple-bright) 18%, transparent);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  margin-bottom: 0.4rem;
+}
+
+.post-note-content {
+  font-size: 0.85rem;
+  color: var(--white);
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+
+.post-note-author {
+  font-size: 0.75rem;
+  color: var(--white);
+  opacity: 0.6;
+  margin-top: 0.3rem;
+}
+
+.post-note-votes {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.post-note-vote {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.75rem;
+  color: var(--white);
+  opacity: 0.6;
+  background: none;
+  border: 1px solid var(--purple-mid);
+  border-radius: 999px;
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  transition: opacity 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.post-note-vote:hover {
+  opacity: 1;
+}
+
+.post-note-vote--helpful.active {
+  opacity: 1;
+  color: #22c55e;
+  border-color: #22c55e;
+}
+
+.post-note-vote--not-helpful.active {
+  opacity: 1;
+  color: #ff5c5c;
+  border-color: #ff5c5c;
+}
+
+.post-note-delete {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--white);
+  opacity: 0.5;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.3rem;
+}
+
+.post-note-delete:hover {
+  opacity: 1;
+  color: #ff5c5c;
+}
+
+.post-note-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.post-note-form:not([hidden]) {
+  display: flex;
+}
+
+.post-note-input {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  color: var(--white);
+  background: color-mix(in srgb, var(--purple-bright) 10%, transparent);
+  border: 1px solid var(--purple-mid);
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.post-note-submit {
+  align-self: flex-end;
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.8rem;
+  color: var(--white);
+  background: var(--purple-mid);
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+.post-note-error {
+  font-size: 0.8rem;
+  color: #ff5c5c;
+}
+
+.post-note-error:not([hidden]) {
+  display: block;
+}
+
 .page {
   min-height: 100vh;
   flex-direction: column;

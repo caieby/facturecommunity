@@ -95,7 +95,7 @@ function buildBadgesHtml(profile) {
   return html;
 }
 
-const POST_SELECT_COLUMNS = 'id, author_id, content, parent_post_id, visibility, reply_permission, view_count, like_count, repost_count, reply_count, media_url, media_type, is_nsfw, created_at, removed_at';
+const POST_SELECT_COLUMNS = 'id, author_id, content, parent_post_id, visibility, reply_permission, view_count, like_count, repost_count, reply_count, note_count, media_url, media_type, is_nsfw, created_at, removed_at';
 
 const MAX_POST_IMAGE_BYTES = 15 * 1024 * 1024;
 const MAX_POST_VIDEO_BYTES = 150 * 1024 * 1024;
@@ -538,8 +538,20 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
             <button type="button" class="post-action post-action--share" data-action="share" aria-label="Share this post">
               <span class="post-action-icon">&#128279;</span>
             </button>
+            <button type="button" class="post-action post-action--notes" data-action="notes" aria-label="Community notes">
+              <span class="post-action-icon">&#128221;</span><span class="post-action-count">${post.note_count || 0}</span>
+            </button>
           </div>
           <p class="post-inline-error" hidden></p>
+          <div class="post-note-public" hidden></div>
+          <div class="post-notes-panel" hidden>
+            <div class="post-notes-list"></div>
+            <form class="post-note-form">
+              <textarea class="post-note-input" maxlength="280" placeholder="Add a community note with useful context..."></textarea>
+              <button type="submit" class="post-note-submit">Add Note</button>
+            </form>
+            <p class="post-note-error" hidden></p>
+          </div>
           ${depth === 0 ? `
           <div class="post-comments" id="post-comments-${post.id}" hidden>
             <div class="post-comment-list" id="post-comment-list-${post.id}"></div>
@@ -696,6 +708,154 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
           icon.innerHTML = original;
           shareButton.classList.remove('copied');
         }, 1500);
+      });
+    }
+
+    const notesButton = card.querySelector('[data-action="notes"]');
+    if (notesButton) {
+      const notesPanel = card.querySelector('.post-notes-panel');
+      const notesList = card.querySelector('.post-notes-list');
+      const notePublicEl = card.querySelector('.post-note-public');
+      const noteForm = card.querySelector('.post-note-form');
+      const noteInput = card.querySelector('.post-note-input');
+      const noteError = card.querySelector('.post-note-error');
+      let notesLoaded = false;
+
+      function isNotePublic(note) {
+        return note.helpful_count >= 5 && note.helpful_count >= note.not_helpful_count * 2;
+      }
+
+      async function loadNotes() {
+        const { data: notes } = await client
+          .from('post_notes')
+          .select('id, author_id, content, helpful_count, not_helpful_count, created_at')
+          .eq('post_id', post.id)
+          .order('helpful_count', { ascending: false });
+
+        const noteList = notes || [];
+
+        const myVotes = new Map();
+        if (noteList.length > 0) {
+          const { data: votes } = await client
+            .from('post_note_votes')
+            .select('note_id, is_helpful')
+            .eq('user_id', currentUserId)
+            .in('note_id', noteList.map((n) => n.id));
+          (votes || []).forEach((v) => myVotes.set(v.note_id, v.is_helpful));
+        }
+
+        const authorIds = [...new Set(noteList.map((n) => n.author_id))];
+        const authorMap = authorIds.length > 0 ? await fetchProfilesById(authorIds) : new Map();
+
+        notesList.innerHTML = '';
+        if (noteList.length === 0) {
+          notesList.innerHTML = '<p class="post-notes-empty">No community notes yet.</p>';
+        }
+
+        noteList.forEach((note) => {
+          const author = authorMap.get(note.author_id);
+          const noteCard = document.createElement('div');
+          noteCard.className = 'post-note-card';
+          const myVote = myVotes.get(note.id);
+          const canDelete = note.author_id === currentUserId || currentUserRole === 'moderator' || currentUserRole === 'owner';
+          noteCard.innerHTML = `
+            ${isNotePublic(note) ? '<span class="post-note-badge">Rated Helpful</span>' : ''}
+            <p class="post-note-content"></p>
+            <p class="post-note-author">&mdash; @${escapePostText((author && author.username) || 'unknown')}</p>
+            <div class="post-note-votes">
+              <button type="button" class="post-note-vote post-note-vote--helpful${myVote === true ? ' active' : ''}" data-helpful="true">&#128077; Helpful (${note.helpful_count})</button>
+              <button type="button" class="post-note-vote post-note-vote--not-helpful${myVote === false ? ' active' : ''}" data-helpful="false">&#128078; Not Helpful (${note.not_helpful_count})</button>
+              ${canDelete ? '<button type="button" class="post-note-delete" aria-label="Delete note">&times;</button>' : ''}
+            </div>
+          `;
+          noteCard.querySelector('.post-note-content').textContent = note.content;
+          notesList.appendChild(noteCard);
+
+          async function castVote(isHelpful) {
+            if (myVotes.get(note.id) === isHelpful) {
+              await client.from('post_note_votes').delete().eq('note_id', note.id).eq('user_id', currentUserId);
+            } else {
+              await client.from('post_note_votes').upsert({ note_id: note.id, user_id: currentUserId, is_helpful: isHelpful });
+            }
+            await loadNotes();
+          }
+
+          noteCard.querySelector('.post-note-vote--helpful').addEventListener('click', (event) => {
+            event.stopPropagation();
+            castVote(true);
+          });
+          noteCard.querySelector('.post-note-vote--not-helpful').addEventListener('click', (event) => {
+            event.stopPropagation();
+            castVote(false);
+          });
+
+          const deleteBtn = noteCard.querySelector('.post-note-delete');
+          if (deleteBtn) {
+            deleteBtn.addEventListener('click', async (event) => {
+              event.stopPropagation();
+              if (!window.confirm('Delete this note?')) return;
+              await client.from('post_notes').delete().eq('id', note.id);
+              await loadNotes();
+            });
+          }
+        });
+
+        const publicNote = noteList.find(isNotePublic);
+        if (publicNote) {
+          notePublicEl.hidden = false;
+          notePublicEl.innerHTML = '<span class="post-note-public-label">&#128221; Community Note</span><p class="post-note-public-content"></p>';
+          notePublicEl.querySelector('.post-note-public-content').textContent = publicNote.content;
+        } else {
+          notePublicEl.hidden = true;
+        }
+
+        const countEl = notesButton.querySelector('.post-action-count');
+        if (countEl) countEl.textContent = String(noteList.length);
+
+        noteForm.hidden = noteList.some((n) => n.author_id === currentUserId);
+      }
+
+      notesButton.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        notesPanel.hidden = !notesPanel.hidden;
+        if (!notesPanel.hidden && !notesLoaded) {
+          notesLoaded = true;
+          await loadNotes();
+        }
+      });
+
+      noteForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        noteError.hidden = true;
+        const content = noteInput.value.trim();
+        if (!content) return;
+
+        const submitBtn = noteForm.querySelector('.post-note-submit');
+        submitBtn.disabled = true;
+
+        const { error } = await client.from('post_notes').insert({
+          id: generatePostUUID(),
+          post_id: post.id,
+          author_id: currentUserId,
+          content,
+        });
+
+        submitBtn.disabled = false;
+
+        if (error) {
+          noteError.textContent = (error.message.includes('duplicate') || error.message.includes('unique'))
+            ? "You've already added a note to this post."
+            : error.message.includes('row-level security')
+            ? "You can't add notes right now."
+            : `Error: ${error.message}`;
+          noteError.hidden = false;
+          return;
+        }
+
+        noteInput.value = '';
+        notesLoaded = true;
+        await loadNotes();
       });
     }
 
