@@ -113,6 +113,61 @@ async function servePostEmbed(request, env, postId) {
     .transform(base);
 }
 
+// Was a GitHub Actions cron job (every 5 min, declared), but GitHub
+// silently throttles frequent scheduled workflows on low-activity repos --
+// in practice it was firing every 2-5 hours instead, missing real outages
+// entirely between checks. Cloudflare's own Cron Triggers run on
+// Cloudflare's infrastructure and aren't subject to that throttling, so
+// this replaces the GitHub Action rather than duplicating it.
+async function runUptimeChecks(env) {
+  const anonKey = 'sb_publishable_37fQXfSzDzUrv35A5VSFXA_eqZBc3dB';
+
+  async function checkUrl(url) {
+    try {
+      const resp = await fetch(url);
+      return resp.status === 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  const [mainUp, hubUp] = await Promise.all([
+    checkUrl('https://facturecommunity.org/'),
+    checkUrl('https://facturecommunity.org/social/'),
+  ]);
+
+  // Nexus has no HTTP endpoint to ping -- it's "up" if its own heartbeat
+  // (bot_status.last_heartbeat, written by the bot's own process) is
+  // recent. More than 3 minutes stale counts as down.
+  let nexusUp = false;
+  try {
+    const heartbeatResp = await fetch(
+      `${SUPABASE_URL}/rest/v1/bot_status?id=eq.nexus&select=last_heartbeat`,
+      { headers: { apikey: anonKey } }
+    );
+    const rows = heartbeatResp.ok ? await heartbeatResp.json() : [];
+    const heartbeat = rows[0] && rows[0].last_heartbeat;
+    if (heartbeat) {
+      nexusUp = (Date.now() - new Date(heartbeat).getTime()) < 3 * 60 * 1000;
+    }
+  } catch (e) {}
+
+  await fetch(`${SUPABASE_URL}/rest/v1/uptime_checks`, {
+    method: 'POST',
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify([
+      { service: 'facturecommunity', is_up: mainUp },
+      { service: 'facturehub', is_up: hubUp },
+      { service: 'nexus', is_up: nexusUp },
+    ]),
+  });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -138,5 +193,9 @@ export default {
     }
 
     return env.ASSETS.fetch(request);
-  }
+  },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(runUptimeChecks(env));
+  },
 }
