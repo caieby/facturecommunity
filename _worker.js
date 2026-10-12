@@ -122,9 +122,15 @@ async function servePostEmbed(request, env, postId) {
 async function runUptimeChecks(env) {
   const anonKey = 'sb_publishable_37fQXfSzDzUrv35A5VSFXA_eqZBc3dB';
 
-  async function checkUrl(url) {
+  // A Worker fetching its own zone's public URL hits Cloudflare's loop
+  // protection (error 1042) and gets back an error response instead of
+  // actually reaching the site -- that's not a real outage, just the
+  // request never leaving Cloudflare's network. Checking env.ASSETS
+  // directly confirms the Worker's own deployment is intact without
+  // looping back through the public URL.
+  async function checkAsset(path) {
     try {
-      const resp = await fetch(url);
+      const resp = await env.ASSETS.fetch(new Request(`https://facturecommunity.org${path}`));
       return resp.status === 200;
     } catch (e) {
       return false;
@@ -132,8 +138,8 @@ async function runUptimeChecks(env) {
   }
 
   const [mainUp, hubUp] = await Promise.all([
-    checkUrl('https://facturecommunity.org/'),
-    checkUrl('https://facturecommunity.org/social/'),
+    checkAsset('/index.html'),
+    checkAsset('/social/index.html'),
   ]);
 
   // Nexus has no HTTP endpoint to ping -- it's "up" if its own heartbeat
