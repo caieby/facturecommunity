@@ -188,7 +188,7 @@ if (chatMenuToggle && chatMenuDropdown) {
 async function loadNotifications() {
   const { data: notifications } = await client
     .from('notifications')
-    .select('id, type, actor_id, conversation_id, is_read, created_at')
+    .select('id, type, actor_id, conversation_id, post_id, is_read, created_at')
     .eq('user_id', currentSession.user.id)
     .order('created_at', { ascending: false })
     .limit(30);
@@ -223,6 +223,8 @@ function buildNotifRow(notif, actor) {
 
   const actionText = notif.type === 'follow'
     ? `<strong>${actor.display_name}</strong> followed you`
+    : notif.type === 'like'
+    ? `<strong>${actor.display_name}</strong> liked your post`
     : `<strong>${actor.display_name}</strong> sent you a message`;
 
   row.innerHTML = `
@@ -234,6 +236,8 @@ function buildNotifRow(notif, actor) {
     await client.from('notifications').update({ is_read: true }).eq('id', notif.id);
     if (notif.type === 'follow') {
       window.location.href = `/social/profiles/${actor.id}/`;
+    } else if (notif.type === 'like') {
+      window.location.href = `/social/posts/${notif.post_id}/`;
     } else {
       window.location.href = `/social/direct-messages.html?open=${notif.conversation_id}`;
     }

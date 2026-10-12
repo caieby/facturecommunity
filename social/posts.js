@@ -658,6 +658,14 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
         likeButton.querySelector('.post-action-icon').innerHTML = nowLiked ? '&#10084;' : '&#9825;';
         countEl.textContent = String(Number(countEl.textContent) + (nowLiked ? 1 : -1));
         showInlineError(error.message.includes('row-level security') ? "You can't interact with this post." : `Error: ${error.message}`);
+      } else if (!nowLiked && post.author_id !== currentUserId) {
+        // Best-effort -- a failed notification insert shouldn't undo the like itself.
+        client.from('notifications').insert({
+          user_id: post.author_id,
+          type: 'like',
+          actor_id: currentUserId,
+          post_id: post.id,
+        }).then(() => {});
       }
     });
 
