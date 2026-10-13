@@ -738,6 +738,15 @@ body::after {
   transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
 }
 
+/* FactureHub/Project Nexus already have their own standalone pill buttons
+   next to this dropdown -- redundant in the list too. Those pills get
+   hidden on mobile (below), where this dropdown becomes the only way to
+   reach them, so these stay in the dropdown there instead of disappearing
+   entirely. */
+.menu-dropdown-hub-link {
+  display: none;
+}
+
 .menu-dropdown.open {
   opacity: 1;
   visibility: visible;
@@ -4477,6 +4486,10 @@ select.hub-form-input {
 
   .site-menu > a.menu-toggle {
     display: none;
+  }
+
+  .menu-dropdown-hub-link {
+    display: list-item;
   }
 
   .site-menu #menuToggle {
