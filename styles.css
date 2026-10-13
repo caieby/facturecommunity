@@ -4771,6 +4771,94 @@ select.hub-form-input {
   }
 }
 
+/* Touch devices have no :hover, so anything gated behind a hover reveal
+   (opacity: 0 until hovered) is otherwise permanently invisible and
+   unreachable on phones/tablets -- show these at their "hovered" resting
+   state instead, same as .chat-message-header .dm-unsend-button already
+   does for group chat. */
+@media (hover: none) {
+  .dm-unsend-button,
+  .dm-report-button {
+    opacity: 0.45;
+  }
+
+  .dm-gif-thumb-remove {
+    opacity: 1;
+  }
+}
+
+/* FactureHub's app UI (feed, DMs, chat, profile) was built with no
+   phone/tablet-specific sizing at all -- everything rendered at its
+   desktop size regardless of viewport. This compacts avatars, paddings,
+   and the post-actions row so it fits comfortably instead of feeling
+   oversized or (in .post-actions's case) risking overflow with 1.5rem
+   gaps between five-plus action buttons on a ~350px-wide card. */
+@media (max-width: 900px) {
+  .post-avatar,
+  .feed-composer-avatar,
+  .dm-row-avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .dm-thread-avatar,
+  .chat-message-avatar,
+  .chat-member-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .post-card {
+    padding: 0.85rem;
+  }
+
+  .post-card--comment {
+    padding: 0.65rem;
+  }
+
+  .post-actions {
+    gap: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  .feed-composer {
+    padding: 0.9rem 1rem;
+    margin-top: 1rem;
+  }
+
+  .feed-page {
+    padding-top: calc(4rem + var(--banner-height));
+  }
+
+  .dm-bubble-wrapper {
+    max-width: 85%;
+  }
+
+  .dm-thread {
+    padding: 0.5rem;
+  }
+
+  .dm-row {
+    padding: 0.65rem 0.85rem;
+    gap: 0.65rem;
+  }
+
+  .profile-avatar-frame,
+  .home-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .profile-banner-frame:not([hidden]) + .profile-avatar-frame,
+  .home-banner:not([hidden]) + .home-avatar {
+    margin-top: -40px;
+  }
+
+  .profile-stats {
+    gap: 1.25rem;
+  }
+}
+
 @media (max-width: 420px) {
   :root {
     --banner-height: 5.5rem;

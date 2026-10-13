@@ -34,16 +34,6 @@
     <a class="announcement-button" href="https://discord.gg/RSA75s3Fzq" target="_blank" rel="noopener noreferrer">Join Us!</a>
   </div>
 
-  <div class="hub-modal" id="betaModal" hidden>
-    <div class="hub-modal-card">
-      <h2 class="subsection-title">FactureHub public beta is out now!</h2>
-      <p class="section-intro">Expect bugs, and report bugs in a support ticket in our support server!</p>
-      <div class="moderation-action-buttons">
-        <button type="button" class="action-button" id="betaCloseButton">Close</button>
-      </div>
-    </div>
-  </div>
-
   <header class="topbar">
     <a href="index.html" class="brand">
       <img src="assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
@@ -105,25 +95,5 @@
 
   <script src="script.js"></script>
   <script src="status-widget.js"></script>
-  <script>
-    (function () {
-      const ageGate = document.getElementById('ageGate');
-      const betaModal = document.getElementById('betaModal');
-      const betaCloseButton = document.getElementById('betaCloseButton');
-
-      function showBetaModal() {
-        betaModal.hidden = false;
-      }
-
-      if (ageGate && ageGate.hidden) {
-        showBetaModal();
-      } else {
-        document.addEventListener('facture:humanVerified', showBetaModal, { once: true });
-      }
-
-      betaCloseButton.addEventListener('click', () => { betaModal.hidden = true; });
-      betaModal.addEventListener('click', (event) => { if (event.target === betaModal) betaModal.hidden = true; });
-    })();
-  </script>
 </body>
 </html>
