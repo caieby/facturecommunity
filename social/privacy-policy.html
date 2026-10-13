@@ -46,19 +46,12 @@
     <hr class="section-divider">
     <section class="rule">
       <h2 class="section-title">Information We Collect</h2>
-      <p class="section-intro"><strong>Account information:</strong> your email address, a securely hashed password (or, if you sign in with Google, the basic profile info Google provides &mdash; your name, email, and profile picture), and your username.</p>
+      <p class="section-intro"><strong>Account information:</strong> your email address, a securely hashed password, and your username.</p>
       <p class="section-intro"><strong>Profile information:</strong> whatever you choose to add &mdash; display name, bio, pronouns, gender identity, profile picture, and banner image.</p>
       <p class="section-intro"><strong>Content:</strong> posts, comments, community notes, direct messages, group chat messages, and any images, GIFs, or video you attach to them.</p>
       <p class="section-intro"><strong>Account security:</strong> if you enable two-factor authentication, the authenticator secret is held directly by our authentication provider (Supabase) and is never visible to us or stored in our own database.</p>
       <p class="section-intro"><strong>Signup IP address:</strong> recorded once at account creation and used only to detect and limit the number of accounts created from the same network, as a defense against ban evasion and spam accounts. It isn't tied to your activity afterward.</p>
       <p class="section-intro"><strong>Local device storage:</strong> we use your browser's local storage for things like your theme preference and a timestamp of your last human-verification check &mdash; none of this leaves your device or is sent to us.</p>
-    </section>
-    <hr class="section-divider">
-
-    <section class="rule">
-      <h2 class="section-title">Signing In With Google</h2>
-      <p class="section-intro">If you choose "Continue with Google" instead of creating a password, we request only your basic Google profile: your name, email address, and profile picture. We use this solely to create and sign you into your FactureHub account &mdash; to pre-fill your display name and profile picture, and to confirm it's really you on future logins.</p>
-      <p class="section-intro">We don't request access to your Gmail, Google Drive, Google Contacts, or any other Google service or data beyond that basic profile. We don't use this information for advertising, and we never share it with third parties outside the service providers listed below. You can revoke FactureHub's access to your Google account at any time from your <a class="inline-link" href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">Google Account permissions page</a>, and you can still delete your FactureHub account afterward from Settings as described under Data Retention below.</p>
     </section>
     <hr class="section-divider">
 
@@ -73,7 +66,6 @@
       <p class="section-intro">FactureHub is built on a small number of infrastructure providers who process data on our behalf:</p>
       <ul class="step-list">
         <li><strong>Supabase</strong> &mdash; handles account authentication, our database, and file storage for images and video. This is where your account, content, and (if enabled) two-factor authentication secret actually live.</li>
-        <li><strong>Google</strong> &mdash; if you choose to sign in with Google instead of a password, Google handles that authentication and shares your basic profile with us.</li>
         <li><strong>Cloudflare</strong> &mdash; provides the human-verification check (Turnstile) you may see, our content delivery, and basic uptime/traffic protection.</li>
       </ul>
       <p class="section-intro">Each of these providers has its own privacy practices covering how they process data on our behalf.</p>

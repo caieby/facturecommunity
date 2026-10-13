@@ -26,13 +26,6 @@ document.querySelectorAll('[data-modal-close]').forEach((button) => {
 loginButton?.addEventListener('click', () => openModal(loginModal));
 signupButton?.addEventListener('click', () => openModal(signupModal));
 
-document.getElementById('hubGoogleButton')?.addEventListener('click', async () => {
-  await client.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: `${window.location.origin}/social/home.html` },
-  });
-});
-
 document.getElementById('hubSignupForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   const errorEl = document.getElementById('hubSignupError');
