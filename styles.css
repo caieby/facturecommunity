@@ -3897,6 +3897,18 @@ select.hub-form-input {
   padding-top: calc(6rem + var(--banner-height));
 }
 
+/* .page centers its content vertically within 100vh, which only clears
+   the fixed topbar by accident -- fine for a short message (404, "not
+   found") but once content is taller than the viewport (a real profile:
+   banner, avatar, bio, posts) it overflows upward past that centering
+   and the topbar's blur sits right over the banner/title. This drops
+   the centering and gives it .info-page's own clearance instead. */
+.page--top {
+  justify-content: flex-start;
+  min-height: 0;
+  padding-top: calc(8rem + var(--banner-height));
+}
+
 .info-page .page-title {
   text-align: center;
   font-size: clamp(2.5rem, 8vw, 4rem);
@@ -4718,9 +4730,16 @@ select.hub-form-input {
   }
 
   .info-page.site-page {
-    padding-top: calc(4.5rem + var(--banner-height));
+    /* 4.5rem undershot the real mobile topbar height (~77px with the
+       hamburger menu button) by a few px, enough that page titles
+       rendered partly behind the blurred topbar. */
+    padding-top: calc(5.25rem + var(--banner-height));
     padding-left: 1.25rem;
     padding-right: 1.25rem;
+  }
+
+  .page--top {
+    padding-top: calc(5.25rem + var(--banner-height));
   }
 
   .hero-title {
@@ -4827,7 +4846,10 @@ select.hub-form-input {
   }
 
   .feed-page {
-    padding-top: calc(4rem + var(--banner-height));
+    /* 4rem undershot the real topbar height here (~74px on the simple
+       "<- Back" nav FactureHub's internal pages use) -- the "Main Feed"
+       title was rendering partly behind the blurred topbar. */
+    padding-top: calc(5.25rem + var(--banner-height));
   }
 
   .dm-bubble-wrapper {
