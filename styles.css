@@ -4444,8 +4444,11 @@ select.hub-form-input {
   opacity: 0.7;
 }
 
-.action-button {
+.action-button:not([hidden]) {
   display: inline-block;
+}
+
+.action-button {
   font-family: 'Oswald', sans-serif;
   font-size: 1.05rem;
   font-weight: 600;

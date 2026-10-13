@@ -625,8 +625,7 @@ privacyForm.addEventListener('submit', async (event) => {
 });
 
 const mfaIntro = document.getElementById('mfaIntro');
-const mfaEnableButton = document.getElementById('mfaEnableButton');
-const mfaDisableButton = document.getElementById('mfaDisableButton');
+const mfaToggleButton = document.getElementById('mfaToggleButton');
 const mfaEnrollPanel = document.getElementById('mfaEnrollPanel');
 const mfaQrWrap = document.getElementById('mfaQrWrap');
 const mfaSecretText = document.getElementById('mfaSecretText');
@@ -636,11 +635,12 @@ const mfaVerifyError = document.getElementById('mfaVerifyError');
 const mfaCancelEnrollButton = document.getElementById('mfaCancelEnrollButton');
 const mfaDisablePanel = document.getElementById('mfaDisablePanel');
 const mfaDisableForm = document.getElementById('mfaDisableForm');
-const mfaDisablePassword = document.getElementById('mfaDisablePassword');
+const mfaDisableCode = document.getElementById('mfaDisableCode');
 const mfaDisableError = document.getElementById('mfaDisableError');
 const mfaCancelDisableButton = document.getElementById('mfaCancelDisableButton');
 
 let pendingMfaFactorId = null;
+let mfaEnabled = false;
 
 async function refreshMfaStatus() {
   const { data, error } = await client.auth.mfa.listFactors();
@@ -660,24 +660,32 @@ async function refreshMfaStatus() {
     await client.auth.mfa.unenroll({ factorId: unverified.id });
   }
 
-  if (verified) {
-    mfaIntro.textContent = 'Two-factor authentication is enabled on your account.';
-    mfaEnableButton.hidden = true;
-    mfaDisableButton.hidden = false;
-  } else {
-    mfaIntro.textContent = 'Add an extra layer of security with an authenticator app (Google Authenticator, Authy, etc.).';
-    mfaEnableButton.hidden = false;
-    mfaDisableButton.hidden = true;
-  }
+  mfaEnrollPanel.hidden = true;
+  mfaDisablePanel.hidden = true;
+
+  mfaEnabled = !!verified;
+  mfaToggleButton.hidden = false;
+  mfaToggleButton.textContent = mfaEnabled ? 'Disable 2FA' : 'Enable 2FA';
+  mfaIntro.textContent = mfaEnabled
+    ? 'Two-factor authentication is enabled on your account.'
+    : 'Add an extra layer of security with an authenticator app (Google Authenticator, Authy, etc.).';
 }
 
-mfaEnableButton.addEventListener('click', async () => {
+mfaToggleButton.addEventListener('click', async () => {
+  if (mfaEnabled) {
+    mfaDisableError.textContent = '';
+    mfaDisableForm.reset();
+    mfaToggleButton.hidden = true;
+    mfaDisablePanel.hidden = false;
+    return;
+  }
+
   mfaVerifyError.textContent = '';
-  mfaEnableButton.disabled = true;
+  mfaToggleButton.disabled = true;
 
   const { data, error } = await client.auth.mfa.enroll({ factorType: 'totp' });
 
-  mfaEnableButton.disabled = false;
+  mfaToggleButton.disabled = false;
 
   if (error) {
     mfaVerifyError.textContent = error.message;
@@ -694,7 +702,7 @@ mfaEnableButton.addEventListener('click', async () => {
   mfaSecretText.textContent = data.totp.secret;
 
   mfaVerifyForm.reset();
-  mfaEnableButton.hidden = true;
+  mfaToggleButton.hidden = true;
   mfaEnrollPanel.hidden = false;
 });
 
@@ -704,7 +712,7 @@ mfaCancelEnrollButton.addEventListener('click', async () => {
     pendingMfaFactorId = null;
   }
   mfaEnrollPanel.hidden = true;
-  mfaEnableButton.hidden = false;
+  mfaToggleButton.hidden = false;
 });
 
 mfaVerifyForm.addEventListener('submit', async (event) => {
@@ -742,66 +750,71 @@ mfaVerifyForm.addEventListener('submit', async (event) => {
   }
 
   pendingMfaFactorId = null;
-  mfaEnrollPanel.hidden = true;
   await refreshMfaStatus();
-});
-
-mfaDisableButton.addEventListener('click', () => {
-  mfaDisableError.textContent = '';
-  mfaDisableForm.reset();
-  mfaDisableButton.hidden = true;
-  mfaDisablePanel.hidden = false;
 });
 
 mfaCancelDisableButton.addEventListener('click', () => {
   mfaDisablePanel.hidden = true;
-  mfaDisableButton.hidden = false;
+  mfaToggleButton.hidden = false;
 });
 
 mfaDisableForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   mfaDisableError.textContent = '';
 
-  const password = mfaDisablePassword.value;
-  if (!password) {
-    mfaDisableError.textContent = 'Please enter your current password.';
+  const code = mfaDisableCode.value.trim();
+  if (!/^\d{6}$/.test(code)) {
+    mfaDisableError.textContent = 'Enter the 6-digit code from your authenticator app.';
     return;
   }
 
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
 
-  const { error: verifyError } = await client.auth.signInWithPassword({
-    email: currentSession.user.email,
-    password,
+  const { data: factorsData, error: factorsError } = await client.auth.mfa.listFactors();
+  const factor = factorsData && factorsData.totp.find((f) => f.status === 'verified');
+
+  if (factorsError || !factor) {
+    mfaDisableError.textContent = 'Two-factor authentication is not currently enabled.';
+    submitButton.disabled = false;
+    await refreshMfaStatus();
+    return;
+  }
+
+  // Proving a current code still works (the normal step-up-to-aal2 flow,
+  // same as a fresh login would require) before removing it, rather than
+  // trusting that whoever's sitting at this already-open session still
+  // has the authenticator.
+  const { data: challengeData, error: challengeError } = await client.auth.mfa.challenge({ factorId: factor.id });
+
+  if (challengeError) {
+    mfaDisableError.textContent = challengeError.message;
+    submitButton.disabled = false;
+    return;
+  }
+
+  const { error: verifyError } = await client.auth.mfa.verify({
+    factorId: factor.id,
+    challengeId: challengeData.id,
+    code,
   });
 
   if (verifyError) {
-    mfaDisableError.textContent = 'Incorrect password.';
+    mfaDisableError.textContent = 'Incorrect code. Please try again.';
     submitButton.disabled = false;
     return;
   }
 
-  const { data: factorsData } = await client.auth.mfa.listFactors();
-  const verified = factorsData && factorsData.totp.find((factor) => factor.status === 'verified');
-
-  if (!verified) {
-    mfaDisableError.textContent = 'Something went wrong. Please refresh and try again.';
-    submitButton.disabled = false;
-    return;
-  }
-
-  const { error } = await client.auth.mfa.unenroll({ factorId: verified.id });
+  const { error: unenrollError } = await client.auth.mfa.unenroll({ factorId: factor.id });
 
   submitButton.disabled = false;
 
-  if (error) {
-    mfaDisableError.textContent = error.message;
+  if (unenrollError) {
+    mfaDisableError.textContent = unenrollError.message;
     return;
   }
 
-  mfaDisablePassword.value = '';
-  mfaDisablePanel.hidden = true;
+  mfaDisableCode.value = '';
   await refreshMfaStatus();
 });
 

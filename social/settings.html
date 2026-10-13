@@ -173,8 +173,7 @@
       <p class="section-intro" id="mfaIntro">Loading&hellip;</p>
 
       <div class="button-group">
-        <button type="button" class="action-button" id="mfaEnableButton" hidden>Enable 2FA</button>
-        <button type="button" class="action-button" id="mfaDisableButton" hidden>Disable 2FA</button>
+        <button type="button" class="action-button" id="mfaToggleButton" hidden>Enable 2FA</button>
       </div>
 
       <div class="mfa-enroll-panel" id="mfaEnrollPanel" hidden>
@@ -195,14 +194,14 @@
       </div>
 
       <div class="mfa-enroll-panel" id="mfaDisablePanel" hidden>
-        <p class="section-intro">Enter your current password to confirm disabling two-factor authentication.</p>
+        <p class="section-intro">Enter the current code from your authenticator app to confirm disabling two-factor authentication.</p>
         <form id="mfaDisableForm" class="hub-form">
-          <label class="hub-form-label" for="mfaDisablePassword">Current Password</label>
-          <input class="hub-form-input" type="password" id="mfaDisablePassword" autocomplete="current-password" required>
+          <label class="hub-form-label" for="mfaDisableCode">6-digit code</label>
+          <input class="hub-form-input" type="text" id="mfaDisableCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
 
           <p class="hub-form-error" id="mfaDisableError"></p>
           <div class="button-group">
-            <button type="submit" class="action-button">Confirm Disable</button>
+            <button type="submit" class="action-button">Verify &amp; Disable</button>
             <button type="button" class="hub-text-link" id="mfaCancelDisableButton">Cancel</button>
           </div>
         </form>
