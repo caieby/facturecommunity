@@ -69,6 +69,7 @@ if (menuToggle && menuDropdown) {
     if (navBackdrop) navBackdrop.classList.remove('open');
     if (isSiteMenu) {
       document.body.style.overflow = '';
+      document.body.classList.remove('nav-open');
     }
   }
 
@@ -78,6 +79,7 @@ if (menuToggle && menuDropdown) {
     if (navBackdrop) navBackdrop.classList.add('open');
     if (isSiteMenu) {
       document.body.style.overflow = 'hidden';
+      document.body.classList.add('nav-open');
     }
     if (navSearchInput) {
       navSearchInput.value = '';
