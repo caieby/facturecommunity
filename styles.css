@@ -4859,6 +4859,72 @@ select.hub-form-input {
   }
 }
 
+/* The 900px pass above only lightly trimmed the composer's padding --
+   on an actual phone it was still full desktop scale everywhere else
+   (avatar, input text, media preview, the select pills/post button row),
+   which is what made it feel oversized. This shrinks every piece of it
+   specifically on phones; tablets keep the lighter 900px version. */
+@media (max-width: 640px) {
+  .feed-composer {
+    padding: 0.75rem 0.85rem;
+    margin-top: 0.85rem;
+    border-radius: 16px;
+  }
+
+  .feed-composer-main {
+    gap: 0.5rem;
+  }
+
+  .feed-composer-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .feed-composer-input {
+    min-height: 36px;
+    font-size: 0.9rem;
+    padding: 0.2rem 0;
+  }
+
+  .feed-char-count {
+    font-size: 0.7rem;
+  }
+
+  .feed-composer-media {
+    max-width: 150px;
+  }
+
+  .feed-composer-row {
+    gap: 0.5rem;
+    padding-top: 0.6rem;
+    margin-top: 0.3rem;
+  }
+
+  .feed-composer-selects {
+    gap: 0.4rem;
+  }
+
+  .feed-select-pill {
+    height: 32px;
+    padding: 0 0.6rem;
+    gap: 0.25rem;
+  }
+
+  .feed-select-icon {
+    font-size: 0.75rem;
+  }
+
+  .feed-nsfw-toggle,
+  .feed-select {
+    font-size: 0.72rem;
+  }
+
+  .feed-composer .action-button {
+    padding: 0.5rem 0.95rem;
+    font-size: 0.8rem;
+  }
+}
+
 @media (max-width: 420px) {
   :root {
     --banner-height: 5.5rem;
