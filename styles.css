@@ -863,9 +863,15 @@ body.nav-open .topbar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   text-align: center;
-  padding: calc(2rem + var(--banner-height)) 2rem 2rem;
+  /* "center" only clears the topbar by accident, via slack from short
+     content in a tall viewport -- once content is as tall as the
+     viewport (easy in landscape, where the topbar itself also measures
+     ~97px across the whole desktop-nav width range) that slack is zero
+     and content starts right at this padding value, which needs to
+     clear the topbar on its own. */
+  padding: calc(7rem + var(--banner-height)) 2rem 2rem;
 }
 
 .hero-title {
@@ -3861,9 +3867,11 @@ select.hub-form-input {
   min-height: 100vh;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
   text-align: center;
-  padding: calc(2rem + var(--banner-height)) 2rem 2rem;
+  /* See .hero -- the padding itself (not just alignment) needs to clear
+     the topbar once content is as tall as the viewport. */
+  padding: calc(7rem + var(--banner-height)) 2rem 2rem;
 }
 
 .page:not([hidden]) {
