@@ -184,6 +184,7 @@ async function init() {
 
   refreshEmailStatus(userData.user);
   renderAccountStanding(profile || {});
+  refreshMfaStatus();
 }
 
 function renderAccountStanding(profile) {
@@ -621,6 +622,187 @@ privacyForm.addEventListener('submit', async (event) => {
   }
 
   submitButton.disabled = false;
+});
+
+const mfaIntro = document.getElementById('mfaIntro');
+const mfaEnableButton = document.getElementById('mfaEnableButton');
+const mfaDisableButton = document.getElementById('mfaDisableButton');
+const mfaEnrollPanel = document.getElementById('mfaEnrollPanel');
+const mfaQrWrap = document.getElementById('mfaQrWrap');
+const mfaSecretText = document.getElementById('mfaSecretText');
+const mfaVerifyForm = document.getElementById('mfaVerifyForm');
+const mfaVerifyCode = document.getElementById('mfaVerifyCode');
+const mfaVerifyError = document.getElementById('mfaVerifyError');
+const mfaCancelEnrollButton = document.getElementById('mfaCancelEnrollButton');
+const mfaDisablePanel = document.getElementById('mfaDisablePanel');
+const mfaDisableForm = document.getElementById('mfaDisableForm');
+const mfaDisablePassword = document.getElementById('mfaDisablePassword');
+const mfaDisableError = document.getElementById('mfaDisableError');
+const mfaCancelDisableButton = document.getElementById('mfaCancelDisableButton');
+
+let pendingMfaFactorId = null;
+
+async function refreshMfaStatus() {
+  const { data, error } = await client.auth.mfa.listFactors();
+
+  if (error) {
+    mfaIntro.textContent = 'Could not load two-factor authentication status.';
+    return;
+  }
+
+  const verified = data.totp.find((factor) => factor.status === 'verified');
+  const unverified = data.totp.find((factor) => factor.status === 'unverified');
+
+  // A factor left over from an enrollment that was started but never
+  // finished (closed the tab mid-setup, etc.) -- clear it so "Enable 2FA"
+  // always starts from a clean slate instead of erroring on a duplicate.
+  if (unverified) {
+    await client.auth.mfa.unenroll({ factorId: unverified.id });
+  }
+
+  if (verified) {
+    mfaIntro.textContent = 'Two-factor authentication is enabled on your account.';
+    mfaEnableButton.hidden = true;
+    mfaDisableButton.hidden = false;
+  } else {
+    mfaIntro.textContent = 'Add an extra layer of security with an authenticator app (Google Authenticator, Authy, etc.).';
+    mfaEnableButton.hidden = false;
+    mfaDisableButton.hidden = true;
+  }
+}
+
+mfaEnableButton.addEventListener('click', async () => {
+  mfaVerifyError.textContent = '';
+  mfaEnableButton.disabled = true;
+
+  const { data, error } = await client.auth.mfa.enroll({ factorType: 'totp' });
+
+  mfaEnableButton.disabled = false;
+
+  if (error) {
+    mfaVerifyError.textContent = error.message;
+    return;
+  }
+
+  pendingMfaFactorId = data.id;
+
+  mfaQrWrap.innerHTML = '';
+  const qrImage = document.createElement('img');
+  qrImage.src = data.totp.qr_code;
+  qrImage.alt = 'Two-factor authentication QR code';
+  mfaQrWrap.appendChild(qrImage);
+  mfaSecretText.textContent = data.totp.secret;
+
+  mfaVerifyForm.reset();
+  mfaEnableButton.hidden = true;
+  mfaEnrollPanel.hidden = false;
+});
+
+mfaCancelEnrollButton.addEventListener('click', async () => {
+  if (pendingMfaFactorId) {
+    await client.auth.mfa.unenroll({ factorId: pendingMfaFactorId });
+    pendingMfaFactorId = null;
+  }
+  mfaEnrollPanel.hidden = true;
+  mfaEnableButton.hidden = false;
+});
+
+mfaVerifyForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  mfaVerifyError.textContent = '';
+
+  const code = mfaVerifyCode.value.trim();
+  if (!/^\d{6}$/.test(code)) {
+    mfaVerifyError.textContent = 'Enter the 6-digit code from your authenticator app.';
+    return;
+  }
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { data: challengeData, error: challengeError } = await client.auth.mfa.challenge({ factorId: pendingMfaFactorId });
+
+  if (challengeError) {
+    mfaVerifyError.textContent = challengeError.message;
+    submitButton.disabled = false;
+    return;
+  }
+
+  const { error: verifyError } = await client.auth.mfa.verify({
+    factorId: pendingMfaFactorId,
+    challengeId: challengeData.id,
+    code,
+  });
+
+  submitButton.disabled = false;
+
+  if (verifyError) {
+    mfaVerifyError.textContent = 'Incorrect code. Please try again.';
+    return;
+  }
+
+  pendingMfaFactorId = null;
+  mfaEnrollPanel.hidden = true;
+  await refreshMfaStatus();
+});
+
+mfaDisableButton.addEventListener('click', () => {
+  mfaDisableError.textContent = '';
+  mfaDisableForm.reset();
+  mfaDisableButton.hidden = true;
+  mfaDisablePanel.hidden = false;
+});
+
+mfaCancelDisableButton.addEventListener('click', () => {
+  mfaDisablePanel.hidden = true;
+  mfaDisableButton.hidden = false;
+});
+
+mfaDisableForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  mfaDisableError.textContent = '';
+
+  const password = mfaDisablePassword.value;
+  if (!password) {
+    mfaDisableError.textContent = 'Please enter your current password.';
+    return;
+  }
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { error: verifyError } = await client.auth.signInWithPassword({
+    email: currentSession.user.email,
+    password,
+  });
+
+  if (verifyError) {
+    mfaDisableError.textContent = 'Incorrect password.';
+    submitButton.disabled = false;
+    return;
+  }
+
+  const { data: factorsData } = await client.auth.mfa.listFactors();
+  const verified = factorsData && factorsData.totp.find((factor) => factor.status === 'verified');
+
+  if (!verified) {
+    mfaDisableError.textContent = 'Something went wrong. Please refresh and try again.';
+    submitButton.disabled = false;
+    return;
+  }
+
+  const { error } = await client.auth.mfa.unenroll({ factorId: verified.id });
+
+  submitButton.disabled = false;
+
+  if (error) {
+    mfaDisableError.textContent = error.message;
+    return;
+  }
+
+  mfaDisablePassword.value = '';
+  mfaDisablePanel.hidden = true;
+  await refreshMfaStatus();
 });
 
 init();

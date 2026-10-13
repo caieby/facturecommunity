@@ -82,6 +82,21 @@
     </div>
   </div>
 
+  <div class="hub-modal" id="hubMfaModal" hidden>
+    <div class="hub-modal-card">
+      <h2 class="subsection-title">Two-Factor Authentication</h2>
+      <p class="section-intro">Enter the 6-digit code from your authenticator app.</p>
+      <form id="hubMfaForm" class="hub-form">
+        <label class="hub-form-label" for="hubMfaCode">Code</label>
+        <input class="hub-form-input" type="text" id="hubMfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+
+        <p class="hub-form-error" id="hubMfaError"></p>
+        <button type="submit" class="action-button">Verify</button>
+      </form>
+      <p class="hub-form-link-row"><button type="button" class="hub-text-link" id="hubMfaCancelButton">Cancel</button></p>
+    </div>
+  </div>
+
   <div class="hub-modal" id="hubForgotPasswordModal" hidden>
     <div class="hub-modal-card">
       <button type="button" class="hub-modal-close" data-modal-close="hubForgotPasswordModal" aria-label="Close">&times;</button>

@@ -4389,6 +4389,35 @@ select.hub-form-input {
   margin-top: 1.5rem;
 }
 
+.mfa-enroll-panel {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--purple-mid);
+}
+
+.mfa-qr-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.mfa-qr-wrap img {
+  width: 200px;
+  height: 200px;
+  background: var(--white);
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+.mfa-secret-text {
+  font-family: monospace;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
 .button-with-note {
   display: flex;
   flex-direction: column;

@@ -88,6 +88,12 @@ document.getElementById('hubSignupForm').addEventListener('submit', async (event
   }
 });
 
+const mfaModal = document.getElementById('hubMfaModal');
+const mfaForm = document.getElementById('hubMfaForm');
+const mfaCodeInput = document.getElementById('hubMfaCode');
+const mfaError = document.getElementById('hubMfaError');
+const mfaCancelButton = document.getElementById('hubMfaCancelButton');
+
 document.getElementById('hubLoginForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   const errorEl = document.getElementById('hubLoginError');
@@ -110,11 +116,84 @@ document.getElementById('hubLoginForm').addEventListener('submit', async (event)
       return;
     }
 
+    // signInWithPassword succeeds at aal1 even with a 2FA factor on the
+    // account -- it doesn't require the factor itself, it just caps the
+    // session there until a challenge/verify round trip happens. Check
+    // whether that round trip is still owed before letting them in.
+    const { data: aal } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+
+    if (aal && aal.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
+      closeModal(loginModal);
+      mfaForm.reset();
+      mfaError.textContent = '';
+      openModal(mfaModal);
+      submitButton.disabled = false;
+      return;
+    }
+
     window.location.href = 'home.html';
   } catch (err) {
     errorEl.textContent = 'Something went wrong. Please try again.';
     submitButton.disabled = false;
   }
+});
+
+mfaForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  mfaError.textContent = '';
+
+  const code = mfaCodeInput.value.trim();
+  if (!/^\d{6}$/.test(code)) {
+    mfaError.textContent = 'Enter the 6-digit code from your authenticator app.';
+    return;
+  }
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  try {
+    const { data: factorsData, error: factorsError } = await client.auth.mfa.listFactors();
+    const factor = factorsData && factorsData.totp.find((f) => f.status === 'verified');
+
+    if (factorsError || !factor) {
+      mfaError.textContent = 'Something went wrong. Please try again.';
+      submitButton.disabled = false;
+      return;
+    }
+
+    const { data: challengeData, error: challengeError } = await client.auth.mfa.challenge({ factorId: factor.id });
+    if (challengeError) {
+      mfaError.textContent = challengeError.message;
+      submitButton.disabled = false;
+      return;
+    }
+
+    const { error: verifyError } = await client.auth.mfa.verify({
+      factorId: factor.id,
+      challengeId: challengeData.id,
+      code,
+    });
+
+    if (verifyError) {
+      mfaError.textContent = 'Incorrect code. Please try again.';
+      submitButton.disabled = false;
+      return;
+    }
+
+    window.location.href = 'home.html';
+  } catch (err) {
+    mfaError.textContent = 'Something went wrong. Please try again.';
+    submitButton.disabled = false;
+  }
+});
+
+mfaCancelButton.addEventListener('click', async () => {
+  // They're sitting on an aal1 session with no path to aal2 right now --
+  // leaving it active would just be a half-logged-in state stuck on the
+  // login page, so clear it instead of leaving it dangling.
+  await client.auth.signOut();
+  closeModal(mfaModal);
+  openModal(loginModal);
 });
 
 const forgotPasswordLink = document.getElementById('hubForgotPasswordLink');
