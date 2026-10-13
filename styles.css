@@ -767,6 +767,78 @@ body::after {
   display: none;
 }
 
+.nav-search-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(10, 4, 20, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+}
+
+.nav-search-backdrop.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.nav-search-row {
+  display: none;
+}
+
+/* Below this width the dropdown stays the small corner list it always
+   was -- plenty for a handful of items on a phone screen, where a
+   command-palette doesn't add much. Above it, the same dropdown becomes
+   a centered, searchable modal instead. */
+@media (min-width: 641px) {
+  .site-menu .menu-dropdown {
+    position: fixed;
+    top: 15vh;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -12px);
+    width: min(480px, 90vw);
+    min-width: 0;
+    max-height: 60vh;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .site-menu .menu-dropdown.open {
+    transform: translate(-50%, 0);
+  }
+
+  .site-menu .nav-search-row {
+    display: block;
+    position: sticky;
+    top: 0;
+    background: var(--purple-deep);
+    border-bottom: 1px solid var(--purple-mid);
+    z-index: 1;
+  }
+
+  .nav-search-input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    font-family: 'Oswald', sans-serif;
+    font-size: 1rem;
+    color: var(--white);
+    background: transparent;
+    border: none;
+    outline: none;
+  }
+
+  .nav-search-input::placeholder {
+    color: var(--white);
+    opacity: 0.5;
+  }
+}
+
 .menu-dropdown li a:hover {
   background: var(--purple-mid);
 }

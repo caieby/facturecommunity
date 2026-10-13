@@ -42,22 +42,72 @@ const menuDropdown = document.getElementById('menuDropdown');
 
 if (menuToggle && menuDropdown) {
   const isSiteMenu = !!menuToggle.closest('.site-menu');
+  const navSearchInput = menuDropdown.querySelector('.nav-search-input');
+
+  // On desktop this dropdown becomes a centered command-palette-style
+  // modal (see the min-width: 641px block in styles.css) with a backdrop
+  // behind it -- built here instead of in each page's HTML so every page
+  // using this same #menuToggle/#menuDropdown pattern (main site, NSFWHub,
+  // Nexus) gets it automatically.
+  let navBackdrop = null;
+  if (isSiteMenu) {
+    navBackdrop = document.createElement('div');
+    navBackdrop.className = 'nav-search-backdrop';
+    menuDropdown.parentNode.insertBefore(navBackdrop, menuDropdown);
+  }
+
+  function filterNavLinks(query) {
+    const q = query.trim().toLowerCase();
+    menuDropdown.querySelectorAll('li:not(.nav-search-row)').forEach((li) => {
+      li.hidden = q.length > 0 && !li.textContent.trim().toLowerCase().includes(q);
+    });
+  }
+
+  function closeMenu() {
+    menuDropdown.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    if (navBackdrop) navBackdrop.classList.remove('open');
+    if (isSiteMenu) {
+      document.body.style.overflow = '';
+    }
+  }
+
+  function openMenu() {
+    menuDropdown.classList.add('open');
+    menuToggle.setAttribute('aria-expanded', 'true');
+    if (navBackdrop) navBackdrop.classList.add('open');
+    if (isSiteMenu) {
+      document.body.style.overflow = 'hidden';
+    }
+    if (navSearchInput) {
+      navSearchInput.value = '';
+      filterNavLinks('');
+      setTimeout(() => navSearchInput.focus(), 50);
+    }
+  }
 
   menuToggle.addEventListener('click', () => {
-    const isOpen = menuDropdown.classList.toggle('open');
-    menuToggle.setAttribute('aria-expanded', isOpen);
-    if (isSiteMenu) {
-      document.body.style.overflow = isOpen ? 'hidden' : '';
+    if (menuDropdown.classList.contains('open')) {
+      closeMenu();
+    } else {
+      openMenu();
     }
   });
 
+  if (navSearchInput) {
+    navSearchInput.addEventListener('input', () => filterNavLinks(navSearchInput.value));
+    navSearchInput.addEventListener('click', (event) => event.stopPropagation());
+  }
+
   document.addEventListener('click', (event) => {
     if (!menuToggle.contains(event.target) && !menuDropdown.contains(event.target)) {
-      menuDropdown.classList.remove('open');
-      menuToggle.setAttribute('aria-expanded', 'false');
-      if (isSiteMenu) {
-        document.body.style.overflow = '';
-      }
+      closeMenu();
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && menuDropdown.classList.contains('open')) {
+      closeMenu();
     }
   });
 }
