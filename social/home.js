@@ -320,6 +320,30 @@ async function init() {
   currentSession = session;
   profileMenuLink.href = `profiles/${session.user.id}/`;
 
+  // Email signup records its IP right after signUp() resolves (see
+  // hub.js), but a Google sign-in redirects away and back through
+  // Supabase's own callback instead, with no equivalent moment to hook
+  // into there -- do it here instead, the first time a brand-new
+  // account's session lands on this page. created_at and
+  // last_sign_in_at are (near enough) equal only on that first sign-in;
+  // every sign-in after that, last_sign_in_at has moved on.
+  const isLikelyNewAccount = Math.abs(
+    new Date(session.user.created_at).getTime() - new Date(session.user.last_sign_in_at).getTime()
+  ) < 5000;
+  try {
+    const alreadyRecordedKey = `facture-signup-ip-recorded:${session.user.id}`;
+    if (isLikelyNewAccount && !sessionStorage.getItem(alreadyRecordedKey)) {
+      sessionStorage.setItem(alreadyRecordedKey, '1');
+      fetch('/api/record-signup-ip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: session.user.id }),
+      }).catch(() => {});
+    }
+  } catch (e) {
+    // Storage unavailable (e.g. private browsing) -- not required to proceed.
+  }
+
   const { data: profile } = await client
     .from('profiles')
     .select('display_name, avatar_url, banner_url, gender_identity, is_deactivated, deletion_requested_at, role, warning_count, pending_warning_reason, suspended_until, terminated_at, termination_reason')

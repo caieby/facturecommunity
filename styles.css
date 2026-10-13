@@ -922,6 +922,24 @@ body.nav-open .topbar {
   margin-top: 2.5rem;
 }
 
+.hub-auth-buttons + .hub-auth-divider {
+  margin-top: 1.5rem;
+}
+
+.hub-auth-divider + .hub-auth-buttons {
+  margin-top: 1rem;
+}
+
+.hub-auth-divider {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--white);
+  opacity: 0.5;
+}
+
 .hub-auth-buttons .action-button {
   min-width: 160px;
 }
