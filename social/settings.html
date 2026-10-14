@@ -256,18 +256,17 @@
       <h2 class="subsection-title">Confirm It&rsquo;s You</h2>
       <p class="section-intro">This action needs extra confirmation before it goes through.</p>
 
+      <div class="button-group" id="stepUpChoiceButtons" hidden>
+        <button type="button" class="action-button" id="stepUpPasskeyButton" hidden>Passkey</button>
+        <button type="button" class="action-button" id="stepUpShowCodeButton" hidden>2FA Code</button>
+      </div>
+
       <div id="stepUpCodeOption" hidden>
         <form id="stepUpCodeForm" class="hub-form">
           <label class="hub-form-label" for="stepUpCodeInput">6-digit code</label>
           <input class="hub-form-input" type="text" id="stepUpCodeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
           <button type="submit" class="action-button">Verify</button>
         </form>
-      </div>
-
-      <div id="stepUpPasskeyOption" hidden>
-        <div class="button-group">
-          <button type="button" class="action-button" id="stepUpPasskeyButton">Use Passkey</button>
-        </div>
       </div>
 
       <div id="stepUpPasswordOption" hidden>

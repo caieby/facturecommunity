@@ -883,10 +883,11 @@ passkeyAddButton.addEventListener('click', async () => {
 // fallback when neither is enrolled -- and resolves true/false depending
 // on whether the user actually proved it's them.
 const stepUpModal = document.getElementById('stepUpModal');
+const stepUpChoiceButtons = document.getElementById('stepUpChoiceButtons');
+const stepUpShowCodeButton = document.getElementById('stepUpShowCodeButton');
 const stepUpCodeOption = document.getElementById('stepUpCodeOption');
 const stepUpCodeForm = document.getElementById('stepUpCodeForm');
 const stepUpCodeInput = document.getElementById('stepUpCodeInput');
-const stepUpPasskeyOption = document.getElementById('stepUpPasskeyOption');
 const stepUpPasskeyButton = document.getElementById('stepUpPasskeyButton');
 const stepUpPasswordOption = document.getElementById('stepUpPasswordOption');
 const stepUpPasswordForm = document.getElementById('stepUpPasswordForm');
@@ -920,19 +921,35 @@ async function requestStepUpVerification() {
     // Passkeys unsupported in this browser -- fall through to password.
   }
 
-  stepUpCodeOption.hidden = !totpFactor;
-  stepUpPasskeyOption.hidden = !hasPasskey;
-  stepUpPasswordOption.hidden = !!(totpFactor || hasPasskey);
-
   stepUpError.textContent = '';
   stepUpCodeForm.reset();
   stepUpPasswordForm.reset();
+  stepUpCodeOption.hidden = true;
+
+  if (totpFactor || hasPasskey) {
+    stepUpPasskeyButton.hidden = !hasPasskey;
+    stepUpShowCodeButton.hidden = !totpFactor;
+    stepUpChoiceButtons.hidden = false;
+    stepUpPasswordOption.hidden = true;
+  } else {
+    // Neither set up -- password is the only option, nothing to choose.
+    stepUpChoiceButtons.hidden = true;
+    stepUpPasswordOption.hidden = false;
+  }
+
   stepUpModal.hidden = false;
 
   return new Promise((resolve) => {
     stepUpResolve = resolve;
   });
 }
+
+stepUpShowCodeButton.addEventListener('click', () => {
+  stepUpError.textContent = '';
+  stepUpChoiceButtons.hidden = true;
+  stepUpCodeOption.hidden = false;
+  stepUpCodeInput.focus();
+});
 
 stepUpCodeForm.addEventListener('submit', async (event) => {
   event.preventDefault();

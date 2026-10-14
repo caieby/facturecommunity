@@ -91,10 +91,11 @@ document.getElementById('hubSignupForm').addEventListener('submit', async (event
 });
 
 const mfaModal = document.getElementById('hubMfaModal');
+const mfaChoiceButtons = document.getElementById('hubMfaChoiceButtons');
+const mfaShowCodeButton = document.getElementById('hubMfaShowCodeButton');
 const mfaCodeOption = document.getElementById('hubMfaCodeOption');
 const mfaForm = document.getElementById('hubMfaForm');
 const mfaCodeInput = document.getElementById('hubMfaCode');
-const mfaPasskeyOption = document.getElementById('hubMfaPasskeyOption');
 const mfaPasskeyButton = document.getElementById('hubMfaPasskeyButton');
 const mfaError = document.getElementById('hubMfaError');
 const mfaCancelButton = document.getElementById('hubMfaCancelButton');
@@ -118,8 +119,9 @@ async function proceedAfterPrimaryAuth(onNeedsCode) {
       // Passkeys unsupported in this browser -- code is the only option.
     }
 
-    mfaCodeOption.hidden = false;
-    mfaPasskeyOption.hidden = !hasPasskey;
+    mfaPasskeyButton.hidden = !hasPasskey;
+    mfaChoiceButtons.hidden = false;
+    mfaCodeOption.hidden = true;
 
     closeModal(loginModal);
     mfaForm.reset();
@@ -158,6 +160,13 @@ document.getElementById('hubLoginForm').addEventListener('submit', async (event)
     errorEl.textContent = 'Something went wrong. Please try again.';
     submitButton.disabled = false;
   }
+});
+
+mfaShowCodeButton.addEventListener('click', () => {
+  mfaError.textContent = '';
+  mfaChoiceButtons.hidden = true;
+  mfaCodeOption.hidden = false;
+  mfaCodeInput.focus();
 });
 
 mfaForm.addEventListener('submit', async (event) => {

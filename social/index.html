@@ -88,6 +88,11 @@
       <h2 class="subsection-title">Two-Factor Authentication</h2>
       <p class="section-intro">Confirm it&rsquo;s you to finish logging in.</p>
 
+      <div class="button-group" id="hubMfaChoiceButtons">
+        <button type="button" class="action-button" id="hubMfaPasskeyButton" hidden>Passkey</button>
+        <button type="button" class="action-button" id="hubMfaShowCodeButton">2FA Code</button>
+      </div>
+
       <div id="hubMfaCodeOption" hidden>
         <form id="hubMfaForm" class="hub-form">
           <label class="hub-form-label" for="hubMfaCode">6-digit code</label>
@@ -95,12 +100,6 @@
 
           <button type="submit" class="action-button">Verify</button>
         </form>
-      </div>
-
-      <div id="hubMfaPasskeyOption" hidden>
-        <div class="button-group">
-          <button type="button" class="action-button" id="hubMfaPasskeyButton">Use Passkey</button>
-        </div>
       </div>
 
       <p class="hub-form-error" id="hubMfaError"></p>
