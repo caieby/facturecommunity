@@ -211,16 +211,7 @@
       <p class="hub-form-error" id="passkeyError"></p>
       <p class="hub-form-status" id="passkeyStatus"></p>
 
-      <form id="passkeyNameForm" class="hub-form" hidden>
-        <label class="hub-form-label" for="passkeyNameInput">Name this passkey, so you can tell it apart later</label>
-        <input class="hub-form-input" type="text" id="passkeyNameInput" placeholder="e.g. MacBook Pro" maxlength="40" autocomplete="off">
-        <div class="button-group">
-          <button type="submit" class="action-button">Continue</button>
-          <button type="button" class="hub-text-link" id="passkeyNameCancelButton">Cancel</button>
-        </div>
-      </form>
-
-      <div class="button-group" id="passkeyAddGroup">
+      <div class="button-group">
         <button type="button" class="action-button" id="passkeyAddButton">Add a Passkey</button>
       </div>
     </section>
@@ -260,6 +251,21 @@
       </div>
     </section>
   </main>
+
+  <div class="hub-modal" id="passkeyNameModal" hidden>
+    <div class="hub-modal-card">
+      <button type="button" class="hub-modal-close" data-modal-close="passkeyNameModal" aria-label="Close">&times;</button>
+      <h2 class="subsection-title">Name This Passkey</h2>
+      <p class="section-intro">So you can tell it apart later.</p>
+      <form id="passkeyNameForm" class="hub-form">
+        <label class="hub-form-label" for="passkeyNameInput">Name</label>
+        <input class="hub-form-input" type="text" id="passkeyNameInput" placeholder="e.g. MacBook Pro" maxlength="40" autocomplete="off">
+
+        <p class="hub-form-error" id="passkeyNameError"></p>
+        <button type="submit" class="action-button">Continue</button>
+      </form>
+    </div>
+  </div>
 
   <div class="hub-modal" id="stepUpModal" hidden>
     <div class="hub-modal-card">

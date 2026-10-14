@@ -809,11 +809,18 @@ mfaDisableForm.addEventListener('submit', async (event) => {
 const passkeyList = document.getElementById('passkeyList');
 const passkeyError = document.getElementById('passkeyError');
 const passkeyStatus = document.getElementById('passkeyStatus');
-const passkeyAddGroup = document.getElementById('passkeyAddGroup');
 const passkeyAddButton = document.getElementById('passkeyAddButton');
+const passkeyNameModal = document.getElementById('passkeyNameModal');
 const passkeyNameForm = document.getElementById('passkeyNameForm');
 const passkeyNameInput = document.getElementById('passkeyNameInput');
-const passkeyNameCancelButton = document.getElementById('passkeyNameCancelButton');
+const passkeyNameError = document.getElementById('passkeyNameError');
+
+passkeyNameModal.querySelector('.hub-modal-close').addEventListener('click', () => {
+  passkeyNameModal.hidden = true;
+});
+passkeyNameModal.addEventListener('click', (event) => {
+  if (event.target === passkeyNameModal) passkeyNameModal.hidden = true;
+});
 
 async function refreshPasskeys() {
   const { data: passkeys, error } = await client.auth.passkey.list();
@@ -861,25 +868,19 @@ async function refreshPasskeys() {
 passkeyAddButton.addEventListener('click', () => {
   passkeyError.textContent = '';
   passkeyStatus.textContent = '';
-  passkeyNameInput.value = '';
-  passkeyAddGroup.hidden = true;
-  passkeyNameForm.hidden = false;
+  passkeyNameError.textContent = '';
+  passkeyNameForm.reset();
+  passkeyNameModal.hidden = false;
   passkeyNameInput.focus();
-});
-
-passkeyNameCancelButton.addEventListener('click', () => {
-  passkeyNameForm.hidden = true;
-  passkeyAddGroup.hidden = false;
 });
 
 passkeyNameForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  passkeyError.textContent = '';
-  passkeyStatus.textContent = '';
+  passkeyNameError.textContent = '';
 
   const name = passkeyNameInput.value.trim();
   if (!name) {
-    passkeyError.textContent = 'Give this passkey a name.';
+    passkeyNameError.textContent = 'Give this passkey a name.';
     return;
   }
 
@@ -901,7 +902,7 @@ passkeyNameForm.addEventListener('submit', async (event) => {
       // Covers the user cancelling the OS/browser prompt, the browser not
       // supporting WebAuthn, or the ceremony itself failing -- all surfaced
       // the same way, there's nothing more specific to tell them.
-      passkeyError.textContent = error.message;
+      passkeyNameError.textContent = error.message;
       submitButton.disabled = false;
       return;
     }
@@ -913,13 +914,12 @@ passkeyNameForm.addEventListener('submit', async (event) => {
       await client.auth.passkey.update({ passkeyId: data.id, friendlyName: name });
     }
 
-    passkeyStatus.textContent = `Added "${name}".`;
     submitButton.disabled = false;
-    passkeyNameForm.hidden = true;
-    passkeyAddGroup.hidden = false;
+    passkeyNameModal.hidden = true;
+    passkeyStatus.textContent = `Added "${name}".`;
     await refreshPasskeys();
   } catch (err) {
-    passkeyError.textContent = 'Something went wrong. Please try again.';
+    passkeyNameError.textContent = 'Something went wrong. Please try again.';
     submitButton.disabled = false;
   }
 });
@@ -944,11 +944,20 @@ const stepUpCancelButton = document.getElementById('stepUpCancelButton');
 
 let stepUpResolve = null;
 
-function closeStepUp(result) {
+async function closeStepUp(result) {
   stepUpModal.hidden = true;
   stepUpCodeForm.reset();
   stepUpPasswordForm.reset();
   stepUpError.textContent = '';
+
+  if (result) {
+    // mfa.verify()/signInWithPasskey() update the session's aal claim, but
+    // the very next call (passkey registration/deletion especially) has
+    // been seen going out before that refreshed token is actually in
+    // place -- force it through explicitly rather than racing it.
+    await client.auth.refreshSession();
+  }
+
   if (stepUpResolve) {
     const resolve = stepUpResolve;
     stepUpResolve = null;
