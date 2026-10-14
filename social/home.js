@@ -110,9 +110,6 @@ onboardSkipButton.addEventListener('click', () => {
   submitOnboarding();
 });
 
-// Pressing Enter in a text field on an earlier step would otherwise submit
-// the form early (browsers do this automatically whenever a submit button
-// exists anywhere in the form, even a hidden one) — redirect that to Next.
 onboardForm.addEventListener('keydown', (event) => {
   if (event.key === 'Enter' && onboardCurrentStep !== ONBOARD_STEP_COUNT) {
     event.preventDefault();
@@ -512,10 +509,6 @@ function isValidUsername(username) {
 async function submitOnboarding() {
   onboardError.textContent = '';
 
-  // Steps 1-2 hold required fields and are always validated on their own
-  // Next click, so re-checking them here just guards against reaching this
-  // point some other way. Step 3 (bio/pronouns) is optional by design, so
-  // Skip can call this directly without validating it at all.
   if (!validateOnboardStep(1)) { showOnboardStep(1); return; }
   if (!validateOnboardStep(2)) { showOnboardStep(2); return; }
 

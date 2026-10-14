@@ -315,8 +315,6 @@ async function loadProfilePosts(tab) {
   });
 }
 
-// The Posts tab mixes this person's own posts with things they've reposted,
-// each sorted by when that respective action happened (post time vs repost time).
 async function loadPostsTabWithReposts() {
   const [{ data: ownPosts, error: ownError }, { data: repostRows }] = await Promise.all([
     client
@@ -356,8 +354,6 @@ async function loadPostsTabWithReposts() {
 
     repostRows.forEach((row) => {
       const post = repostedMap.get(row.post_id);
-      // Skip if not visible to this viewer (RLS-filtered), deleted, or a self-repost
-      // of a post already in ownPosts above.
       if (!post || post.author_id === viewedUserId) return;
       entries.push({ post, sortAt: row.created_at, repost: true });
     });
@@ -762,10 +758,6 @@ function updateGradientPreview() {
 
 updateGradientPreview();
 
-// Pulls two accent colors out of an image (avatar preferred, banner as a
-// fallback) so the gradient picker can suggest something that actually
-// matches what's already on the profile, the same idea as Discord's
-// "match my new banner" theme color button.
 function rgbToHsl(r, g, b) {
   r /= 255; g /= 255; b /= 255;
   const max = Math.max(r, g, b);

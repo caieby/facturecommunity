@@ -71,9 +71,6 @@ document.getElementById('hubSignupForm').addEventListener('submit', async (event
     }
 
     if (data.user) {
-      // Fire-and-forget -- a failure here shouldn't block signup itself,
-      // it just means the alt-account IP cap won't have this account's
-      // network on record.
       fetch('/api/record-signup-ip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -105,15 +102,7 @@ const mfaPasskeyButton = document.getElementById('hubMfaPasskeyButton');
 const mfaError = document.getElementById('hubMfaError');
 const mfaCancelButton = document.getElementById('hubMfaCancelButton');
 
-// Password sign-in only guarantees aal1 -- if the account also has a TOTP
-// factor enrolled, that round trip is still owed. Ask Supabase directly
-// whether it's still needed; if so, offer a code or a passkey (whichever
-// the account actually has set up) as alternative ways to clear it,
-// otherwise let them straight in.
 async function proceedAfterPrimaryAuth(onNeedsCode) {
-  // An account that's lost its 2FA shouldn't be left with passkeys still
-  // sitting around as if they still gated anything -- sweep them here,
-  // before the aal check below decides whether a step-up is even owed.
   await cleanupOrphanedPasskeys(client);
 
   const { data: aal } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -126,7 +115,6 @@ async function proceedAfterPrimaryAuth(onNeedsCode) {
       const { data: passkeys } = await client.auth.passkey.list();
       hasPasskey = !!(passkeys && passkeys.length > 0);
     } catch (e) {
-      // Passkeys unsupported in this browser -- code is the only option.
     }
 
     mfaPasskeyButton.hidden = !hasPasskey;
@@ -233,9 +221,6 @@ mfaPasskeyButton.addEventListener('click', async () => {
   mfaPasskeyButton.disabled = true;
 
   try {
-    // Capture who's actually mid-login here *before* the passkey ceremony
-    // runs -- signInWithPasskey() replaces the active session, so checking
-    // afterward would just compare its own result against itself.
     const { data: beforeData } = await client.auth.getUser();
     const expectedUserId = beforeData.user && beforeData.user.id;
 
@@ -247,10 +232,6 @@ mfaPasskeyButton.addEventListener('click', async () => {
       return;
     }
 
-    // A discoverable-credential sign-in isn't scoped to "this account" on
-    // its own -- if this browser holds passkeys for more than one Facture
-    // account, confirm it actually matched the one that just entered a
-    // password here before letting it stand in for that account's code.
     if (expectedUserId && data.user && data.user.id !== expectedUserId) {
       mfaError.textContent = 'That passkey belongs to a different account.';
       return;
@@ -264,9 +245,6 @@ mfaPasskeyButton.addEventListener('click', async () => {
 });
 
 mfaCancelButton.addEventListener('click', async () => {
-  // They're sitting on an aal1 session with no path to aal2 right now --
-  // leaving it active would just be a half-logged-in state stuck on the
-  // login page, so clear it instead of leaving it dangling.
   await client.auth.signOut();
   closeModal(mfaModal);
   openModal(loginModal);

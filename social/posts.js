@@ -1,5 +1,3 @@
-// Shared post-card rendering + interactions, used by the Main Feed and (soon) Profile pages.
-
 function escapePostText(str) {
   const div = document.createElement('div');
   div.textContent = str;
@@ -20,9 +18,6 @@ function postTimeAgo(dateStr) {
 
 function generatePostUUID() {
   if (crypto.randomUUID) return crypto.randomUUID();
-  // crypto.randomUUID() requires a secure context (HTTPS or localhost).
-  // Fallback for plain-HTTP testing (e.g. a LAN IP) using a lower-level API
-  // that works everywhere.
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
@@ -34,11 +29,6 @@ function scorePost(post) {
   const ageHours = Math.max((Date.now() - new Date(post.created_at).getTime()) / 3600000, 0);
   const engagement = (post.like_count * 2) + (post.repost_count * 3) + (post.reply_count * 2) + (post.view_count * 0.1);
 
-  // A brand-new post has zero engagement, so without this it scores near
-  // the bottom the instant it's posted — any post with even modest existing
-  // engagement would outrank it, making a fresh post look like it vanished
-  // (it's just buried past the first page). Give new posts a visibility
-  // floor for their first 15 minutes, then let normal ranking take over.
   const recencyBoost = ageHours < 0.25 ? 15 : 0;
 
   return (engagement + recencyBoost + 1) / Math.pow(ageHours + 2, 1.5);
@@ -190,9 +180,6 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
   const viewedPostIds = new Set();
   let viewObserver = null;
 
-  // Cache of the current user's favorite GIFs (url -> favorite_gifs.id),
-  // loaded once and kept in sync as favorites are added/removed, matching
-  // the same pattern used in direct-messages.js.
   let favoriteGifMap = new Map();
   let favoriteGifMapLoaded = false;
 
@@ -258,21 +245,12 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       is_nsfw: !!isNsfw,
     };
 
-    // Insert without .select() — chaining .select().single() makes Postgres
-    // evaluate the SELECT RLS policy as part of the same INSERT ... RETURNING
-    // command, which has caused "violates row-level security policy" false
-    // positives on other tables in this app (see conversations/participants).
-    // Building the returned object client-side sidesteps that entirely.
     const { error } = await client.from('posts').insert(payload);
 
     if (error) {
       return { data: null, error };
     }
 
-    // Posts have been reported as disappearing on reload despite the insert
-    // reporting no error — re-fetch the row we just wrote to confirm it's
-    // actually there before telling the caller it succeeded, instead of
-    // trusting the optimistic object and finding out later it was never saved.
     const { data: verifyRow, error: verifyError } = await client
       .from('posts')
       .select('id')
@@ -316,8 +294,6 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     const isGif = file.type === 'image/gif';
     let finalFile = file;
 
-    // Any non-gif image over 2MB gets auto-compressed before upload, so a
-    // normal phone photo just works instead of being rejected outright.
     if (!isVideo && !isGif && file.size > COMPRESS_ABOVE_BYTES) {
       try {
         finalFile = await compressPostImage(file);
@@ -326,9 +302,6 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       }
     }
 
-    // Images get compressed above, so they're held to a tight ceiling. Video
-    // can't be re-encoded client-side without a heavy transcoding library, so
-    // it just gets a much larger hard cap instead.
     const limit = isVideo ? MAX_POST_VIDEO_BYTES : MAX_POST_IMAGE_BYTES;
     if (finalFile.size > limit) {
       const sizeMb = (finalFile.size / (1024 * 1024)).toFixed(1);
@@ -339,9 +312,6 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     const ext = isVideo ? (file.name.split('.').pop() || 'mp4') : (isGif ? 'gif' : 'jpg');
     const path = `${currentUserId}/${generatePostUUID()}.${ext}`;
 
-    // Uploaded via raw XHR (not the SDK's .upload()) so large files — videos
-    // especially — get real progress feedback instead of just sitting on
-    // "Uploading..." with no indication anything is happening.
     try {
       await uploadPostFileWithProgress(client, supabaseUrl, supabaseAnonKey, 'post-media', path, finalFile, onProgress);
     } catch (uploadError) {
@@ -383,10 +353,6 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
 
       const { data: publicUrlData } = client.storage.from('favorite-gifs').getPublicUrl(destPath);
 
-      // Generate the id client-side and skip .select() on the insert — doing
-      // an insert().select() here intermittently fails the SELECT-policy
-      // check during INSERT...RETURNING even though the row itself is saved,
-      // the same RLS quirk fixed elsewhere in this project the same way.
       const newId = generatePostUUID();
       const { error: insertError } = await client
         .from('favorite_gifs')
@@ -400,15 +366,6 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     }
   }
 
-  // Wires a star button to toggle favorite status for a GIF. identityKey is
-  // the stable URL used to check/track favorite state (a re-shown favorite's
-  // url matches favorite_gifs.url exactly; a fresh GIF has no such match, so
-  // it simply starts as "not yet favorited," which is correct). sourceUrl is
-  // what's actually fetched when saving a brand-new favorite.
-  //
-  // Safe to call repeatedly on the same button (e.g. a composer's star that
-  // gets reused as different GIFs are attached) — any previously wired
-  // listener for that button is removed first so clicks don't stack.
   function wireGifFavoriteButton(button, identityKey, sourceUrl) {
     button.classList.remove('favorited', 'pending');
     if (button._gifFavoriteHandler) {
@@ -423,10 +380,6 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       await ensureFavoriteGifMap();
       let favoriteId = favoriteGifMap.get(identityKey) || null;
 
-      // Saving means fetching + re-uploading the GIF, which can take a
-      // couple seconds — with no feedback during that wait it looks
-      // unresponsive, prompting repeat clicks. Show a pending state the
-      // instant the click registers.
       button.disabled = true;
       button.classList.add('pending');
 
@@ -608,15 +561,11 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
     const gifFavoriteButton = card.querySelector('.post-gif-favorite-button');
     const inlineError = card.querySelector('.post-inline-error');
 
-    // Clicking anywhere on the post opens its detail page — except on the
-    // detail page itself, and except clicks that land on an actual
-    // interactive element (links, buttons, the reply form), which should
-    // just do their own thing rather than also navigating.
     if (!opts.detailView) {
       card.classList.add('post-card--clickable');
       card.addEventListener('click', (event) => {
         if (event.target.closest('a, button, input, textarea, form')) return;
-        if (window.getSelection().toString().length > 0) return; // don't hijack text selection
+        if (window.getSelection().toString().length > 0) return;
         window.location.href = `/social/posts/${post.id}/`;
       });
     }
@@ -659,7 +608,6 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
         countEl.textContent = String(Number(countEl.textContent) + (nowLiked ? 1 : -1));
         showInlineError(error.message.includes('row-level security') ? "You can't interact with this post." : `Error: ${error.message}`);
       } else if (!nowLiked && post.author_id !== currentUserId) {
-        // Best-effort -- a failed notification insert shouldn't undo the like itself.
         client.from('notifications').insert({
           user_id: post.author_id,
           type: 'like',

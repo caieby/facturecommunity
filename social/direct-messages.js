@@ -1,7 +1,6 @@
 const SUPABASE_URL = 'https://vrhfajwulxjfmgzyzaxx.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_37fQXfSzDzUrv35A5VSFXA_eqZBc3dB';
 
-// Replace with your deployed gif-proxy-worker URL (see conversation for the Worker code).
 const GIF_PROXY_WORKER_URL = 'https://holy-mountain-12ba.caieby988.workers.dev';
 
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -135,9 +134,6 @@ function appendLinkEmbed(container, rawUrl) {
 
 function generateUUID() {
   if (crypto.randomUUID) return crypto.randomUUID();
-  // crypto.randomUUID() requires a secure context (HTTPS or localhost).
-  // Fallback for plain-HTTP testing (e.g. a LAN IP) using a lower-level API
-  // that works everywhere.
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   bytes[6] = (bytes[6] & 0x0f) | 0x40;
   bytes[8] = (bytes[8] & 0x3f) | 0x80;
@@ -542,7 +538,6 @@ newDmForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  // Check for an existing conversation with this person
   const { data: myParticipations } = await client
     .from('conversation_participants')
     .select('conversation_id')
@@ -565,7 +560,6 @@ newDmForm.addEventListener('submit', async (event) => {
     }
   }
 
-  // Determine friend status if privacy is friends-only
   let status = 'accepted';
   if (targetProfile.dm_privacy === 'friends_only') {
     const [{ data: iFollowThem }, { data: theyFollowMe }] = await Promise.all([
@@ -646,8 +640,6 @@ async function loadMessages(conversationId) {
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true });
 
-  // Guard against a slow, stale load finishing after the user has already
-  // switched to a different conversation (or left the thread view).
   if (activeConversationId !== conversationId) return;
 
   dmMessages.innerHTML = '';
@@ -705,14 +697,6 @@ async function appendMessage(message) {
         favButton.className = 'dm-gif-favorite-button';
         favButton.setAttribute('aria-label', 'Save as favorite GIF');
         favButton.innerHTML = '&#9733;';
-        // Identity key: message.attachment_url (a resent favorite) is stable
-        // and correctly matches favoriteGifMap. For a fresh upload there's no
-        // such match, but the key still needs to be something that doesn't
-        // change across re-renders — mediaUrl is a signed URL with a fresh
-        // token every time this message renders, so using it here made the
-        // star's favorited state (and the tracking that prevents duplicate
-        // saves) reset every time you left and reopened the conversation.
-        // message.id never changes, so use that instead.
         wireGifFavoriteButton(favButton, message.attachment_url || message.id, mediaUrl, message.attachment_path);
         mediaWrap.appendChild(favButton);
       }
@@ -946,8 +930,6 @@ async function saveFavoriteGif(sourceUrl, sourcePath) {
       if (error) throw error;
       blob = data;
     } else {
-      // External GIF links (e.g. Tenor/Giphy) often block cross-origin fetch()
-      // via CORS — route through a proxy Worker that fetches it server-side.
       const response = await fetch(`${GIF_PROXY_WORKER_URL}?url=${encodeURIComponent(sourceUrl)}`);
       if (!response.ok) throw new Error('Could not fetch this GIF from its source.');
       blob = await response.blob();
@@ -963,12 +945,6 @@ async function saveFavoriteGif(sourceUrl, sourcePath) {
 
     const { data: publicUrlData } = client.storage.from('favorite-gifs').getPublicUrl(destPath);
 
-    // Insert without .select() — chaining .select().single() makes Postgres
-    // evaluate the SELECT RLS policy as part of the same INSERT ... RETURNING
-    // command, which has intermittently failed the READ-BACK on other tables
-    // in this app while the INSERT itself still silently succeeded (a
-    // duplicate row with no visible confirmation). Generating the ID
-    // client-side sidesteps that entirely.
     const newId = generateUUID();
 
     const { error: insertError } = await client
@@ -984,8 +960,6 @@ async function saveFavoriteGif(sourceUrl, sourcePath) {
   }
 }
 
-// Cache of the current user's favorite GIFs (url -> favorite_gifs.id), loaded
-// once at init and kept in sync as favorites are added/removed.
 let favoriteGifMap = new Map();
 
 async function loadFavoriteGifMap() {
@@ -993,20 +967,11 @@ async function loadFavoriteGifMap() {
   favoriteGifMap = new Map((data || []).map((f) => [f.url, f.id]));
 }
 
-// Wires a star button to toggle favorite status. identityKey is the stable
-// URL used to check/track favorite state (a resent favorite's attachment_url
-// matches favorite_gifs.url exactly; a fresh upload has no such match, so it
-// simply starts as "not yet favorited," which is correct). sourceUrl/sourcePath
-// are what's actually fetched when saving a brand-new favorite.
 function wireGifFavoriteButton(button, identityKey, sourceUrl, sourcePath) {
   let favoriteId = favoriteGifMap.get(identityKey) || null;
   if (favoriteId) button.classList.add('favorited');
 
   button.addEventListener('click', async () => {
-    // Saving means fetching + re-uploading the GIF, which can take a couple
-    // seconds — with no feedback during that wait it looks unresponsive,
-    // which is exactly what prompted repeat clicks before. Show a pending
-    // state the instant the click registers.
     button.disabled = true;
     button.classList.add('pending');
 

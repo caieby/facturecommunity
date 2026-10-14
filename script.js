@@ -1,14 +1,3 @@
-// The human-verify redirect check itself runs as an inline head script on
-// every page (so it can bail out before anything renders) -- see
-// verify.html for the Turnstile challenge and script.js has nothing left
-// to do for it there. What's here is the second half of that same system:
-// catching bot-speed *actions* (deleting things, creating an account,
-// changing account settings) rather than bot-speed page-to-page navigation.
-
-// Same idea as the nav-pace check in each page's inline head script, just
-// scoped to in-page actions instead of page loads, and kept in
-// sessionStorage under its own key so a burst of fast navigation and a
-// burst of fast deletes don't count against each other.
 const BOT_ACTION_WINDOW_MS = 6000;
 const BOT_ACTION_MAX_IN_WINDOW = 3;
 
@@ -29,9 +18,6 @@ function looksBotlikeAction() {
   return times.length > BOT_ACTION_MAX_IN_WINDOW;
 }
 
-// Most pages never need Turnstile at all now that the full-page check
-// lives on verify.html -- only load it here, on demand, for the rare
-// in-page action that actually trips the pace check above.
 let turnstileApiPromise = null;
 function loadTurnstileApi() {
   if (window.turnstile) return Promise.resolve();
@@ -60,7 +46,7 @@ function ensureHumanCheckModal() {
   modal.innerHTML = `
     <div class="hub-modal-card">
       <h2 class="subsection-title">Quick Check</h2>
-      <p class="section-intro">That was fast -- confirm you're not a bot before this goes through.</p>
+      <p class="section-intro">That was fast. Confirm you're not a bot before this goes through.</p>
       <div class="cf-turnstile" id="humanCheckWidget"></div>
       <p class="hub-form-error" id="humanCheckError"></p>
       <p class="hub-form-link-row"><button type="button" class="hub-text-link" id="humanCheckCancelButton">Cancel</button></p>
@@ -90,17 +76,12 @@ function closeHumanCheck(result) {
   }
 }
 
-// Call this right before a sensitive action goes through (deleting
-// something, creating an account, changing account settings). Resolves
-// true immediately, with no popup, for normal-paced usage -- the Turnstile
-// challenge only shows up once the action pace itself looks bot-like.
 async function requireHumanCheck() {
   if (!looksBotlikeAction()) return true;
 
   try {
     await loadTurnstileApi();
   } catch (e) {
-    // The check failing to load isn't grounds to hard-block the action.
     return true;
   }
 
@@ -131,11 +112,6 @@ if (menuToggle && menuDropdown) {
   const isSiteMenu = !!menuToggle.closest('.site-menu');
   const navSearchInput = menuDropdown.querySelector('.nav-search-input');
 
-  // On desktop this dropdown becomes a centered command-palette-style
-  // modal (see the min-width: 641px block in styles.css) with a backdrop
-  // behind it -- built here instead of in each page's HTML so every page
-  // using this same #menuToggle/#menuDropdown pattern (main site, NSFWHub,
-  // Nexus) gets it automatically.
   let navBackdrop = null;
   if (isSiteMenu) {
     navBackdrop = document.createElement('div');
@@ -347,11 +323,6 @@ if (typeof supabase !== 'undefined') {
   });
 }
 
-// Checks content against the server-side automod term list (never exposed
-// to the client directly -- only whether it matched). If flagged, asks the
-// user to confirm before sending; proceeding logs an automatic warning via
-// the same escalation path as a moderator-issued one. Returns true if the
-// caller should go ahead and send/post the content.
 async function checkAutomodAndWarn(client, content) {
   if (!content || !content.trim()) return true;
 
@@ -367,12 +338,6 @@ async function checkAutomodAndWarn(client, content) {
   return true;
 }
 
-// Gates any adult-content interaction (revealing a blurred NSFW post/profile,
-// turning on auto-unblur, marking your own account as dedicated NSFW) behind
-// a one-time 18+ confirmation. `cache` is a plain { confirmed: boolean }
-// object the caller owns, seeded from profiles.confirmed_adult_content, so
-// repeated calls in the same page session don't re-prompt or re-write once
-// the user has already said yes.
 async function ensureAdultConfirmed(client, userId, cache) {
   if (cache.confirmed) return true;
 
@@ -384,11 +349,6 @@ async function ensureAdultConfirmed(client, userId, cache) {
   return true;
 }
 
-// Passkeys only mean anything as a second factor on top of a TOTP code --
-// an account that no longer has 2FA enabled (disabled it, or lost it some
-// other way) shouldn't be left with passkeys still sitting there as if they
-// still gated anything. Sweep them on login/settings-load so every account
-// stays in sync instead of needing a one-off backfill.
 async function cleanupOrphanedPasskeys(client) {
   let passkeys;
   try {
@@ -608,9 +568,6 @@ document.querySelectorAll('[data-password-toggle]').forEach((button) => {
   });
 });
 
-// "Back" links carry an href to a sensible fallback page (used when there's
-// no browser history to go back to -- a direct link, a new tab, etc.), but
-// actually going back one step is almost always what someone means by it.
 document.querySelectorAll('[data-back-link]').forEach((link) => {
   link.addEventListener('click', (event) => {
     if (window.history.length > 1) {

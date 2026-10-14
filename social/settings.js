@@ -646,9 +646,6 @@ async function refreshMfaStatus() {
   const verified = data.totp.find((factor) => factor.status === 'verified');
   const unverified = data.totp.find((factor) => factor.status === 'unverified');
 
-  // A factor left over from an enrollment that was started but never
-  // finished (closed the tab mid-setup, etc.) -- clear it so "Enable 2FA"
-  // always starts from a clean slate instead of erroring on a duplicate.
   if (unverified) {
     await client.auth.mfa.unenroll({ factorId: unverified.id });
   }
@@ -774,10 +771,6 @@ mfaDisableForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  // Proving a current code still works (the normal step-up-to-aal2 flow,
-  // same as a fresh login would require) before removing it, rather than
-  // trusting that whoever's sitting at this already-open session still
-  // has the authenticator.
   const { data: challengeData, error: challengeError } = await client.auth.mfa.challenge({ factorId: factor.id });
 
   if (challengeError) {
@@ -809,8 +802,6 @@ mfaDisableForm.addEventListener('submit', async (event) => {
 
   mfaDisableCode.value = '';
   await refreshMfaStatus();
-  // Passkeys only mean anything on top of 2FA -- losing the TOTP factor
-  // orphans them immediately, not just on the next login.
   await refreshPasskeys();
 });
 
@@ -831,9 +822,6 @@ passkeyNameModal.addEventListener('click', (event) => {
 });
 
 async function refreshPasskeys() {
-  // An account that's lost its 2FA shouldn't be left with passkeys still
-  // sitting around as if they still gated anything -- sweep them before
-  // rendering the list.
   await cleanupOrphanedPasskeys(client);
 
   const { data: passkeys, error } = await client.auth.passkey.list();
@@ -906,9 +894,6 @@ passkeyNameForm.addEventListener('submit', async (event) => {
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
 
-  // Adding a passkey always demands a 2FA code specifically, with no
-  // password fallback -- the passkeyAddButton handler already confirmed a
-  // TOTP factor exists before this modal could even open.
   if (!(await requestStepUpVerification({ requireTotp: true }))) {
     submitButton.disabled = false;
     return;
@@ -918,17 +903,11 @@ passkeyNameForm.addEventListener('submit', async (event) => {
     const { data, error } = await client.auth.registerPasskey();
 
     if (error) {
-      // Covers the user cancelling the OS/browser prompt, the browser not
-      // supporting WebAuthn, or the ceremony itself failing -- all surfaced
-      // the same way, there's nothing more specific to tell them.
       passkeyNameError.textContent = error.message;
       submitButton.disabled = false;
       return;
     }
 
-    // registerPasskey() itself has no way to set a name -- it always comes
-    // back auto-labeled from the authenticator's AAGUID, so the name they
-    // just chose gets applied as a rename right after.
     if (data && data.id) {
       await client.auth.passkey.update({ passkeyId: data.id, friendlyName: name });
     }
@@ -943,14 +922,6 @@ passkeyNameForm.addEventListener('submit', async (event) => {
   }
 });
 
-// Shared "confirm it's you" step-up flow for sensitive actions (username,
-// password, account deletion, delete-all-posts). Offers whatever the
-// account actually has set up -- a 2FA code or a passkey -- or password as
-// the fallback when neither is enrolled, and resolves true/false depending
-// on whether the user actually proved it's them. Passkey management itself
-// is the one exception: it always demands a code specifically (see the
-// requireTotp option below), since a passkey can't be trusted to vouch for
-// changing the very passkey list it's part of.
 const stepUpModal = document.getElementById('stepUpModal');
 const stepUpChoiceButtons = document.getElementById('stepUpChoiceButtons');
 const stepUpShowCodeButton = document.getElementById('stepUpShowCodeButton');
@@ -978,15 +949,6 @@ function closeStepUp(result) {
   }
 }
 
-// mfa.verify()/signInWithPasskey() report success as soon as the server
-// accepts the challenge, but the elevated aal2 claim landing in the
-// client's own in-memory session can lag a beat behind that -- confirm it
-// actually got there (polling getAuthenticatorAssuranceLevel(), a local
-// read of the current session, not a network round trip) instead of
-// assuming one refresh call fixes it, which didn't hold up: refreshSession()
-// exchanges the refresh token for a new access token, and there's no
-// guarantee that re-mint carries the aal2 claim forward rather than
-// re-deriving it from the token's original grant level.
 async function confirmAal2(maxAttempts = 10, delayMs = 150) {
   let lastAal = null;
   let lastErr = null;
@@ -1008,17 +970,7 @@ async function hasVerifiedTotp() {
   return !!(data && data.totp.find((factor) => factor.status === 'verified'));
 }
 
-// Every major account action needs a 2FA code, a passkey, or (when neither
-// is enrolled) the account password. requireTotp is for passkey management
-// specifically -- adding/removing a passkey always demands a code and never
-// accepts a passkey or falls back to password (callers are expected to
-// have already confirmed a TOTP factor exists before calling this with
-// requireTotp: true).
 async function requestStepUpVerification({ requireTotp = false } = {}) {
-  // Catches bot-speed bursts of account actions (several step-up attempts
-  // within a few seconds) with a Turnstile popup, separate from -- and in
-  // addition to -- the password/2FA proof below. Resolves instantly with
-  // no popup for anyone moving at a normal pace.
   if (!(await requireHumanCheck())) return false;
 
   const totpEnrolled = await hasVerifiedTotp();
@@ -1029,7 +981,6 @@ async function requestStepUpVerification({ requireTotp = false } = {}) {
       const { data: passkeys } = await client.auth.passkey.list();
       hasPasskey = !!(passkeys && passkeys.length > 0);
     } catch (e) {
-      // Passkeys unsupported in this browser -- fall through to code/password.
     }
   }
 
@@ -1077,10 +1028,6 @@ stepUpPasskeyButton.addEventListener('click', async () => {
       return;
     }
 
-    // Discoverable credentials aren't scoped to "this account" from our
-    // side -- if this browser holds passkeys for more than one Facture
-    // account, nothing stops someone picking the wrong one. Confirm it
-    // actually matched the account already signed in here before trusting it.
     if (data.user && data.user.id !== currentSession.user.id) {
       stepUpError.textContent = 'That passkey belongs to a different account.';
       return;
@@ -1140,11 +1087,6 @@ stepUpCodeForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  // verify()'s response carries the elevated-aal2 JWT directly
-  // (access_token/refresh_token) but no session object, which the client
-  // apparently doesn't auto-adopt from this specific call the way it does
-  // for a normal sign-in -- apply it explicitly rather than assuming it
-  // already happened.
   if (verifyData && verifyData.access_token && verifyData.refresh_token) {
     await client.auth.setSession({
       access_token: verifyData.access_token,

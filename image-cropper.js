@@ -1,8 +1,3 @@
-// Shared crop-before-upload modal for avatar/banner images. Call
-// window.openImageCropper(file, opts) and await the Promise -- it resolves to
-// a cropped Blob, or null if the user cancels. opts: { aspect: number (w/h),
-// circle: boolean (preview mask only, output is always the rectangular crop),
-// outputWidth, outputHeight }.
 (function () {
   let modalEl = null;
 
