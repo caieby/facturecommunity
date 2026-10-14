@@ -944,25 +944,34 @@ const stepUpCancelButton = document.getElementById('stepUpCancelButton');
 
 let stepUpResolve = null;
 
-async function closeStepUp(result) {
+function closeStepUp(result) {
   stepUpModal.hidden = true;
   stepUpCodeForm.reset();
   stepUpPasswordForm.reset();
   stepUpError.textContent = '';
-
-  if (result) {
-    // mfa.verify()/signInWithPasskey() update the session's aal claim, but
-    // the very next call (passkey registration/deletion especially) has
-    // been seen going out before that refreshed token is actually in
-    // place -- force it through explicitly rather than racing it.
-    await client.auth.refreshSession();
-  }
-
   if (stepUpResolve) {
     const resolve = stepUpResolve;
     stepUpResolve = null;
     resolve(result);
   }
+}
+
+// mfa.verify()/signInWithPasskey() report success as soon as the server
+// accepts the challenge, but the elevated aal2 claim landing in the
+// client's own in-memory session can lag a beat behind that -- confirm it
+// actually got there (polling getAuthenticatorAssuranceLevel(), a local
+// read of the current session, not a network round trip) instead of
+// assuming one refresh call fixes it, which didn't hold up: refreshSession()
+// exchanges the refresh token for a new access token, and there's no
+// guarantee that re-mint carries the aal2 claim forward rather than
+// re-deriving it from the token's original grant level.
+async function confirmAal2(maxAttempts = 10, delayMs = 150) {
+  for (let i = 0; i < maxAttempts; i++) {
+    const { data: aal } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal && aal.currentLevel === 'aal2') return true;
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
+  return false;
 }
 
 async function requestStepUpVerification() {
@@ -1042,13 +1051,19 @@ stepUpCodeForm.addEventListener('submit', async (event) => {
     code,
   });
 
-  submitButton.disabled = false;
-
   if (verifyError) {
     stepUpError.textContent = 'Incorrect code. Please try again.';
+    submitButton.disabled = false;
     return;
   }
 
+  if (!(await confirmAal2())) {
+    stepUpError.textContent = 'Verified, but your session is taking longer than expected to update. Please try again.';
+    submitButton.disabled = false;
+    return;
+  }
+
+  submitButton.disabled = false;
   closeStepUp(true);
 });
 
@@ -1071,6 +1086,11 @@ stepUpPasskeyButton.addEventListener('click', async () => {
     // actually matched the account already signed in here before trusting it.
     if (data.user && data.user.id !== currentSession.user.id) {
       stepUpError.textContent = 'That passkey belongs to a different account.';
+      return;
+    }
+
+    if (!(await confirmAal2())) {
+      stepUpError.textContent = 'Verified, but your session is taking longer than expected to update. Please try again.';
       return;
     }
 
