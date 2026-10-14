@@ -60,13 +60,6 @@
       <button type="button" class="action-button" id="hubLoginButton">Login</button>
       <button type="button" class="action-button" id="hubSignupButton">Create Account</button>
     </div>
-
-    <p class="hub-auth-divider">or</p>
-
-    <div class="hub-auth-buttons">
-      <button type="button" class="action-button" id="hubPasskeyButton">Log In With Passkey</button>
-    </div>
-    <p class="hub-form-error" id="hubPasskeyError"></p>
   </main>
 
   <div class="hub-modal" id="hubLoginModal" hidden>
@@ -93,14 +86,24 @@
   <div class="hub-modal" id="hubMfaModal" hidden>
     <div class="hub-modal-card">
       <h2 class="subsection-title">Two-Factor Authentication</h2>
-      <p class="section-intro">Enter the 6-digit code from your authenticator app.</p>
-      <form id="hubMfaForm" class="hub-form">
-        <label class="hub-form-label" for="hubMfaCode">Code</label>
-        <input class="hub-form-input" type="text" id="hubMfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" required>
+      <p class="section-intro">Confirm it&rsquo;s you to finish logging in.</p>
 
-        <p class="hub-form-error" id="hubMfaError"></p>
-        <button type="submit" class="action-button">Verify</button>
-      </form>
+      <div id="hubMfaCodeOption" hidden>
+        <form id="hubMfaForm" class="hub-form">
+          <label class="hub-form-label" for="hubMfaCode">6-digit code</label>
+          <input class="hub-form-input" type="text" id="hubMfaCode" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+
+          <button type="submit" class="action-button">Verify</button>
+        </form>
+      </div>
+
+      <div id="hubMfaPasskeyOption" hidden>
+        <div class="button-group">
+          <button type="button" class="action-button" id="hubMfaPasskeyButton">Use Passkey</button>
+        </div>
+      </div>
+
+      <p class="hub-form-error" id="hubMfaError"></p>
       <p class="hub-form-link-row"><button type="button" class="hub-text-link" id="hubMfaCancelButton">Cancel</button></p>
     </div>
   </div>

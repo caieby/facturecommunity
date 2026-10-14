@@ -91,21 +91,36 @@ document.getElementById('hubSignupForm').addEventListener('submit', async (event
 });
 
 const mfaModal = document.getElementById('hubMfaModal');
+const mfaCodeOption = document.getElementById('hubMfaCodeOption');
 const mfaForm = document.getElementById('hubMfaForm');
 const mfaCodeInput = document.getElementById('hubMfaCode');
+const mfaPasskeyOption = document.getElementById('hubMfaPasskeyOption');
+const mfaPasskeyButton = document.getElementById('hubMfaPasskeyButton');
 const mfaError = document.getElementById('hubMfaError');
 const mfaCancelButton = document.getElementById('hubMfaCancelButton');
 
-// Both password and passkey sign-in only guarantee aal1 -- a passkey is a
-// strong credential, but whether it also satisfies a separately-enrolled
-// TOTP factor isn't something to assume either way, so this same check
-// runs after both and asks Supabase directly. If a code round trip is
-// still owed, prompt for it; otherwise let them straight in.
+// Password sign-in only guarantees aal1 -- if the account also has a TOTP
+// factor enrolled, that round trip is still owed. Ask Supabase directly
+// whether it's still needed; if so, offer a code or a passkey (whichever
+// the account actually has set up) as alternative ways to clear it,
+// otherwise let them straight in.
 async function proceedAfterPrimaryAuth(onNeedsCode) {
   const { data: aal } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
 
   if (aal && aal.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
     onNeedsCode();
+
+    let hasPasskey = false;
+    try {
+      const { data: passkeys } = await client.auth.passkey.list();
+      hasPasskey = !!(passkeys && passkeys.length > 0);
+    } catch (e) {
+      // Passkeys unsupported in this browser -- code is the only option.
+    }
+
+    mfaCodeOption.hidden = false;
+    mfaPasskeyOption.hidden = !hasPasskey;
+
     closeModal(loginModal);
     mfaForm.reset();
     mfaError.textContent = '';
@@ -142,32 +157,6 @@ document.getElementById('hubLoginForm').addEventListener('submit', async (event)
   } catch (err) {
     errorEl.textContent = 'Something went wrong. Please try again.';
     submitButton.disabled = false;
-  }
-});
-
-document.getElementById('hubPasskeyButton')?.addEventListener('click', async (event) => {
-  const errorEl = document.getElementById('hubPasskeyError');
-  errorEl.textContent = '';
-
-  const button = event.target;
-  button.disabled = true;
-
-  try {
-    const { error } = await client.auth.signInWithPasskey();
-
-    if (error) {
-      // Covers the user cancelling their device's passkey prompt, the
-      // browser not supporting it, or no passkey existing for this site --
-      // there's no safe way to tell those apart from here.
-      errorEl.textContent = 'Could not sign in with a passkey. Make sure you have one set up for this site, or use your password instead.';
-      button.disabled = false;
-      return;
-    }
-
-    await proceedAfterPrimaryAuth(() => { button.disabled = false; });
-  } catch (err) {
-    errorEl.textContent = 'Something went wrong. Please try again.';
-    button.disabled = false;
   }
 });
 
@@ -217,6 +206,41 @@ mfaForm.addEventListener('submit', async (event) => {
   } catch (err) {
     mfaError.textContent = 'Something went wrong. Please try again.';
     submitButton.disabled = false;
+  }
+});
+
+mfaPasskeyButton.addEventListener('click', async () => {
+  mfaError.textContent = '';
+  mfaPasskeyButton.disabled = true;
+
+  try {
+    // Capture who's actually mid-login here *before* the passkey ceremony
+    // runs -- signInWithPasskey() replaces the active session, so checking
+    // afterward would just compare its own result against itself.
+    const { data: beforeData } = await client.auth.getUser();
+    const expectedUserId = beforeData.user && beforeData.user.id;
+
+    const { data, error } = await client.auth.signInWithPasskey();
+    mfaPasskeyButton.disabled = false;
+
+    if (error) {
+      mfaError.textContent = 'Could not verify with your passkey. Please try again, or use your code instead.';
+      return;
+    }
+
+    // A discoverable-credential sign-in isn't scoped to "this account" on
+    // its own -- if this browser holds passkeys for more than one Facture
+    // account, confirm it actually matched the one that just entered a
+    // password here before letting it stand in for that account's code.
+    if (expectedUserId && data.user && data.user.id !== expectedUserId) {
+      mfaError.textContent = 'That passkey belongs to a different account.';
+      return;
+    }
+
+    window.location.href = 'home.html';
+  } catch (err) {
+    mfaPasskeyButton.disabled = false;
+    mfaError.textContent = 'Something went wrong. Please try again.';
   }
 });
 
