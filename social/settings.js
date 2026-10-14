@@ -547,7 +547,7 @@ deactivateButton.addEventListener('click', async () => {
 
   deactivateButton.disabled = true;
 
-  if (!(await requireHumanCheck())) {
+  if (!(await requestStepUpVerification())) {
     deactivateButton.disabled = false;
     return;
   }
