@@ -966,12 +966,19 @@ function closeStepUp(result) {
 // guarantee that re-mint carries the aal2 claim forward rather than
 // re-deriving it from the token's original grant level.
 async function confirmAal2(maxAttempts = 10, delayMs = 150) {
+  let lastAal = null;
+  let lastErr = null;
   for (let i = 0; i < maxAttempts; i++) {
-    const { data: aal } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal && aal.currentLevel === 'aal2') return true;
+    const { data: aal, error: aalError } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+    lastAal = aal;
+    lastErr = aalError;
+    if (aal && aal.currentLevel === 'aal2') return { ok: true };
     await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
-  return false;
+  return {
+    ok: false,
+    debug: `aal=${lastAal ? `${lastAal.currentLevel}->${lastAal.nextLevel}` : 'null'}${lastErr ? ` err=${lastErr.message}` : ''}`,
+  };
 }
 
 async function requestStepUpVerification() {
@@ -1057,8 +1064,9 @@ stepUpCodeForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  if (!(await confirmAal2())) {
-    stepUpError.textContent = 'Verified, but your session is taking longer than expected to update. Please try again.';
+  const aal2Check = await confirmAal2();
+  if (!aal2Check.ok) {
+    stepUpError.textContent = `Verified, but your session didn't update (${aal2Check.debug}). Please screenshot this and try again.`;
     submitButton.disabled = false;
     return;
   }
@@ -1089,8 +1097,9 @@ stepUpPasskeyButton.addEventListener('click', async () => {
       return;
     }
 
-    if (!(await confirmAal2())) {
-      stepUpError.textContent = 'Verified, but your session is taking longer than expected to update. Please try again.';
+    const aal2Check = await confirmAal2();
+    if (!aal2Check.ok) {
+      stepUpError.textContent = `Verified, but your session didn't update (${aal2Check.debug}). Please screenshot this and try again.`;
       return;
     }
 
