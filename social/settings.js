@@ -843,6 +843,9 @@ async function refreshPasskeys() {
     row.querySelector('.passkey-row-delete').addEventListener('click', async () => {
       passkeyError.textContent = '';
       passkeyStatus.textContent = '';
+
+      if (!(await requestStepUpVerification())) return;
+
       const { error: deleteError } = await client.auth.passkey.delete({ passkeyId: passkey.id });
       if (deleteError) {
         passkeyError.textContent = deleteError.message;
@@ -882,6 +885,14 @@ passkeyNameForm.addEventListener('submit', async (event) => {
 
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
+
+  // Supabase requires an aal2 session to add a passkey once the account
+  // already has MFA enabled -- same step-up used for username/password
+  // changes and the danger-zone actions.
+  if (!(await requestStepUpVerification())) {
+    submitButton.disabled = false;
+    return;
+  }
 
   try {
     const { data, error } = await client.auth.registerPasskey();
