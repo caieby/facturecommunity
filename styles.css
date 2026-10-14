@@ -926,6 +926,24 @@ body.nav-open .topbar {
   min-width: 160px;
 }
 
+.hub-auth-buttons + .hub-auth-divider {
+  margin-top: 1.5rem;
+}
+
+.hub-auth-divider + .hub-auth-buttons {
+  margin-top: 1rem;
+}
+
+.hub-auth-divider {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--white);
+  opacity: 0.5;
+}
+
 .hub-user-panel {
   display: flex;
   flex-direction: column;
@@ -4416,6 +4434,56 @@ select.hub-form-input {
   padding: 0.2rem 0.5rem;
   border-radius: 4px;
   word-break: break-all;
+}
+
+.passkey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+
+.passkey-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--purple-mid);
+  border-radius: 12px;
+  padding: 0.85rem 1.1rem;
+  text-align: left;
+}
+
+.passkey-row-name {
+  font-weight: 600;
+  color: var(--white);
+}
+
+.passkey-row-date {
+  font-size: 0.8rem;
+  color: var(--white);
+  opacity: 0.6;
+}
+
+.passkey-row-delete {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--white);
+  opacity: 0.5;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.passkey-row-delete:hover {
+  opacity: 1;
+  color: #ff5c5c;
+  background: rgba(255, 92, 92, 0.1);
 }
 
 .button-with-note {

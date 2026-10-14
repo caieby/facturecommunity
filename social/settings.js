@@ -1,7 +1,9 @@
 const SUPABASE_URL = 'https://vrhfajwulxjfmgzyzaxx.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_37fQXfSzDzUrv35A5VSFXA_eqZBc3dB';
 
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { experimental: { passkey: true } },
+});
 
 let currentSession = null;
 
@@ -13,7 +15,6 @@ function escapeHtml(str) {
 
 const usernameForm = document.getElementById('usernameForm');
 const settingsUsernameInput = document.getElementById('settingsUsernameInput');
-const settingsUsernamePassword = document.getElementById('settingsUsernamePassword');
 const usernameFormError = document.getElementById('usernameFormError');
 const usernameFormStatus = document.getElementById('usernameFormStatus');
 const usernameHint = document.getElementById('usernameHint');
@@ -29,7 +30,6 @@ const resendVerificationGroup = document.getElementById('resendVerificationGroup
 const resendVerificationButton = document.getElementById('resendVerificationButton');
 
 const passwordForm = document.getElementById('passwordForm');
-const settingsCurrentPassword = document.getElementById('settingsCurrentPassword');
 const settingsNewPassword = document.getElementById('settingsNewPassword');
 const settingsConfirmPassword = document.getElementById('settingsConfirmPassword');
 const passwordFormError = document.getElementById('passwordFormError');
@@ -185,6 +185,7 @@ async function init() {
   refreshEmailStatus(userData.user);
   renderAccountStanding(profile || {});
   refreshMfaStatus();
+  refreshPasskeys();
 }
 
 function renderAccountStanding(profile) {
@@ -357,7 +358,7 @@ function updateUsernameHint() {
   const daysLeft = getUsernameCooldownDaysLeft();
   usernameHint.textContent = daysLeft > 0
     ? `You can change your username again in ${daysLeft} day${daysLeft === 1 ? '' : 's'}.`
-    : 'Changing your username requires your current password and can only be done once every 7 days.';
+    : 'Changing your username needs extra confirmation and can only be done once every 7 days.';
 }
 
 usernameForm.addEventListener('submit', async (event) => {
@@ -382,21 +383,10 @@ usernameForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  if (!settingsUsernamePassword.value) {
-    usernameFormError.textContent = 'Please enter your current password.';
-    return;
-  }
-
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
 
-  const { error: verifyError } = await client.auth.signInWithPassword({
-    email: currentSession.user.email,
-    password: settingsUsernamePassword.value,
-  });
-
-  if (verifyError) {
-    usernameFormError.textContent = 'Incorrect password.';
+  if (!(await requestStepUpVerification())) {
     submitButton.disabled = false;
     return;
   }
@@ -418,7 +408,6 @@ usernameForm.addEventListener('submit', async (event) => {
 
   originalUsername = newUsername;
   usernameChangedAt = newUsernameChangedAt;
-  settingsUsernamePassword.value = '';
   updateUsernameHint();
   usernameFormStatus.textContent = 'Username updated!';
   submitButton.disabled = false;
@@ -488,14 +477,9 @@ passwordForm.addEventListener('submit', async (event) => {
   passwordFormError.textContent = '';
   passwordFormStatus.textContent = '';
 
-  const currentPassword = settingsCurrentPassword.value;
   const newPassword = settingsNewPassword.value;
   const confirmPassword = settingsConfirmPassword.value;
 
-  if (!currentPassword) {
-    passwordFormError.textContent = 'Please enter your current password.';
-    return;
-  }
   if (newPassword.length < 8) {
     passwordFormError.textContent = 'Password must be at least 8 characters.';
     return;
@@ -508,13 +492,7 @@ passwordForm.addEventListener('submit', async (event) => {
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
 
-  const { error: verifyError } = await client.auth.signInWithPassword({
-    email: currentSession.user.email,
-    password: currentPassword,
-  });
-
-  if (verifyError) {
-    passwordFormError.textContent = 'Incorrect current password.';
+  if (!(await requestStepUpVerification())) {
     submitButton.disabled = false;
     return;
   }
@@ -539,6 +517,11 @@ deletePostsButton.addEventListener('click', async () => {
   if (!confirmed) return;
 
   deletePostsButton.disabled = true;
+
+  if (!(await requestStepUpVerification())) {
+    deletePostsButton.disabled = false;
+    return;
+  }
 
   const { error } = await client
     .from('posts')
@@ -586,6 +569,11 @@ deleteAccountButton.addEventListener('click', async () => {
   if (!confirmed) return;
 
   deleteAccountButton.disabled = true;
+
+  if (!(await requestStepUpVerification())) {
+    deleteAccountButton.disabled = false;
+    return;
+  }
 
   const { error } = await client
     .from('profiles')
@@ -817,5 +805,234 @@ mfaDisableForm.addEventListener('submit', async (event) => {
   mfaDisableCode.value = '';
   await refreshMfaStatus();
 });
+
+const passkeyList = document.getElementById('passkeyList');
+const passkeyError = document.getElementById('passkeyError');
+const passkeyStatus = document.getElementById('passkeyStatus');
+const passkeyAddButton = document.getElementById('passkeyAddButton');
+
+async function refreshPasskeys() {
+  const { data: passkeys, error } = await client.auth.passkey.list();
+
+  if (error) {
+    passkeyList.innerHTML = '';
+    passkeyError.textContent = 'Could not load your passkeys.';
+    return;
+  }
+
+  if (!passkeys || passkeys.length === 0) {
+    passkeyList.innerHTML = '<p class="page-hint">No passkeys yet.</p>';
+    return;
+  }
+
+  passkeyList.innerHTML = '';
+  passkeys.forEach((passkey) => {
+    const row = document.createElement('div');
+    row.className = 'passkey-row';
+    row.innerHTML = `
+      <div>
+        <div class="passkey-row-name">${escapeHtml(passkey.friendly_name || 'Passkey')}</div>
+        <div class="passkey-row-date">Added ${new Date(passkey.created_at).toLocaleDateString()}</div>
+      </div>
+      <button type="button" class="passkey-row-delete" aria-label="Remove passkey">&times;</button>
+    `;
+    row.querySelector('.passkey-row-delete').addEventListener('click', async () => {
+      passkeyError.textContent = '';
+      passkeyStatus.textContent = '';
+      const { error: deleteError } = await client.auth.passkey.delete({ passkeyId: passkey.id });
+      if (deleteError) {
+        passkeyError.textContent = deleteError.message;
+        return;
+      }
+      passkeyStatus.textContent = 'Passkey removed.';
+      await refreshPasskeys();
+    });
+    passkeyList.appendChild(row);
+  });
+}
+
+passkeyAddButton.addEventListener('click', async () => {
+  passkeyError.textContent = '';
+  passkeyStatus.textContent = '';
+  passkeyAddButton.disabled = true;
+
+  try {
+    const { data, error } = await client.auth.registerPasskey();
+
+    if (error) {
+      // Covers the user cancelling the OS/browser prompt, the browser not
+      // supporting WebAuthn, or the ceremony itself failing -- all surfaced
+      // the same way, there's nothing more specific to tell them.
+      passkeyError.textContent = error.message;
+      passkeyAddButton.disabled = false;
+      return;
+    }
+
+    passkeyStatus.textContent = data && data.friendly_name ? `Added "${data.friendly_name}".` : 'Passkey added!';
+    passkeyAddButton.disabled = false;
+    await refreshPasskeys();
+  } catch (err) {
+    passkeyError.textContent = 'Something went wrong. Please try again.';
+    passkeyAddButton.disabled = false;
+  }
+});
+
+// Shared "confirm it's you" step-up flow for sensitive actions (username,
+// password, account deletion, delete-all-posts). Offers whatever the
+// account actually has set up -- a 2FA code, a passkey, or password as the
+// fallback when neither is enrolled -- and resolves true/false depending
+// on whether the user actually proved it's them.
+const stepUpModal = document.getElementById('stepUpModal');
+const stepUpCodeOption = document.getElementById('stepUpCodeOption');
+const stepUpCodeForm = document.getElementById('stepUpCodeForm');
+const stepUpCodeInput = document.getElementById('stepUpCodeInput');
+const stepUpPasskeyOption = document.getElementById('stepUpPasskeyOption');
+const stepUpPasskeyButton = document.getElementById('stepUpPasskeyButton');
+const stepUpPasswordOption = document.getElementById('stepUpPasswordOption');
+const stepUpPasswordForm = document.getElementById('stepUpPasswordForm');
+const stepUpPasswordInput = document.getElementById('stepUpPasswordInput');
+const stepUpError = document.getElementById('stepUpError');
+const stepUpCancelButton = document.getElementById('stepUpCancelButton');
+
+let stepUpResolve = null;
+
+function closeStepUp(result) {
+  stepUpModal.hidden = true;
+  stepUpCodeForm.reset();
+  stepUpPasswordForm.reset();
+  stepUpError.textContent = '';
+  if (stepUpResolve) {
+    const resolve = stepUpResolve;
+    stepUpResolve = null;
+    resolve(result);
+  }
+}
+
+async function requestStepUpVerification() {
+  const { data: factorsData } = await client.auth.mfa.listFactors();
+  const totpFactor = factorsData && factorsData.totp.find((factor) => factor.status === 'verified');
+
+  let hasPasskey = false;
+  try {
+    const { data: passkeys } = await client.auth.passkey.list();
+    hasPasskey = !!(passkeys && passkeys.length > 0);
+  } catch (e) {
+    // Passkeys unsupported in this browser -- fall through to password.
+  }
+
+  stepUpCodeOption.hidden = !totpFactor;
+  stepUpPasskeyOption.hidden = !hasPasskey;
+  stepUpPasswordOption.hidden = !!(totpFactor || hasPasskey);
+
+  stepUpError.textContent = '';
+  stepUpCodeForm.reset();
+  stepUpPasswordForm.reset();
+  stepUpModal.hidden = false;
+
+  return new Promise((resolve) => {
+    stepUpResolve = resolve;
+  });
+}
+
+stepUpCodeForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  stepUpError.textContent = '';
+
+  const code = stepUpCodeInput.value.trim();
+  if (!/^\d{6}$/.test(code)) {
+    stepUpError.textContent = 'Enter the 6-digit code from your authenticator app.';
+    return;
+  }
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { data: factorsData } = await client.auth.mfa.listFactors();
+  const factor = factorsData && factorsData.totp.find((f) => f.status === 'verified');
+
+  if (!factor) {
+    stepUpError.textContent = 'Something went wrong. Please try again.';
+    submitButton.disabled = false;
+    return;
+  }
+
+  const { data: challengeData, error: challengeError } = await client.auth.mfa.challenge({ factorId: factor.id });
+  if (challengeError) {
+    stepUpError.textContent = challengeError.message;
+    submitButton.disabled = false;
+    return;
+  }
+
+  const { error: verifyError } = await client.auth.mfa.verify({
+    factorId: factor.id,
+    challengeId: challengeData.id,
+    code,
+  });
+
+  submitButton.disabled = false;
+
+  if (verifyError) {
+    stepUpError.textContent = 'Incorrect code. Please try again.';
+    return;
+  }
+
+  closeStepUp(true);
+});
+
+stepUpPasskeyButton.addEventListener('click', async () => {
+  stepUpError.textContent = '';
+  stepUpPasskeyButton.disabled = true;
+
+  try {
+    const { data, error } = await client.auth.signInWithPasskey();
+    stepUpPasskeyButton.disabled = false;
+
+    if (error) {
+      stepUpError.textContent = 'Could not verify with your passkey. Please try again.';
+      return;
+    }
+
+    // Discoverable credentials aren't scoped to "this account" from our
+    // side -- if this browser holds passkeys for more than one Facture
+    // account, nothing stops someone picking the wrong one. Confirm it
+    // actually matched the account already signed in here before trusting it.
+    if (data.user && data.user.id !== currentSession.user.id) {
+      stepUpError.textContent = 'That passkey belongs to a different account.';
+      return;
+    }
+
+    closeStepUp(true);
+  } catch (err) {
+    stepUpPasskeyButton.disabled = false;
+    stepUpError.textContent = 'Something went wrong. Please try again.';
+  }
+});
+
+stepUpPasswordForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  stepUpError.textContent = '';
+
+  const password = stepUpPasswordInput.value;
+  if (!password) {
+    stepUpError.textContent = 'Please enter your current password.';
+    return;
+  }
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+
+  const { error } = await client.auth.signInWithPassword({ email: currentSession.user.email, password });
+
+  submitButton.disabled = false;
+
+  if (error) {
+    stepUpError.textContent = 'Incorrect password.';
+    return;
+  }
+
+  closeStepUp(true);
+});
+
+stepUpCancelButton.addEventListener('click', () => closeStepUp(false));
 
 init();

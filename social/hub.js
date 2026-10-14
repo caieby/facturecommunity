@@ -1,7 +1,9 @@
 const SUPABASE_URL = 'https://vrhfajwulxjfmgzyzaxx.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_37fQXfSzDzUrv35A5VSFXA_eqZBc3dB';
 
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { experimental: { passkey: true } },
+});
 
 const authButtons = document.getElementById('hubAuthButtons');
 const loginButton = document.getElementById('hubLoginButton');
@@ -94,6 +96,26 @@ const mfaCodeInput = document.getElementById('hubMfaCode');
 const mfaError = document.getElementById('hubMfaError');
 const mfaCancelButton = document.getElementById('hubMfaCancelButton');
 
+// Both password and passkey sign-in only guarantee aal1 -- a passkey is a
+// strong credential, but whether it also satisfies a separately-enrolled
+// TOTP factor isn't something to assume either way, so this same check
+// runs after both and asks Supabase directly. If a code round trip is
+// still owed, prompt for it; otherwise let them straight in.
+async function proceedAfterPrimaryAuth(onNeedsCode) {
+  const { data: aal } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+
+  if (aal && aal.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
+    onNeedsCode();
+    closeModal(loginModal);
+    mfaForm.reset();
+    mfaError.textContent = '';
+    openModal(mfaModal);
+    return;
+  }
+
+  window.location.href = 'home.html';
+}
+
 document.getElementById('hubLoginForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   const errorEl = document.getElementById('hubLoginError');
@@ -116,25 +138,36 @@ document.getElementById('hubLoginForm').addEventListener('submit', async (event)
       return;
     }
 
-    // signInWithPassword succeeds at aal1 even with a 2FA factor on the
-    // account -- it doesn't require the factor itself, it just caps the
-    // session there until a challenge/verify round trip happens. Check
-    // whether that round trip is still owed before letting them in.
-    const { data: aal } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
-
-    if (aal && aal.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
-      closeModal(loginModal);
-      mfaForm.reset();
-      mfaError.textContent = '';
-      openModal(mfaModal);
-      submitButton.disabled = false;
-      return;
-    }
-
-    window.location.href = 'home.html';
+    await proceedAfterPrimaryAuth(() => { submitButton.disabled = false; });
   } catch (err) {
     errorEl.textContent = 'Something went wrong. Please try again.';
     submitButton.disabled = false;
+  }
+});
+
+document.getElementById('hubPasskeyButton')?.addEventListener('click', async (event) => {
+  const errorEl = document.getElementById('hubPasskeyError');
+  errorEl.textContent = '';
+
+  const button = event.target;
+  button.disabled = true;
+
+  try {
+    const { error } = await client.auth.signInWithPasskey();
+
+    if (error) {
+      // Covers the user cancelling their device's passkey prompt, the
+      // browser not supporting it, or no passkey existing for this site --
+      // there's no safe way to tell those apart from here.
+      errorEl.textContent = 'Could not sign in with a passkey. Make sure you have one set up for this site, or use your password instead.';
+      button.disabled = false;
+      return;
+    }
+
+    await proceedAfterPrimaryAuth(() => { button.disabled = false; });
+  } catch (err) {
+    errorEl.textContent = 'Something went wrong. Please try again.';
+    button.disabled = false;
   }
 });
 

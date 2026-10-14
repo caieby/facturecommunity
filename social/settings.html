@@ -97,14 +97,11 @@
     <hr class="section-divider">
     <section class="section">
       <h2 class="section-title">Username</h2>
-      <p class="section-intro" id="usernameHint">Changing your username requires your current password and can only be done once every 7 days.</p>
+      <p class="section-intro" id="usernameHint">Changing your username needs extra confirmation and can only be done once every 7 days.</p>
 
       <form id="usernameForm" class="hub-form">
         <label class="hub-form-label" for="settingsUsernameInput">Username</label>
         <input class="hub-form-input" type="text" id="settingsUsernameInput" autocomplete="off" required>
-
-        <label class="hub-form-label" for="settingsUsernamePassword">Current Password</label>
-        <input class="hub-form-input" type="password" id="settingsUsernamePassword" autocomplete="current-password">
 
         <p class="hub-form-error" id="usernameFormError"></p>
         <p class="hub-form-status" id="usernameFormStatus"></p>
@@ -152,9 +149,6 @@
     <section class="section">
       <h2 class="section-title">Password</h2>
       <form id="passwordForm" class="hub-form">
-        <label class="hub-form-label" for="settingsCurrentPassword">Current Password</label>
-        <input class="hub-form-input" type="password" id="settingsCurrentPassword" autocomplete="current-password" required>
-
         <label class="hub-form-label" for="settingsNewPassword">New Password</label>
         <input class="hub-form-input" type="password" id="settingsNewPassword" autocomplete="new-password" required>
 
@@ -208,6 +202,19 @@
       </div>
     </section>
 
+    <hr class="section-divider">
+    <section class="section">
+      <h2 class="section-title">Passkeys</h2>
+      <p class="section-intro">Add a passkey to sign in with your device&rsquo;s fingerprint, face unlock, or PIN instead of your password &mdash; and to confirm it&rsquo;s you for sensitive account actions, as an alternative to a 2FA code.</p>
+
+      <div class="passkey-list" id="passkeyList"></div>
+      <p class="hub-form-error" id="passkeyError"></p>
+      <p class="hub-form-status" id="passkeyStatus"></p>
+      <div class="button-group">
+        <button type="button" class="action-button" id="passkeyAddButton">Add a Passkey</button>
+      </div>
+    </section>
+
     <hr class="category-divider">
     <h2 class="category-title">Danger Zone</h2>
 
@@ -243,6 +250,38 @@
       </div>
     </section>
   </main>
+
+  <div class="hub-modal" id="stepUpModal" hidden>
+    <div class="hub-modal-card">
+      <h2 class="subsection-title">Confirm It&rsquo;s You</h2>
+      <p class="section-intro">This action needs extra confirmation before it goes through.</p>
+
+      <div id="stepUpCodeOption" hidden>
+        <form id="stepUpCodeForm" class="hub-form">
+          <label class="hub-form-label" for="stepUpCodeInput">6-digit code</label>
+          <input class="hub-form-input" type="text" id="stepUpCodeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+          <button type="submit" class="action-button">Verify</button>
+        </form>
+      </div>
+
+      <div id="stepUpPasskeyOption" hidden>
+        <div class="button-group">
+          <button type="button" class="action-button" id="stepUpPasskeyButton">Use Passkey</button>
+        </div>
+      </div>
+
+      <div id="stepUpPasswordOption" hidden>
+        <form id="stepUpPasswordForm" class="hub-form">
+          <label class="hub-form-label" for="stepUpPasswordInput">Current Password</label>
+          <input class="hub-form-input" type="password" id="stepUpPasswordInput" autocomplete="current-password">
+          <button type="submit" class="action-button">Verify</button>
+        </form>
+      </div>
+
+      <p class="hub-form-error" id="stepUpError"></p>
+      <p class="hub-form-link-row"><button type="button" class="hub-text-link" id="stepUpCancelButton">Cancel</button></p>
+    </div>
+  </div>
 
   <div class="hub-modal" id="infractionAppealModal" hidden>
     <div class="hub-modal-card">
