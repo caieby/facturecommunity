@@ -297,6 +297,28 @@ async function ensureAdultConfirmed(client, userId, cache) {
   return true;
 }
 
+// Passkeys only mean anything as a second factor on top of a TOTP code --
+// an account that no longer has 2FA enabled (disabled it, or lost it some
+// other way) shouldn't be left with passkeys still sitting there as if they
+// still gated anything. Sweep them on login/settings-load so every account
+// stays in sync instead of needing a one-off backfill.
+async function cleanupOrphanedPasskeys(client) {
+  let passkeys;
+  try {
+    const { data } = await client.auth.passkey.list();
+    passkeys = data;
+  } catch (e) {
+    return;
+  }
+  if (!passkeys || passkeys.length === 0) return;
+
+  const { data: factorsData } = await client.auth.mfa.listFactors();
+  const hasTotp = !!(factorsData && factorsData.totp.find((f) => f.status === 'verified'));
+  if (hasTotp) return;
+
+  await Promise.all(passkeys.map((pk) => client.auth.passkey.delete({ passkeyId: pk.id }).catch(() => {})));
+}
+
 const REPORT_REASONS = [
   'Illegal Content',
   'Disturbing content (such as gore or scat)',

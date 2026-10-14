@@ -804,6 +804,9 @@ mfaDisableForm.addEventListener('submit', async (event) => {
 
   mfaDisableCode.value = '';
   await refreshMfaStatus();
+  // Passkeys only mean anything on top of 2FA -- losing the TOTP factor
+  // orphans them immediately, not just on the next login.
+  await refreshPasskeys();
 });
 
 const passkeyList = document.getElementById('passkeyList');
@@ -823,6 +826,11 @@ passkeyNameModal.addEventListener('click', (event) => {
 });
 
 async function refreshPasskeys() {
+  // An account that's lost its 2FA shouldn't be left with passkeys still
+  // sitting around as if they still gated anything -- sweep them before
+  // rendering the list.
+  await cleanupOrphanedPasskeys(client);
+
   const { data: passkeys, error } = await client.auth.passkey.list();
 
   if (error) {
@@ -851,7 +859,7 @@ async function refreshPasskeys() {
       passkeyError.textContent = '';
       passkeyStatus.textContent = '';
 
-      if (!(await requestStepUpVerification())) return;
+      if (!(await requestStepUpVerification({ requireTotp: true }))) return;
 
       const { error: deleteError } = await client.auth.passkey.delete({ passkeyId: passkey.id });
       if (deleteError) {
@@ -865,9 +873,15 @@ async function refreshPasskeys() {
   });
 }
 
-passkeyAddButton.addEventListener('click', () => {
+passkeyAddButton.addEventListener('click', async () => {
   passkeyError.textContent = '';
   passkeyStatus.textContent = '';
+
+  if (!(await hasVerifiedTotp())) {
+    passkeyError.textContent = 'Set up two-factor authentication before adding a passkey.';
+    return;
+  }
+
   passkeyNameError.textContent = '';
   passkeyNameForm.reset();
   passkeyNameModal.hidden = false;
@@ -887,10 +901,10 @@ passkeyNameForm.addEventListener('submit', async (event) => {
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
 
-  // Supabase requires an aal2 session to add a passkey once the account
-  // already has MFA enabled -- same step-up used for username/password
-  // changes and the danger-zone actions.
-  if (!(await requestStepUpVerification())) {
+  // Adding a passkey always demands a 2FA code specifically, with no
+  // password fallback -- the passkeyAddButton handler already confirmed a
+  // TOTP factor exists before this modal could even open.
+  if (!(await requestStepUpVerification({ requireTotp: true }))) {
     submitButton.disabled = false;
     return;
   }
@@ -926,9 +940,12 @@ passkeyNameForm.addEventListener('submit', async (event) => {
 
 // Shared "confirm it's you" step-up flow for sensitive actions (username,
 // password, account deletion, delete-all-posts). Offers whatever the
-// account actually has set up -- a 2FA code, a passkey, or password as the
-// fallback when neither is enrolled -- and resolves true/false depending
-// on whether the user actually proved it's them.
+// account actually has set up -- a 2FA code or a passkey -- or password as
+// the fallback when neither is enrolled, and resolves true/false depending
+// on whether the user actually proved it's them. Passkey management itself
+// is the one exception: it always demands a code specifically (see the
+// requireTotp option below), since a passkey can't be trusted to vouch for
+// changing the very passkey list it's part of.
 const stepUpModal = document.getElementById('stepUpModal');
 const stepUpChoiceButtons = document.getElementById('stepUpChoiceButtons');
 const stepUpShowCodeButton = document.getElementById('stepUpShowCodeButton');
@@ -981,31 +998,44 @@ async function confirmAal2(maxAttempts = 10, delayMs = 150) {
   };
 }
 
-async function requestStepUpVerification() {
-  const { data: factorsData } = await client.auth.mfa.listFactors();
-  const totpFactor = factorsData && factorsData.totp.find((factor) => factor.status === 'verified');
+async function hasVerifiedTotp() {
+  const { data } = await client.auth.mfa.listFactors();
+  return !!(data && data.totp.find((factor) => factor.status === 'verified'));
+}
+
+// Every major account action needs a 2FA code, a passkey, or (when neither
+// is enrolled) the account password. requireTotp is for passkey management
+// specifically -- adding/removing a passkey always demands a code and never
+// accepts a passkey or falls back to password (callers are expected to
+// have already confirmed a TOTP factor exists before calling this with
+// requireTotp: true).
+async function requestStepUpVerification({ requireTotp = false } = {}) {
+  const totpEnrolled = await hasVerifiedTotp();
 
   let hasPasskey = false;
-  try {
-    const { data: passkeys } = await client.auth.passkey.list();
-    hasPasskey = !!(passkeys && passkeys.length > 0);
-  } catch (e) {
-    // Passkeys unsupported in this browser -- fall through to password.
+  if (!requireTotp) {
+    try {
+      const { data: passkeys } = await client.auth.passkey.list();
+      hasPasskey = !!(passkeys && passkeys.length > 0);
+    } catch (e) {
+      // Passkeys unsupported in this browser -- fall through to code/password.
+    }
   }
 
   stepUpError.textContent = '';
   stepUpCodeForm.reset();
   stepUpPasswordForm.reset();
+  stepUpChoiceButtons.hidden = true;
   stepUpCodeOption.hidden = true;
+  stepUpPasswordOption.hidden = true;
 
-  if (totpFactor || hasPasskey) {
+  if (requireTotp) {
+    stepUpCodeOption.hidden = false;
+  } else if (totpEnrolled || hasPasskey) {
     stepUpPasskeyButton.hidden = !hasPasskey;
-    stepUpShowCodeButton.hidden = !totpFactor;
+    stepUpShowCodeButton.hidden = !totpEnrolled;
     stepUpChoiceButtons.hidden = false;
-    stepUpPasswordOption.hidden = true;
   } else {
-    // Neither set up -- password is the only option, nothing to choose.
-    stepUpChoiceButtons.hidden = true;
     stepUpPasswordOption.hidden = false;
   }
 
@@ -1021,6 +1051,41 @@ stepUpShowCodeButton.addEventListener('click', () => {
   stepUpChoiceButtons.hidden = true;
   stepUpCodeOption.hidden = false;
   stepUpCodeInput.focus();
+});
+
+stepUpPasskeyButton.addEventListener('click', async () => {
+  stepUpError.textContent = '';
+  stepUpPasskeyButton.disabled = true;
+
+  try {
+    const { data, error } = await client.auth.signInWithPasskey();
+    stepUpPasskeyButton.disabled = false;
+
+    if (error) {
+      stepUpError.textContent = 'Could not verify with your passkey. Please try again.';
+      return;
+    }
+
+    // Discoverable credentials aren't scoped to "this account" from our
+    // side -- if this browser holds passkeys for more than one Facture
+    // account, nothing stops someone picking the wrong one. Confirm it
+    // actually matched the account already signed in here before trusting it.
+    if (data.user && data.user.id !== currentSession.user.id) {
+      stepUpError.textContent = 'That passkey belongs to a different account.';
+      return;
+    }
+
+    const aal2Check = await confirmAal2();
+    if (!aal2Check.ok) {
+      stepUpError.textContent = `Verified, but your session didn't update (${aal2Check.debug}). Please screenshot this and try again.`;
+      return;
+    }
+
+    closeStepUp(true);
+  } catch (err) {
+    stepUpPasskeyButton.disabled = false;
+    stepUpError.textContent = 'Something went wrong. Please try again.';
+  }
 });
 
 stepUpCodeForm.addEventListener('submit', async (event) => {
@@ -1085,41 +1150,6 @@ stepUpCodeForm.addEventListener('submit', async (event) => {
 
   submitButton.disabled = false;
   closeStepUp(true);
-});
-
-stepUpPasskeyButton.addEventListener('click', async () => {
-  stepUpError.textContent = '';
-  stepUpPasskeyButton.disabled = true;
-
-  try {
-    const { data, error } = await client.auth.signInWithPasskey();
-    stepUpPasskeyButton.disabled = false;
-
-    if (error) {
-      stepUpError.textContent = 'Could not verify with your passkey. Please try again.';
-      return;
-    }
-
-    // Discoverable credentials aren't scoped to "this account" from our
-    // side -- if this browser holds passkeys for more than one Facture
-    // account, nothing stops someone picking the wrong one. Confirm it
-    // actually matched the account already signed in here before trusting it.
-    if (data.user && data.user.id !== currentSession.user.id) {
-      stepUpError.textContent = 'That passkey belongs to a different account.';
-      return;
-    }
-
-    const aal2Check = await confirmAal2();
-    if (!aal2Check.ok) {
-      stepUpError.textContent = `Verified, but your session didn't update (${aal2Check.debug}). Please screenshot this and try again.`;
-      return;
-    }
-
-    closeStepUp(true);
-  } catch (err) {
-    stepUpPasskeyButton.disabled = false;
-    stepUpError.textContent = 'Something went wrong. Please try again.';
-  }
 });
 
 stepUpPasswordForm.addEventListener('submit', async (event) => {

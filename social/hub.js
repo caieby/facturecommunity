@@ -106,6 +106,11 @@ const mfaCancelButton = document.getElementById('hubMfaCancelButton');
 // the account actually has set up) as alternative ways to clear it,
 // otherwise let them straight in.
 async function proceedAfterPrimaryAuth(onNeedsCode) {
+  // An account that's lost its 2FA shouldn't be left with passkeys still
+  // sitting around as if they still gated anything -- sweep them here,
+  // before the aal check below decides whether a step-up is even owed.
+  await cleanupOrphanedPasskeys(client);
+
   const { data: aal } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
 
   if (aal && aal.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
