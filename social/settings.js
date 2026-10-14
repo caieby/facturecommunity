@@ -852,7 +852,7 @@ async function refreshPasskeys() {
       passkeyError.textContent = '';
       passkeyStatus.textContent = '';
 
-      if (!(await requestStepUpVerification({ requireTotp: true }))) return;
+      if (!(await requestStepUpVerification())) return;
 
       const { error: deleteError } = await client.auth.passkey.delete({ passkeyId: passkey.id });
       if (deleteError) {
@@ -894,7 +894,7 @@ passkeyNameForm.addEventListener('submit', async (event) => {
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
 
-  if (!(await requestStepUpVerification({ requireTotp: true }))) {
+  if (!(await requestStepUpVerification())) {
     submitButton.disabled = false;
     return;
   }
@@ -923,12 +923,9 @@ passkeyNameForm.addEventListener('submit', async (event) => {
 });
 
 const stepUpModal = document.getElementById('stepUpModal');
-const stepUpChoiceButtons = document.getElementById('stepUpChoiceButtons');
-const stepUpShowCodeButton = document.getElementById('stepUpShowCodeButton');
 const stepUpCodeOption = document.getElementById('stepUpCodeOption');
 const stepUpCodeForm = document.getElementById('stepUpCodeForm');
 const stepUpCodeInput = document.getElementById('stepUpCodeInput');
-const stepUpPasskeyButton = document.getElementById('stepUpPasskeyButton');
 const stepUpPasswordOption = document.getElementById('stepUpPasswordOption');
 const stepUpPasswordForm = document.getElementById('stepUpPasswordForm');
 const stepUpPasswordInput = document.getElementById('stepUpPasswordInput');
@@ -970,34 +967,20 @@ async function hasVerifiedTotp() {
   return !!(data && data.totp.find((factor) => factor.status === 'verified'));
 }
 
-async function requestStepUpVerification({ requireTotp = false } = {}) {
+async function requestStepUpVerification() {
   if (!(await requireHumanCheck())) return false;
 
   const totpEnrolled = await hasVerifiedTotp();
 
-  let hasPasskey = false;
-  if (!requireTotp) {
-    try {
-      const { data: passkeys } = await client.auth.passkey.list();
-      hasPasskey = !!(passkeys && passkeys.length > 0);
-    } catch (e) {
-    }
-  }
-
   stepUpError.textContent = '';
   stepUpCodeForm.reset();
   stepUpPasswordForm.reset();
-  stepUpChoiceButtons.hidden = true;
-  stepUpCodeOption.hidden = true;
-  stepUpPasswordOption.hidden = true;
 
-  if (requireTotp) {
+  if (totpEnrolled) {
     stepUpCodeOption.hidden = false;
-  } else if (totpEnrolled || hasPasskey) {
-    stepUpPasskeyButton.hidden = !hasPasskey;
-    stepUpShowCodeButton.hidden = !totpEnrolled;
-    stepUpChoiceButtons.hidden = false;
+    stepUpPasswordOption.hidden = true;
   } else {
+    stepUpCodeOption.hidden = true;
     stepUpPasswordOption.hidden = false;
   }
 
@@ -1007,44 +990,6 @@ async function requestStepUpVerification({ requireTotp = false } = {}) {
     stepUpResolve = resolve;
   });
 }
-
-stepUpShowCodeButton.addEventListener('click', () => {
-  stepUpError.textContent = '';
-  stepUpChoiceButtons.hidden = true;
-  stepUpCodeOption.hidden = false;
-  stepUpCodeInput.focus();
-});
-
-stepUpPasskeyButton.addEventListener('click', async () => {
-  stepUpError.textContent = '';
-  stepUpPasskeyButton.disabled = true;
-
-  try {
-    const { data, error } = await client.auth.signInWithPasskey();
-    stepUpPasskeyButton.disabled = false;
-
-    if (error) {
-      stepUpError.textContent = 'Could not verify with your passkey. Please try again.';
-      return;
-    }
-
-    if (data.user && data.user.id !== currentSession.user.id) {
-      stepUpError.textContent = 'That passkey belongs to a different account.';
-      return;
-    }
-
-    const aal2Check = await confirmAal2();
-    if (!aal2Check.ok) {
-      stepUpError.textContent = `Verified, but your session didn't update (${aal2Check.debug}). Please screenshot this and try again.`;
-      return;
-    }
-
-    closeStepUp(true);
-  } catch (err) {
-    stepUpPasskeyButton.disabled = false;
-    stepUpError.textContent = 'Something went wrong. Please try again.';
-  }
-});
 
 stepUpCodeForm.addEventListener('submit', async (event) => {
   event.preventDefault();
