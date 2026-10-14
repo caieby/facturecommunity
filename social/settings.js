@@ -1052,7 +1052,7 @@ stepUpCodeForm.addEventListener('submit', async (event) => {
     return;
   }
 
-  const { error: verifyError } = await client.auth.mfa.verify({
+  const { data: verifyData, error: verifyError } = await client.auth.mfa.verify({
     factorId: factor.id,
     challengeId: challengeData.id,
     code,
@@ -1062,6 +1062,18 @@ stepUpCodeForm.addEventListener('submit', async (event) => {
     stepUpError.textContent = 'Incorrect code. Please try again.';
     submitButton.disabled = false;
     return;
+  }
+
+  // verify()'s response carries the elevated-aal2 JWT directly
+  // (access_token/refresh_token) but no session object, which the client
+  // apparently doesn't auto-adopt from this specific call the way it does
+  // for a normal sign-in -- apply it explicitly rather than assuming it
+  // already happened.
+  if (verifyData && verifyData.access_token && verifyData.refresh_token) {
+    await client.auth.setSession({
+      access_token: verifyData.access_token,
+      refresh_token: verifyData.refresh_token,
+    });
   }
 
   const aal2Check = await confirmAal2();
