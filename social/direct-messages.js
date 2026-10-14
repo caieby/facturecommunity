@@ -753,6 +753,7 @@ async function appendMessage(message) {
     unsendButton.innerHTML = '&#128465;';
     unsendButton.addEventListener('click', async () => {
       if (!confirm('Unsend this message?')) return;
+      if (!(await requireHumanCheck())) return;
       await client.from('messages').delete().eq('id', message.id);
       wrapper.remove();
     });

@@ -1,7 +1,128 @@
 // The human-verify redirect check itself runs as an inline head script on
 // every page (so it can bail out before anything renders) -- see
 // verify.html for the Turnstile challenge and script.js has nothing left
-// to do for it.
+// to do for it there. What's here is the second half of that same system:
+// catching bot-speed *actions* (deleting things, creating an account,
+// changing account settings) rather than bot-speed page-to-page navigation.
+
+// Same idea as the nav-pace check in each page's inline head script, just
+// scoped to in-page actions instead of page loads, and kept in
+// sessionStorage under its own key so a burst of fast navigation and a
+// burst of fast deletes don't count against each other.
+const BOT_ACTION_WINDOW_MS = 6000;
+const BOT_ACTION_MAX_IN_WINDOW = 3;
+
+function looksBotlikeAction() {
+  const key = 'factureActionTimestamps';
+  let times = [];
+  try {
+    times = JSON.parse(sessionStorage.getItem(key) || '[]');
+  } catch (e) {
+    times = [];
+  }
+  const now = Date.now();
+  times = times.filter((t) => now - t < BOT_ACTION_WINDOW_MS);
+  times.push(now);
+  try {
+    sessionStorage.setItem(key, JSON.stringify(times));
+  } catch (e) {}
+  return times.length > BOT_ACTION_MAX_IN_WINDOW;
+}
+
+// Most pages never need Turnstile at all now that the full-page check
+// lives on verify.html -- only load it here, on demand, for the rare
+// in-page action that actually trips the pace check above.
+let turnstileApiPromise = null;
+function loadTurnstileApi() {
+  if (window.turnstile) return Promise.resolve();
+  if (turnstileApiPromise) return turnstileApiPromise;
+
+  turnstileApiPromise = new Promise((resolve, reject) => {
+    const el = document.createElement('script');
+    el.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    el.onload = () => resolve();
+    el.onerror = () => reject(new Error('Could not load the verification check.'));
+    document.head.appendChild(el);
+  });
+  return turnstileApiPromise;
+}
+
+let humanCheckModalEl = null;
+let humanCheckWidgetId = null;
+let humanCheckResolve = null;
+
+function ensureHumanCheckModal() {
+  if (humanCheckModalEl) return humanCheckModalEl;
+
+  const modal = document.createElement('div');
+  modal.className = 'hub-modal';
+  modal.hidden = true;
+  modal.innerHTML = `
+    <div class="hub-modal-card">
+      <h2 class="subsection-title">Quick Check</h2>
+      <p class="section-intro">That was fast -- confirm you're not a bot before this goes through.</p>
+      <div class="cf-turnstile" id="humanCheckWidget"></div>
+      <p class="hub-form-error" id="humanCheckError"></p>
+      <p class="hub-form-link-row"><button type="button" class="hub-text-link" id="humanCheckCancelButton">Cancel</button></p>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  modal.querySelector('#humanCheckCancelButton').addEventListener('click', () => closeHumanCheck(false));
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeHumanCheck(false);
+  });
+
+  humanCheckModalEl = modal;
+  return modal;
+}
+
+function closeHumanCheck(result) {
+  if (humanCheckModalEl) humanCheckModalEl.hidden = true;
+  if (window.turnstile && humanCheckWidgetId !== null) {
+    try { window.turnstile.remove(humanCheckWidgetId); } catch (e) {}
+    humanCheckWidgetId = null;
+  }
+  if (humanCheckResolve) {
+    const resolve = humanCheckResolve;
+    humanCheckResolve = null;
+    resolve(result);
+  }
+}
+
+// Call this right before a sensitive action goes through (deleting
+// something, creating an account, changing account settings). Resolves
+// true immediately, with no popup, for normal-paced usage -- the Turnstile
+// challenge only shows up once the action pace itself looks bot-like.
+async function requireHumanCheck() {
+  if (!looksBotlikeAction()) return true;
+
+  try {
+    await loadTurnstileApi();
+  } catch (e) {
+    // The check failing to load isn't grounds to hard-block the action.
+    return true;
+  }
+
+  const modal = ensureHumanCheckModal();
+  modal.querySelector('#humanCheckError').textContent = '';
+  modal.hidden = false;
+
+  const container = modal.querySelector('#humanCheckWidget');
+  container.innerHTML = '';
+
+  return new Promise((resolve) => {
+    humanCheckResolve = resolve;
+    humanCheckWidgetId = window.turnstile.render(container, {
+      sitekey: '0x4AAAAAAEmh6xhRr9ApRWq6',
+      theme: 'dark',
+      callback: () => closeHumanCheck(true),
+      'error-callback': () => {
+        modal.querySelector('#humanCheckError').textContent = 'Something went wrong. Please try again.';
+      },
+    });
+  });
+}
 
 const menuToggle = document.getElementById('menuToggle');
 const menuDropdown = document.getElementById('menuDropdown');

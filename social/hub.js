@@ -50,6 +50,11 @@ document.getElementById('hubSignupForm').addEventListener('submit', async (event
   const submitButton = event.target.querySelector('button[type="submit"]');
   submitButton.disabled = true;
 
+  if (!(await requireHumanCheck())) {
+    submitButton.disabled = false;
+    return;
+  }
+
   try {
     const { data, error } = await client.auth.signUp({
       email,

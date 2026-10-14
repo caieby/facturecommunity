@@ -802,6 +802,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
             deleteBtn.addEventListener('click', async (event) => {
               event.stopPropagation();
               if (!window.confirm('Delete this note?')) return;
+              if (!(await requireHumanCheck())) return;
               await client.from('post_notes').delete().eq('id', note.id);
               await loadNotes();
             });
@@ -1037,6 +1038,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       deleteButton.addEventListener('click', async (event) => {
         event.stopPropagation();
         if (!window.confirm('Delete this post? This cannot be undone.')) return;
+        if (!(await requireHumanCheck())) return;
         const { error } = await client.from('posts').delete().eq('id', post.id);
         if (error) {
           window.alert(`Failed to delete: ${error.message}`);

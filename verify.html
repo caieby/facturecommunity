@@ -49,6 +49,11 @@
     function onTurnstileSuccess() {
       try {
         localStorage.setItem('factureHumanVerifiedAt', String(Date.now()));
+        // Clear the pace trackers too -- otherwise the nav-speed count that
+        // got us sent here is still sitting in sessionStorage and the very
+        // next page load immediately bounces right back here again.
+        sessionStorage.removeItem('factureNavTimestamps');
+        sessionStorage.removeItem('factureActionTimestamps');
       } catch (e) {
         // Storage unavailable (e.g. private browsing) -- not required to proceed.
       }

@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../styles.css">
-  <script>try{(function(){var k='factureHumanVerifiedAt',cool=1800000,chance=0.15,last=0;try{last=Number(localStorage.getItem(k))||0;}catch(e){}var within=Date.now()-last<cool;var show=last===0||(!within&&Math.random()<chance);if(show){location.href='/verify.html?redirect='+encodeURIComponent(location.pathname+location.search+location.hash);}})();}catch(e){}</script>
+  <script>try{(function(){var k='factureHumanVerifiedAt',cool=1800000,chance=0.15,last=0;try{last=Number(localStorage.getItem(k))||0;}catch(e){}var within=Date.now()-last<cool;var navTooFast=false;try{var nk='factureNavTimestamps',nw=8000,nm=4,now=Date.now();var times=JSON.parse(sessionStorage.getItem(nk)||'[]').filter(function(t){return now-t<nw;});times.push(now);sessionStorage.setItem(nk,JSON.stringify(times));navTooFast=times.length>nm;}catch(e){}var show=last===0||navTooFast||(!within&&Math.random()<chance);if(show){location.href='/verify.html?redirect='+encodeURIComponent(location.pathname+location.search+location.hash);}})();}catch(e){}</script>
 </head>
 <body class="nsfwhub-body">
   <div class="announcement-banner announcement-banner--nsfw">

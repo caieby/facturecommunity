@@ -547,6 +547,11 @@ deactivateButton.addEventListener('click', async () => {
 
   deactivateButton.disabled = true;
 
+  if (!(await requireHumanCheck())) {
+    deactivateButton.disabled = false;
+    return;
+  }
+
   const { error } = await client
     .from('profiles')
     .update({ is_deactivated: true })
@@ -1010,6 +1015,12 @@ async function hasVerifiedTotp() {
 // have already confirmed a TOTP factor exists before calling this with
 // requireTotp: true).
 async function requestStepUpVerification({ requireTotp = false } = {}) {
+  // Catches bot-speed bursts of account actions (several step-up attempts
+  // within a few seconds) with a Turnstile popup, separate from -- and in
+  // addition to -- the password/2FA proof below. Resolves instantly with
+  // no popup for anyone moving at a normal pace.
+  if (!(await requireHumanCheck())) return false;
+
   const totpEnrolled = await hasVerifiedTotp();
 
   let hasPasskey = false;
