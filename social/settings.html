@@ -210,7 +210,17 @@
       <div class="passkey-list" id="passkeyList"></div>
       <p class="hub-form-error" id="passkeyError"></p>
       <p class="hub-form-status" id="passkeyStatus"></p>
-      <div class="button-group">
+
+      <form id="passkeyNameForm" class="hub-form" hidden>
+        <label class="hub-form-label" for="passkeyNameInput">Name this passkey, so you can tell it apart later</label>
+        <input class="hub-form-input" type="text" id="passkeyNameInput" placeholder="e.g. MacBook Pro" maxlength="40" autocomplete="off">
+        <div class="button-group">
+          <button type="submit" class="action-button">Continue</button>
+          <button type="button" class="hub-text-link" id="passkeyNameCancelButton">Cancel</button>
+        </div>
+      </form>
+
+      <div class="button-group" id="passkeyAddGroup">
         <button type="button" class="action-button" id="passkeyAddButton">Add a Passkey</button>
       </div>
     </section>

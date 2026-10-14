@@ -809,7 +809,11 @@ mfaDisableForm.addEventListener('submit', async (event) => {
 const passkeyList = document.getElementById('passkeyList');
 const passkeyError = document.getElementById('passkeyError');
 const passkeyStatus = document.getElementById('passkeyStatus');
+const passkeyAddGroup = document.getElementById('passkeyAddGroup');
 const passkeyAddButton = document.getElementById('passkeyAddButton');
+const passkeyNameForm = document.getElementById('passkeyNameForm');
+const passkeyNameInput = document.getElementById('passkeyNameInput');
+const passkeyNameCancelButton = document.getElementById('passkeyNameCancelButton');
 
 async function refreshPasskeys() {
   const { data: passkeys, error } = await client.auth.passkey.list();
@@ -851,10 +855,33 @@ async function refreshPasskeys() {
   });
 }
 
-passkeyAddButton.addEventListener('click', async () => {
+passkeyAddButton.addEventListener('click', () => {
   passkeyError.textContent = '';
   passkeyStatus.textContent = '';
-  passkeyAddButton.disabled = true;
+  passkeyNameInput.value = '';
+  passkeyAddGroup.hidden = true;
+  passkeyNameForm.hidden = false;
+  passkeyNameInput.focus();
+});
+
+passkeyNameCancelButton.addEventListener('click', () => {
+  passkeyNameForm.hidden = true;
+  passkeyAddGroup.hidden = false;
+});
+
+passkeyNameForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  passkeyError.textContent = '';
+  passkeyStatus.textContent = '';
+
+  const name = passkeyNameInput.value.trim();
+  if (!name) {
+    passkeyError.textContent = 'Give this passkey a name.';
+    return;
+  }
+
+  const submitButton = event.target.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
 
   try {
     const { data, error } = await client.auth.registerPasskey();
@@ -864,16 +891,25 @@ passkeyAddButton.addEventListener('click', async () => {
       // supporting WebAuthn, or the ceremony itself failing -- all surfaced
       // the same way, there's nothing more specific to tell them.
       passkeyError.textContent = error.message;
-      passkeyAddButton.disabled = false;
+      submitButton.disabled = false;
       return;
     }
 
-    passkeyStatus.textContent = data && data.friendly_name ? `Added "${data.friendly_name}".` : 'Passkey added!';
-    passkeyAddButton.disabled = false;
+    // registerPasskey() itself has no way to set a name -- it always comes
+    // back auto-labeled from the authenticator's AAGUID, so the name they
+    // just chose gets applied as a rename right after.
+    if (data && data.id) {
+      await client.auth.passkey.update({ passkeyId: data.id, friendlyName: name });
+    }
+
+    passkeyStatus.textContent = `Added "${name}".`;
+    submitButton.disabled = false;
+    passkeyNameForm.hidden = true;
+    passkeyAddGroup.hidden = false;
     await refreshPasskeys();
   } catch (err) {
     passkeyError.textContent = 'Something went wrong. Please try again.';
-    passkeyAddButton.disabled = false;
+    submitButton.disabled = false;
   }
 });
 
