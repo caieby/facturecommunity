@@ -978,11 +978,23 @@ profileModerateButton.addEventListener('click', async () => {
     `@${targetProfile.username}`,
     targetProfile.warning_count || 0,
     async (reason) => {
-      const { data, error } = await client.rpc('warn_user', { _target_user_id: viewedUserId, _reason: reason });
+      const { data, error } = await client.rpc('warn_user', {
+        _target_user_id: viewedUserId,
+        _reason: reason,
+        _delete_post_id: null,
+        _delete_message_id: null,
+        _content: null,
+      });
       return { error, result: data };
     },
     async (reason) => {
-      const { error } = await client.rpc('terminate_user', { _target_user_id: viewedUserId, _reason: reason });
+      const { error } = await client.rpc('terminate_user', {
+        _target_user_id: viewedUserId,
+        _reason: reason,
+        _delete_post_id: null,
+        _delete_message_id: null,
+        _content: null,
+      });
       return { error };
     }
   );
