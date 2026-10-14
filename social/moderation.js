@@ -8,12 +8,16 @@ const unauthorizedView = document.getElementById('unauthorizedView');
 const panelView = document.getElementById('panelView');
 const reportsTab = document.getElementById('reportsTab');
 const appealsTab = document.getElementById('appealsTab');
+const terminationsTab = document.getElementById('terminationsTab');
 const reportsSection = document.getElementById('reportsSection');
 const appealsSection = document.getElementById('appealsSection');
+const terminationsSection = document.getElementById('terminationsSection');
 const reportsList = document.getElementById('reportsList');
 const reportsEmpty = document.getElementById('reportsEmpty');
 const appealsList = document.getElementById('appealsList');
 const appealsEmpty = document.getElementById('appealsEmpty');
+const terminationsList = document.getElementById('terminationsList');
+const terminationsEmpty = document.getElementById('terminationsEmpty');
 
 let currentSession = null;
 
@@ -246,16 +250,63 @@ async function renderAppeals() {
   }
 }
 
+async function renderTerminations() {
+  const { data: terminated, error } = await client
+    .from('profiles')
+    .select('id, username, termination_reason, terminated_at')
+    .not('terminated_at', 'is', null)
+    .order('terminated_at', { ascending: false });
+
+  if (error || !terminated || terminated.length === 0) {
+    terminationsEmpty.hidden = false;
+    terminationsList.innerHTML = '';
+    return;
+  }
+
+  terminationsEmpty.hidden = true;
+  terminationsList.innerHTML = '';
+
+  for (const profile of terminated) {
+    const card = document.createElement('div');
+    card.className = 'mod-case-card';
+    card.innerHTML = `
+      <div class="mod-case-header">
+        <a href="/social/profiles/${profile.id}/" class="inline-link" target="_blank" rel="noopener"><strong>${escapeHtml(profile.username)}</strong></a>
+        <span class="mod-case-status mod-case-status--dismissed">terminated</span>
+      </div>
+      <p class="mod-case-meta">Terminated on ${formatDate(profile.terminated_at)}</p>
+      <p class="mod-case-reason"><strong>Reason:</strong> ${escapeHtml(profile.termination_reason)}</p>
+      <div class="mod-case-actions">
+        <button type="button" class="action-button action-button--small" data-action="revoke">Revoke Termination</button>
+      </div>
+    `;
+
+    card.querySelector('[data-action="revoke"]').addEventListener('click', async () => {
+      if (!window.confirm(`Revoke the termination on ${profile.username}? This restores their account.`)) return;
+      const { error: rpcError } = await client.rpc('revoke_termination', { _target_user_id: profile.id });
+      if (rpcError) {
+        window.alert(rpcError.message);
+        return;
+      }
+      renderTerminations();
+    });
+
+    terminationsList.appendChild(card);
+  }
+}
+
 function switchTab(tab) {
-  const showReports = tab === 'reports';
-  reportsSection.hidden = !showReports;
-  appealsSection.hidden = showReports;
-  reportsTab.setAttribute('aria-selected', String(showReports));
-  appealsTab.setAttribute('aria-selected', String(!showReports));
+  reportsSection.hidden = tab !== 'reports';
+  appealsSection.hidden = tab !== 'appeals';
+  terminationsSection.hidden = tab !== 'terminations';
+  reportsTab.setAttribute('aria-selected', String(tab === 'reports'));
+  appealsTab.setAttribute('aria-selected', String(tab === 'appeals'));
+  terminationsTab.setAttribute('aria-selected', String(tab === 'terminations'));
 }
 
 reportsTab.addEventListener('click', () => switchTab('reports'));
 appealsTab.addEventListener('click', () => switchTab('appeals'));
+terminationsTab.addEventListener('click', () => switchTab('terminations'));
 
 async function init() {
   const { data: { session } } = await client.auth.getSession();
@@ -283,6 +334,7 @@ async function init() {
   panelView.hidden = false;
   await renderReports();
   await renderAppeals();
+  await renderTerminations();
 }
 
 init();

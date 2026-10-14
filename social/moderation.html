@@ -48,6 +48,7 @@
     <div class="mod-panel-tabs">
       <button type="button" class="mod-panel-tab" id="reportsTab" data-tab="reports" aria-selected="true">Reports</button>
       <button type="button" class="mod-panel-tab" id="appealsTab" data-tab="appeals" aria-selected="false">Appeals</button>
+      <button type="button" class="mod-panel-tab" id="terminationsTab" data-tab="terminations" aria-selected="false">Terminations</button>
     </div>
 
     <section id="reportsSection">
@@ -58,6 +59,11 @@
     <section id="appealsSection" hidden>
       <p class="page-hint" id="appealsEmpty" hidden>No appeals yet.</p>
       <div class="mod-case-list" id="appealsList"></div>
+    </section>
+
+    <section id="terminationsSection" hidden>
+      <p class="page-hint" id="terminationsEmpty" hidden>No terminated accounts.</p>
+      <div class="mod-case-list" id="terminationsList"></div>
     </section>
   </main>
 
