@@ -1,41 +1,7 @@
-const ageGate = document.getElementById('ageGate');
-
-// Not a one-time "agree once, never see again" gate: past the cooldown
-// window, each page load has a random chance of re-prompting, so bots
-// can't just solve it once and skip verification forever after.
-const HUMAN_VERIFY_KEY = 'factureHumanVerifiedAt';
-const HUMAN_REVERIFY_COOLDOWN_MS = 30 * 60 * 1000;
-const HUMAN_REVERIFY_CHANCE = 0.15;
-
-function onTurnstileSuccess() {
-  if (ageGate) {
-    ageGate.hidden = true;
-    document.body.style.overflow = '';
-  }
-  try {
-    localStorage.setItem(HUMAN_VERIFY_KEY, String(Date.now()));
-  } catch (error) {
-    // Storage unavailable (e.g. private browsing) - not required to proceed.
-  }
-  document.dispatchEvent(new CustomEvent('facture:humanVerified'));
-}
-
-if (ageGate) {
-  let lastVerifiedAt = 0;
-  try {
-    lastVerifiedAt = Number(localStorage.getItem(HUMAN_VERIFY_KEY)) || 0;
-  } catch (error) {
-    lastVerifiedAt = 0;
-  }
-
-  const withinCooldown = Date.now() - lastVerifiedAt < HUMAN_REVERIFY_COOLDOWN_MS;
-  const shouldShow = lastVerifiedAt === 0 || (!withinCooldown && Math.random() < HUMAN_REVERIFY_CHANCE);
-
-  if (shouldShow) {
-    ageGate.hidden = false;
-    document.body.style.overflow = 'hidden';
-  }
-}
+// The human-verify redirect check itself runs as an inline head script on
+// every page (so it can bail out before anything renders) -- see
+// verify.html for the Turnstile challenge and script.js has nothing left
+// to do for it.
 
 const menuToggle = document.getElementById('menuToggle');
 const menuDropdown = document.getElementById('menuDropdown');

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <meta name="description" content="Quick human verification before you continue to Facture.">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <title>Verifying You&rsquo;re Human | Facture</title>
+  <link rel="icon" type="image/png" href="assets/Facture_Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a href="index.html" class="brand">
+      <img src="assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
+      <span class="brand-name">Facture</span>
+    </a>
+  </header>
+
+  <main class="hero">
+    <div class="age-gate-card">
+      <p class="age-gate-text">Let&rsquo;s make sure you&rsquo;re human before you continue.</p>
+      <div class="cf-turnstile" data-sitekey="0x4AAAAAAEmh6xhRr9ApRWq6" data-callback="onTurnstileSuccess" data-theme="dark"></div>
+      <p class="hub-form-error" id="verifyError" hidden>Something went wrong. Please refresh this page and try again.</p>
+      <p class="page-hint" id="verifyStatus" hidden>Verified! Taking you back&hellip;</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; Facture 2023-Present all rights reserved.</p>
+  </footer>
+
+  <script>
+    function getSafeRedirectTarget() {
+      var target = new URLSearchParams(location.search).get('redirect') || '/';
+      // Only ever follow a same-site relative path -- never let this page
+      // become an open redirect to another origin.
+      if (target.charAt(0) !== '/' || target.charAt(1) === '/' || target.indexOf('://') !== -1) {
+        target = '/';
+      }
+      return target;
+    }
+
+    function onTurnstileSuccess() {
+      try {
+        localStorage.setItem('factureHumanVerifiedAt', String(Date.now()));
+      } catch (e) {
+        // Storage unavailable (e.g. private browsing) -- not required to proceed.
+      }
+      document.getElementById('verifyStatus').hidden = false;
+      window.location.href = getSafeRedirectTarget();
+    }
+  </script>
+  <script src="script.js"></script>
+</body>
+</html>
