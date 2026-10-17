@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Welcome to Facture, a community hub founded in 2023, constantly progressing so everyone can be safe, happy, and themselves.">
+  <meta property="og:title" content="Facture">
+  <meta property="og:description" content="Welcome to Facture, a community hub founded in 2023, constantly progressing so everyone can be safe, happy, and themselves.">
+  <meta property="og:image" content="https://facturecommunity.org/assets/Facture_Logo.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Facture">
+  <meta name="twitter:description" content="Welcome to Facture, a community hub founded in 2023, constantly progressing so everyone can be safe, happy, and themselves.">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <title>Search | FactureHub</title>
+  <link rel="icon" type="image/png" href="/assets/Facture_Logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script>try{if(localStorage.getItem('facture-theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
+  <script>try{(function(){var k='factureHumanVerifiedAt',cool=1800000,chance=0.15,last=0;try{last=Number(localStorage.getItem(k))||0;}catch(e){}var within=Date.now()-last<cool;var navTooFast=false;try{var nk='factureNavTimestamps',nw=8000,nm=4,now=Date.now();var times=JSON.parse(sessionStorage.getItem(nk)||'[]').filter(function(t){return now-t<nw;});times.push(now);sessionStorage.setItem(nk,JSON.stringify(times));navTooFast=times.length>nm;}catch(e){}var show=last===0||navTooFast||(!within&&Math.random()<chance);if(show){location.href='/verify.html?redirect='+encodeURIComponent(location.pathname+location.search+location.hash);}})();}catch(e){}</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+</head>
+<body class="no-banner">
+  <header class="topbar">
+    <a href="/index.html" class="brand">
+      <img src="/assets/Facture_Logo.png" alt="Facture logo" class="brand-logo">
+      <span class="brand-name">Facture</span>
+    </a>
+    <nav class="menu">
+      <a class="menu-toggle" href="/social/home.html" data-back-link>&larr; Back</a>
+    </nav>
+  </header>
+
+  <div class="page-loading" id="pageLoading">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <main class="info-page" id="searchView" hidden>
+    <h1 class="page-title">Search</h1>
+
+    <form class="hub-form search-form" id="searchForm">
+      <input class="hub-form-input" type="text" id="searchInput" placeholder="Search people, posts, or #tags" autocomplete="off">
+    </form>
+
+    <section id="trendingSection">
+      <h2 class="subsection-title">Trending Tags</h2>
+      <p class="page-hint" id="trendingEmpty" hidden>Nothing trending yet.</p>
+      <div class="search-tag-list" id="trendingList"></div>
+    </section>
+
+    <section id="resultsSection" hidden>
+      <div class="search-results-group">
+        <h2 class="subsection-title">People</h2>
+        <p class="page-hint" id="peopleEmpty" hidden>No people found.</p>
+        <div class="search-people-list" id="peopleList"></div>
+      </div>
+
+      <div class="search-results-group">
+        <h2 class="subsection-title">Tags</h2>
+        <p class="page-hint" id="tagsEmpty" hidden>No tags found.</p>
+        <div class="search-tag-list" id="tagsList"></div>
+      </div>
+
+      <div class="search-results-group">
+        <h2 class="subsection-title">Posts</h2>
+        <p class="page-hint" id="postsEmpty" hidden>No posts found.</p>
+        <div class="feed-list" id="postsList"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; Facture 2023-Present all rights reserved.</p>
+    <p><a href="/social/tos.html" class="inline-link">TOS</a> &middot; <a href="/social/privacy-policy.html" class="inline-link">Privacy Policy</a></p>
+  </footer>
+
+  <script src="/script.js"></script>
+  <script src="/social/posts.js"></script>
+  <script src="/social/search.js"></script>
+</body>
+</html>
