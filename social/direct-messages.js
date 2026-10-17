@@ -132,6 +132,24 @@ function appendLinkEmbed(container, rawUrl) {
   container.appendChild(link);
 }
 
+function escapeDmText(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function timeAgo(dateStr) {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return 'now';
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+  return new Date(dateStr).toLocaleDateString();
+}
+
 function generateUUID() {
   if (crypto.randomUUID) return crypto.randomUUID();
   const bytes = crypto.getRandomValues(new Uint8Array(16));
@@ -440,6 +458,29 @@ async function loadConversationList() {
     .in('id', conversationIds)
     .eq('is_group', false);
 
+  const [{ data: recentMessages }, { data: unreadNotifs }] = await Promise.all([
+    client
+      .from('messages')
+      .select('conversation_id, content, attachment_type, created_at')
+      .in('conversation_id', conversationIds)
+      .order('created_at', { ascending: false }),
+    client
+      .from('notifications')
+      .select('conversation_id')
+      .eq('user_id', currentUserId)
+      .eq('type', 'message')
+      .eq('is_read', false),
+  ]);
+
+  const lastMessageByConvo = new Map();
+  (recentMessages || []).forEach((message) => {
+    if (!lastMessageByConvo.has(message.conversation_id)) {
+      lastMessageByConvo.set(message.conversation_id, message);
+    }
+  });
+
+  const unreadConvoIds = new Set((unreadNotifs || []).map((n) => n.conversation_id));
+
   const requests = [];
   const accepted = [];
 
@@ -447,7 +488,12 @@ async function loadConversationList() {
     const other = await loadOtherParticipant(convo.id);
     if (!other) continue;
 
-    const entry = { ...convo, other };
+    const entry = {
+      ...convo,
+      other,
+      lastMessage: lastMessageByConvo.get(convo.id) || null,
+      unread: unreadConvoIds.has(convo.id),
+    };
 
     if (convo.status === 'pending' && convo.created_by !== currentUserId) {
       requests.push(entry);
@@ -455,6 +501,12 @@ async function loadConversationList() {
       accepted.push(entry);
     }
   }
+
+  accepted.sort((a, b) => {
+    const aTime = a.lastMessage ? new Date(a.lastMessage.created_at).getTime() : 0;
+    const bTime = b.lastMessage ? new Date(b.lastMessage.created_at).getTime() : 0;
+    return bTime - aTime;
+  });
 
   if (requests.length > 0) {
     requestsSection.hidden = false;
@@ -466,15 +518,27 @@ async function loadConversationList() {
   accepted.forEach((entry) => conversationsList.appendChild(buildConversationRow(entry)));
 }
 
+function previewText(message) {
+  if (!message) return 'No messages yet';
+  if (message.content) return message.content;
+  if (message.attachment_type === 'image') return '📷 Photo';
+  if (message.attachment_type === 'video') return '🎞 Video';
+  return '📎 Attachment';
+}
+
 function buildConversationRow(entry) {
   const row = document.createElement('div');
-  row.className = 'dm-row';
+  row.className = `dm-row${entry.unread ? ' dm-row--unread' : ''}`;
   row.innerHTML = `
     ${entry.other.avatar_url ? `<img class="dm-row-avatar" src="${entry.other.avatar_url}" alt="">` : '<div class="dm-row-avatar dm-row-avatar--placeholder"></div>'}
     <div class="dm-row-info">
-      <span class="dm-row-name">${entry.other.display_name}</span>
-      <span class="dm-row-username">@${entry.other.username}</span>
+      <div class="dm-row-top">
+        <span class="dm-row-name">${entry.other.display_name}</span>
+        ${entry.lastMessage ? `<span class="dm-row-time">${timeAgo(entry.lastMessage.created_at)}</span>` : ''}
+      </div>
+      <span class="dm-row-preview">${escapeDmText(previewText(entry.lastMessage))}</span>
     </div>
+    ${entry.unread ? '<span class="dm-row-unread-dot"></span>' : ''}
     ${entry.status === 'pending' ? '<span class="dm-row-tag">Pending</span>' : ''}
   `;
   row.addEventListener('click', () => openThread(entry.id, entry.other, entry.status));
@@ -631,6 +695,15 @@ async function openThread(conversationId, otherProfile, status) {
 
   await loadMessages(conversationId);
   subscribeToMessages(conversationId);
+
+  client
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('user_id', currentUserId)
+    .eq('type', 'message')
+    .eq('conversation_id', conversationId)
+    .eq('is_read', false)
+    .then(() => {});
 }
 
 async function loadMessages(conversationId) {

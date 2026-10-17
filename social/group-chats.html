@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="/styles.css">
   <script>try{if(localStorage.getItem('facture-theme')==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
   <script>try{(function(){var k='factureHumanVerifiedAt',cool=1800000,chance=0.15,last=0;try{last=Number(localStorage.getItem(k))||0;}catch(e){}var within=Date.now()-last<cool;var navTooFast=false;try{var nk='factureNavTimestamps',nw=8000,nm=4,now=Date.now();var times=JSON.parse(sessionStorage.getItem(nk)||'[]').filter(function(t){return now-t<nw;});times.push(now);sessionStorage.setItem(nk,JSON.stringify(times));navTooFast=times.length>nm;}catch(e){}var show=last===0||navTooFast||(!within&&Math.random()<chance);if(show){location.href='/verify.html?redirect='+encodeURIComponent(location.pathname+location.search+location.hash);}})();}catch(e){}</script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body class="no-banner">
   <header class="topbar">
@@ -32,9 +33,102 @@
     </nav>
   </header>
 
-  <main class="page">
+  <main class="info-page" id="groupListView">
     <h1 class="page-title">Group Chats</h1>
-    <p class="page-hint">Content coming soon.</p>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h2 class="section-title">New Group</h2>
+      <form id="newGroupForm" class="hub-form">
+        <label class="hub-form-label" for="newGroupName">Group Name</label>
+        <input class="hub-form-input" type="text" id="newGroupName" maxlength="50" required>
+
+        <label class="hub-form-label" for="newGroupMemberInput">Add a member (must be a mutual friend)</label>
+        <div class="hub-password-row">
+          <input class="hub-form-input" type="text" id="newGroupMemberInput" placeholder="username">
+          <button type="button" class="action-button action-button--small" id="newGroupAddMemberButton">Add</button>
+        </div>
+        <p class="hub-form-error" id="newGroupMemberError"></p>
+
+        <div class="group-member-chips" id="newGroupMemberChips"></div>
+        <p class="page-hint" id="newGroupCountHint">0 / 9 members added (plus you)</p>
+
+        <p class="hub-form-error" id="newGroupError"></p>
+        <button type="submit" class="action-button">Create Group</button>
+      </form>
+    </section>
+
+    <hr class="section-divider">
+    <section class="section">
+      <h2 class="section-title">Your Groups</h2>
+      <p class="page-hint" id="noGroupsHint">No group chats yet.</p>
+      <div class="dm-list" id="groupsList"></div>
+    </section>
+  </main>
+
+  <main class="info-page dm-thread-page" id="groupThreadView" hidden>
+    <div class="dm-thread-header">
+      <button type="button" class="menu-toggle dm-back-button" id="groupBackToListButton" aria-label="Back to Groups">&larr;</button>
+      <div class="dm-thread-avatar dm-thread-avatar--placeholder group-thread-icon" id="groupThreadIcon">#</div>
+      <div class="dm-row-info">
+        <span class="dm-thread-name" id="groupThreadName">Group</span>
+        <span class="group-member-count" id="groupMemberCount"></span>
+      </div>
+      <button type="button" class="menu-toggle dm-back-button" id="groupMembersButton" aria-label="Members">&#128101;</button>
+      <button type="button" class="menu-toggle dm-back-button" id="leaveGroupButton" aria-label="Leave group" title="Leave group">&#128682;</button>
+    </div>
+
+    <div class="group-members-panel" id="groupMembersPanel" hidden>
+      <div class="group-members-list" id="groupMembersList"></div>
+      <form id="addMemberForm" class="hub-form group-add-member-form" hidden>
+        <div class="hub-password-row">
+          <input class="hub-form-input" type="text" id="addMemberInput" placeholder="username">
+          <button type="submit" class="action-button action-button--small">Add</button>
+        </div>
+        <p class="hub-form-error" id="addMemberError"></p>
+      </form>
+    </div>
+
+    <div class="dm-thread" id="groupMessages"></div>
+
+    <div class="dm-composer">
+      <div class="dm-attachment-preview" id="attachmentPreview" hidden>
+        <span id="attachmentPreviewName"></span>
+        <div class="dm-upload-progress" id="uploadProgress" hidden>
+          <div class="dm-upload-progress-bar" id="uploadProgressBar"></div>
+        </div>
+        <button type="button" id="attachmentPreviewRemove" aria-label="Remove attachment">&times;</button>
+      </div>
+
+      <div class="dm-picker" id="gifPicker" hidden>
+        <div class="dm-picker-header">
+          <span>Favorite GIFs</span>
+          <button type="button" class="dm-picker-close" data-close-picker="gifPicker" aria-label="Close">&times;</button>
+        </div>
+        <div class="dm-picker-grid" id="gifPickerGrid">
+          <p class="dm-picker-empty" id="gifPickerEmpty">No favorite GIFs yet. Send a GIF, then click its star to save it here.</p>
+        </div>
+      </div>
+
+      <div class="dm-picker" id="emojiPicker" hidden>
+        <div class="dm-picker-header">
+          <span>Emojis</span>
+          <button type="button" class="dm-picker-close" data-close-picker="emojiPicker" aria-label="Close">&times;</button>
+        </div>
+        <div class="dm-picker-grid dm-emoji-grid" id="emojiPickerGrid"></div>
+      </div>
+
+      <form id="sendMessageForm" class="dm-send-form">
+        <button type="button" class="dm-icon-button" id="attachButton" aria-label="Attach a file">&#128206;</button>
+        <input type="file" id="attachmentInput" hidden>
+        <button type="button" class="dm-icon-button" id="gifPickerButton" aria-label="Favorite GIFs">
+          <span class="dm-gif-label">GIF</span>
+        </button>
+        <button type="button" class="dm-icon-button" id="emojiPickerButton" aria-label="Emojis">&#128512;</button>
+        <input class="dm-message-input" type="text" id="messageInput" placeholder="Type a message..." maxlength="2000">
+        <button type="submit" class="dm-send-button" id="sendMessageButton" aria-label="Send">&#10148;</button>
+      </form>
+    </div>
   </main>
 
   <footer class="site-footer">
@@ -43,5 +137,6 @@
   </footer>
 
   <script src="/script.js"></script>
+  <script src="/social/group-chats.js"></script>
 </body>
 </html>
