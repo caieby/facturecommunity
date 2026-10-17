@@ -4,6 +4,12 @@ function escapePostText(str) {
   return div.innerHTML;
 }
 
+function linkifyHashtags(str) {
+  return escapePostText(str).replace(/(^|[\s])#([a-zA-Z0-9_]{1,50})/g, (match, lead, tag) => {
+    return `${lead}<a class="post-hashtag" href="/social/search.html?tag=${encodeURIComponent(tag.toLowerCase())}">#${tag}</a>`;
+  });
+}
+
 function postTimeAgo(dateStr) {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
   if (seconds < 60) return 'now';
@@ -538,7 +544,7 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
       </div>
     `;
 
-    card.querySelector('.post-content').textContent = post.content;
+    card.querySelector('.post-content').innerHTML = linkifyHashtags(post.content);
     if (post.media_url) card.querySelector('.post-media').src = post.media_url;
     if (author) applyNameColor(card.querySelector('.post-author-name'), author.profile_color, author.profile_color_type);
     wireCard(card, post, author, state, opts);
@@ -631,6 +637,13 @@ function createPostsController(client, currentUserId, supabaseUrl, supabaseAnonK
         repostButton.classList.toggle('active');
         countEl.textContent = String(Number(countEl.textContent) + (nowReposted ? 1 : -1));
         showInlineError(error.message.includes('row-level security') ? "You can't interact with this post." : `Error: ${error.message}`);
+      } else if (!nowReposted && post.author_id !== currentUserId) {
+        client.from('notifications').insert({
+          user_id: post.author_id,
+          type: 'repost',
+          actor_id: currentUserId,
+          post_id: post.id,
+        }).then(() => {});
       }
     });
 

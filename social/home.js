@@ -222,6 +222,12 @@ function buildNotifRow(notif, actor) {
     ? `<strong>${actor.display_name}</strong> followed you`
     : notif.type === 'like'
     ? `<strong>${actor.display_name}</strong> liked your post`
+    : notif.type === 'repost'
+    ? `<strong>${actor.display_name}</strong> reposted your post`
+    : notif.type === 'group_invite'
+    ? `<strong>${actor.display_name}</strong> added you to a group`
+    : notif.type === 'group_message'
+    ? `<strong>${actor.display_name}</strong> sent a message in a group chat`
     : `<strong>${actor.display_name}</strong> sent you a message`;
 
   row.innerHTML = `
@@ -233,8 +239,10 @@ function buildNotifRow(notif, actor) {
     await client.from('notifications').update({ is_read: true }).eq('id', notif.id);
     if (notif.type === 'follow') {
       window.location.href = `/social/profiles/${actor.id}/`;
-    } else if (notif.type === 'like') {
+    } else if (notif.type === 'like' || notif.type === 'repost') {
       window.location.href = `/social/posts/${notif.post_id}/`;
+    } else if (notif.type === 'group_invite' || notif.type === 'group_message') {
+      window.location.href = `/social/group-chats.html?open=${notif.conversation_id}`;
     } else {
       window.location.href = `/social/direct-messages.html?open=${notif.conversation_id}`;
     }
